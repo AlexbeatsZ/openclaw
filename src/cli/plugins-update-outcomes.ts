@@ -7,7 +7,24 @@ type PluginUpdateCliOutcome = {
   channelFallback?: {
     message: string;
   };
+  code?: string;
 };
+
+function isClawHubRiskAcknowledgementSkippedOutcome(outcome: PluginUpdateCliOutcome): boolean {
+  return (
+    outcome.status === "skipped" &&
+    outcome.message.includes("ClawHub") &&
+    outcome.message.includes("--acknowledge-clawhub-risk")
+  );
+}
+
+function isClawHubDownloadBlockedSkippedOutcome(outcome: PluginUpdateCliOutcome): boolean {
+  return outcome.status === "skipped" && outcome.code === "clawhub_download_blocked";
+}
+
+function isClawHubSecurityUnavailableSkippedOutcome(outcome: PluginUpdateCliOutcome): boolean {
+  return outcome.status === "skipped" && outcome.code === "clawhub_security_unavailable";
+}
 
 /** Log update outcomes with severity styling and report whether any errors occurred. */
 export function logPluginUpdateOutcomes(params: {
@@ -25,6 +42,13 @@ export function logPluginUpdateOutcomes(params: {
       continue;
     }
     if (outcome.status === "skipped") {
+      if (
+        isClawHubRiskAcknowledgementSkippedOutcome(outcome) ||
+        isClawHubDownloadBlockedSkippedOutcome(outcome) ||
+        isClawHubSecurityUnavailableSkippedOutcome(outcome)
+      ) {
+        hasErrors = true;
+      }
       params.log(theme.warn(outcome.message));
       if (outcome.channelFallback) {
         params.log(theme.warn(outcome.channelFallback.message));
