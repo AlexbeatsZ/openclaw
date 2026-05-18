@@ -575,7 +575,23 @@ async function agentCommandInternal(
           mode: "prompt",
           requestId: runId,
           signal: opts.abortSignal,
+          onLifecycle: (event) => {
+            if (event.type === "prompt_submitted") {
+              attemptExecutionRuntime.emitAcpPromptSubmitted({
+                runId,
+                sessionKey,
+                at: event.at,
+              });
+            }
+          },
           onEvent: (event) => {
+            if (event.type !== "text_delta") {
+              attemptExecutionRuntime.emitAcpRuntimeEvent({
+                runId,
+                sessionKey,
+                event,
+              });
+            }
             if (event.type === "done") {
               stopReason = event.stopReason;
               return;
@@ -1117,6 +1133,19 @@ async function agentCommandInternal(
           ...modelManifestContext,
           runId,
           agentDir,
+          agentId: sessionAgentId,
+          sessionKey: sessionKey ?? sessionId,
+          prepareAgentHarnessRuntime: async ({ provider, model, agentHarnessRuntimeOverride }) => {
+            await ensureSelectedAgentHarnessPlugin({
+              config: cfg,
+              provider,
+              modelId: model,
+              agentId: sessionAgentId,
+              sessionKey,
+              agentHarnessRuntimeOverride,
+              workspaceDir,
+            });
+          },
           fallbacksOverride: effectiveFallbacksOverride,
           onFallbackStep: (step) => {
             fallbackTrajectoryRecorder?.recordEvent("model.fallback_step", step);
