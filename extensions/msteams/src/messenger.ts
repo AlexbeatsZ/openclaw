@@ -333,7 +333,7 @@ export async function buildActivity(
         });
 
         // Tag the activity so the caller can store the activity ID after sending
-        consentActivity._pendingUploadId = uploadId;
+        consentActivity["_pendingUploadId"] = uploadId;
 
         // Return the consent activity (caller sends it)
         return consentActivity;
@@ -486,9 +486,11 @@ export async function sendMSTeamsMessages(params: {
 
         // Extract and strip the internal-only pending upload tag before sending.
         pendingUploadId =
-          typeof activity._pendingUploadId === "string" ? activity._pendingUploadId : undefined;
+          typeof activity["_pendingUploadId"] === "string"
+            ? activity["_pendingUploadId"]
+            : undefined;
         if (pendingUploadId) {
-          delete activity._pendingUploadId;
+          delete activity["_pendingUploadId"];
         }
 
         return await sendFn(activity);
