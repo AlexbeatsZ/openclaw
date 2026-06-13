@@ -113,6 +113,7 @@ export function renderShortcutLegend(props: ShortcutLegendProps) {
   const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault();
+      e.stopPropagation();
       props.onClose();
       return;
     }
