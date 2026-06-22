@@ -74,8 +74,6 @@ type ClawHubSkillSecurityLinks = {
 type ClawHubPluginSecurityLinks = {
   subject: string;
   clawscan: string;
-  staticAnalysis: string;
-  virustotal: string;
 };
 
 type ClawHubSecurityLinks = ClawHubSkillSecurityLinks | ClawHubPluginSecurityLinks;
@@ -287,8 +285,6 @@ function resolveClawHubSecurityLinks(params: {
   return {
     subject: subjectUrl,
     clawscan: `${subjectUrl}/security/clawscan`,
-    staticAnalysis: `${subjectUrl}/security/static-analysis`,
-    virustotal: `${subjectUrl}/security/virustotal`,
   };
 }
 
@@ -389,8 +385,6 @@ function formatClawHubTrustEvidenceLines(params: {
   const lines: string[] = [];
   const accent = resolveClawHubTrustAccent(params.assessment.disposition);
   const securityLink = "clawscan" in params.links ? params.links.clawscan : params.links.security;
-  const staticAnalysisLink =
-    "staticAnalysis" in params.links ? params.links.staticAnalysis : params.links.security;
   const addLine = (label: string, value: string): void => {
     lines.push(formatClawHubEvidenceLine({ label, value, accent }));
   };
@@ -420,10 +414,10 @@ function formatClawHubTrustEvidenceLines(params: {
         addLine("Scanner:", linked("malicious behavior detected", securityLink));
         break;
       case "static:malicious":
-        addLine("Static analysis:", linked("malicious behavior detected", staticAnalysisLink));
+        addLine("Static analysis:", linked("malicious behavior detected", securityLink));
         break;
       case "payload_strings":
-        addLine("Finding:", linked("suspicious payload strings", staticAnalysisLink));
+        addLine("Finding:", linked("suspicious payload strings", securityLink));
         break;
       default:
         addLine("Finding:", sanitizeTerminalText(formatClawHubReasonCode(reason)));
@@ -468,8 +462,6 @@ function formatClawHubRawLinks(params: {
     "Links:",
     formatClawHubRawLinkLine("Plugin", subjectUrl),
     formatClawHubRawLinkLine("Security scan", params.links.clawscan),
-    formatClawHubRawLinkLine("Static analysis", params.links.staticAnalysis),
-    formatClawHubRawLinkLine("VirusTotal", params.links.virustotal),
   ].join("\n");
 }
 
@@ -494,11 +486,14 @@ function formatClawHubTrustWarning(params: {
   });
   const noun = params.subject.kind;
   if (params.assessment.disposition === "blocked") {
+    const malicious = hasMaliciousClawHubTrustSignal(params.trust);
     const blockedAction =
       params.mode === "update"
-        ? `OpenClaw will not update to this ${noun} release from ClawHub.`
+        ? malicious
+          ? `Latest ${noun} version is marked malicious; OpenClaw will not download it.`
+          : `Latest ${noun} version is blocked by ClawHub; OpenClaw will not download it.`
         : `OpenClaw will not install this ${noun} release from ClawHub.`;
-    const blockedTitle = hasMaliciousClawHubTrustSignal(params.trust)
+    const blockedTitle = malicious
       ? "BLOCKED - ClawHub flagged this release as malicious"
       : "BLOCKED - ClawHub blocked this release";
     return [
@@ -508,7 +503,7 @@ function formatClawHubTrustWarning(params: {
           ...evidenceLines,
           "",
           blockedAction,
-          "Choose a different version, review the ClawHub security details, or contact the package maintainer if you believe this is wrong.",
+          "Review the ClawHub security details or contact the package maintainer if you believe this is wrong.",
         ],
         params.assessment.disposition,
       ),

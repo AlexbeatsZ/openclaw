@@ -1174,6 +1174,56 @@ describe("skills-clawhub", () => {
     expect(lock.skills.weather?.ownerHandle).toBe("demo-owner");
   });
 
+  it("explains that a malicious skill update will not be downloaded", async () => {
+    const workspaceDir = await tempDirs.make("openclaw-skill-malicious-update-");
+    const warnings: string[] = [];
+    await writeClawHubOriginFixture({
+      workspaceDir,
+      slug: "agentreceipt",
+      installedVersion: "0.9.0",
+    });
+    fetchClawHubSkillSecurityVerdictsMock.mockResolvedValueOnce({
+      schema: "clawhub.skill.security-verdicts.v1",
+      items: [
+        {
+          ok: false,
+          decision: "fail",
+          reasons: ["scan:malicious"],
+          requestedSlug: "agentreceipt",
+          requestedVersion: "1.0.0",
+          slug: "agentreceipt",
+          version: "1.0.0",
+          security: {
+            status: "malicious",
+            passed: false,
+          },
+        },
+      ],
+    });
+
+    const results = await updateSkillsFromClawHub({
+      workspaceDir,
+      slug: "agentreceipt",
+      logger: {
+        warn: (message) => warnings.push(message),
+      },
+    });
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        ok: false,
+        code: "clawhub_download_blocked",
+        error: "ClawHub blocked this release; update was not started.",
+      }),
+    ]);
+    expect(warnings.join("\n")).toContain(
+      "Latest skill version is marked malicious; OpenClaw will not download it.",
+    );
+    expect(warnings.join("\n")).not.toContain("Choose a different version");
+    expect(downloadClawHubSkillArchiveUrlMock).not.toHaveBeenCalled();
+    expect(downloadClawHubSkillArchiveMock).not.toHaveBeenCalled();
+  });
+
   it("updates owner-qualified ClawHub skills when the requested owner matches tracking", async () => {
     const workspaceDir = await tempDirs.make("openclaw-owner-update-request-");
     await writeClawHubOriginFixture({

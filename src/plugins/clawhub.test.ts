@@ -465,6 +465,47 @@ describe("installPluginFromClawHub", () => {
     expect(installPluginFromArchiveMock).not.toHaveBeenCalled();
   });
 
+  it("explains that a malicious plugin update will not be downloaded", async () => {
+    fetchClawHubPackageSecurityMock.mockResolvedValueOnce({
+      package: {
+        name: "demo",
+        displayName: "Demo",
+        family: "code-plugin",
+      },
+      release: {
+        version: "2026.3.22",
+      },
+      trust: {
+        scanStatus: "malicious",
+        moderationState: "quarantined",
+        blockedFromDownload: true,
+        reasons: ["scan:malicious"],
+        pending: false,
+        stale: false,
+      },
+    });
+    const logger = createLoggerSpies();
+
+    const result = await installPluginFromClawHub({
+      spec: "clawhub:demo",
+      baseUrl: "https://clawhub.ai",
+      logger,
+      mode: "update",
+    });
+
+    const failure = expectInstallFailure(result);
+    expect(failure.code).toBe(CLAWHUB_INSTALL_ERROR_CODE.CLAWHUB_DOWNLOAD_BLOCKED);
+    const warning = logger.warn.mock.calls[0]?.[0] ?? "";
+    expect(warning).toContain(
+      "Latest plugin version is marked malicious; OpenClaw will not download it.",
+    );
+    expect(warning).not.toContain("Choose a different version");
+    expect(warning).not.toContain("/security/static-analysis");
+    expect(warning).not.toContain("/security/virustotal");
+    expect(downloadClawHubPackageArchiveMock).not.toHaveBeenCalled();
+    expect(installPluginFromArchiveMock).not.toHaveBeenCalled();
+  });
+
   it("includes the blocked-download reason when other trust evidence exists", async () => {
     fetchClawHubPackageSecurityMock.mockResolvedValueOnce({
       package: {
