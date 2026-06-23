@@ -3,9 +3,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import {
+  CRABLINE_FAKE_PROVIDER_CHANNELS,
   OPENCLAW_CRABLINE_MANIFEST_PATH,
   startOpenClawCrablineAdapter,
-  type OpenClawCrablineChannelDriverSelection,
   type StartedOpenClawCrablineAdapter,
 } from "@openclaw/crabline";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
@@ -31,10 +31,64 @@ import type {
 const CRABLINE_TRANSPORT_ID = "crabline";
 const RECORDER_SYNC_INTERVAL_MS = 50;
 
+export type QaCrablineProviderChannel = "slack" | "telegram" | "whatsapp";
+
+export type QaCrablineChannelDriverSelection = {
+  capabilityMatrixPath: "crabline-fake-provider-capabilities.json";
+  channel: QaCrablineProviderChannel;
+  channelDriver: "crabline";
+  smokeArtifactPath: "crabline-fake-provider-smoke.json";
+};
+
+type QaCrablineManifest = {
+  accessToken?: string;
+  adminToken: string;
+  endpoints: {
+    adminInboundUrl: string;
+    apiRoot: string;
+  };
+  provider: string;
+  recorderPath: string;
+};
+
+type QaStartedOpenClawCrablineAdapter = Omit<
+  StartedOpenClawCrablineAdapter,
+  "channel" | "manifest"
+> & {
+  channel: QaCrablineProviderChannel;
+  manifest: QaCrablineManifest;
+};
+
+type StartQaCrablineAdapter = (params: {
+  channel: QaCrablineProviderChannel;
+  openclawConfig?: Record<string, unknown> | undefined;
+  recorderPath?: string | undefined;
+}) => Promise<QaStartedOpenClawCrablineAdapter>;
+
 type QaCrablineTransportState = QaTransportState & {
   cleanup: () => Promise<void>;
   rememberProviderTarget: (providerTargetKey: string, qaTarget: string) => void;
 };
+
+const startQaCrablineAdapter = startOpenClawCrablineAdapter as unknown as StartQaCrablineAdapter;
+
+function supportedCrablineFakeProviderChannels() {
+  return new Set<string>(CRABLINE_FAKE_PROVIDER_CHANNELS as readonly string[]);
+}
+
+function assertCrablineFakeProviderChannelAvailable(channel: QaCrablineProviderChannel) {
+  const supportedChannels = supportedCrablineFakeProviderChannels();
+  if (supportedChannels.has(channel)) {
+    return;
+  }
+  throw new QaSuiteInfraError(
+    "transport_unavailable",
+    [
+      `@openclaw/crabline does not provide a ${channel} fake provider server.`,
+      `installed fake provider channels: ${[...supportedChannels].toSorted().join(", ") || "none"}`,
+    ].join(" "),
+  );
+}
 
 async function waitForCrablineReady(params: {
   accountId: string;
@@ -95,7 +149,7 @@ async function waitForCrablineReady(params: {
 }
 
 async function postCrablineInbound(params: {
-  adapter: StartedOpenClawCrablineAdapter;
+  adapter: QaStartedOpenClawCrablineAdapter;
   providerBody: Record<string, unknown>;
 }) {
   const { response, release } = await fetchWithSsrFGuard({
@@ -143,8 +197,13 @@ function toQaTransportGatewayConfig(value: unknown): QaTransportGatewayConfig {
   return value;
 }
 
-function createCrablineRuntimeEnvPatch(adapter: StartedOpenClawCrablineAdapter): NodeJS.ProcessEnv {
+function createCrablineRuntimeEnvPatch(
+  adapter: QaStartedOpenClawCrablineAdapter,
+): NodeJS.ProcessEnv {
   if (adapter.manifest.provider === "whatsapp") {
+    if (!adapter.manifest.accessToken) {
+      throw new Error("Crabline WhatsApp manifest is missing an access token.");
+    }
     return {
       WHATSAPP_ACCESS_TOKEN: adapter.manifest.accessToken,
       WHATSAPP_API_ROOT: adapter.manifest.endpoints.apiRoot,
@@ -154,7 +213,7 @@ function createCrablineRuntimeEnvPatch(adapter: StartedOpenClawCrablineAdapter):
 }
 
 function createCrablineState(params: {
-  adapter: StartedOpenClawCrablineAdapter;
+  adapter: QaStartedOpenClawCrablineAdapter;
   state: QaBusState;
 }): QaCrablineTransportState {
   const baseState = params.state;
@@ -247,13 +306,13 @@ function createCrablineState(params: {
 }
 
 class QaCrablineTransport extends QaStateBackedTransportAdapter {
-  readonly #adapter: StartedOpenClawCrablineAdapter;
-  readonly #selection: OpenClawCrablineChannelDriverSelection;
+  readonly #adapter: QaStartedOpenClawCrablineAdapter;
+  readonly #selection: QaCrablineChannelDriverSelection;
   readonly #state: QaCrablineTransportState;
 
   constructor(params: {
-    adapter: StartedOpenClawCrablineAdapter;
-    selection: OpenClawCrablineChannelDriverSelection;
+    adapter: QaStartedOpenClawCrablineAdapter;
+    selection: QaCrablineChannelDriverSelection;
     state: QaCrablineTransportState;
   }) {
     super({
@@ -311,9 +370,10 @@ class QaCrablineTransport extends QaStateBackedTransportAdapter {
 
 export async function createQaCrablineTransportAdapter(params: {
   outputDir: string;
-  selection: OpenClawCrablineChannelDriverSelection;
+  selection: QaCrablineChannelDriverSelection;
   state?: QaBusState;
 }) {
+  assertCrablineFakeProviderChannelAvailable(params.selection.channel);
   const recorderPath = path.join(
     params.outputDir,
     "artifacts",
@@ -321,7 +381,7 @@ export async function createQaCrablineTransportAdapter(params: {
     `${params.selection.channel}-fake-provider.jsonl`,
   );
   await fs.mkdir(path.dirname(recorderPath), { recursive: true });
-  const adapter = await startOpenClawCrablineAdapter({
+  const adapter = await startQaCrablineAdapter({
     channel: params.selection.channel,
     openclawConfig: {},
     recorderPath,

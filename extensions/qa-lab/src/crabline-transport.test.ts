@@ -1,20 +1,33 @@
 // Qa Lab tests cover Crabline fake-provider transport integration behavior.
 import fs from "node:fs/promises";
 import path from "node:path";
-import { OPENCLAW_CRABLINE_MANIFEST_PATH } from "@openclaw/crabline";
+import {
+  CRABLINE_FAKE_PROVIDER_CHANNELS,
+  OPENCLAW_CRABLINE_MANIFEST_PATH,
+} from "@openclaw/crabline";
 import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
 import { withTempDir } from "openclaw/plugin-sdk/test-env";
 import { describe, expect, it } from "vitest";
 import { createQaBusState } from "./bus-state.js";
-import { createQaCrablineTransportAdapter } from "./crabline-transport.js";
+import {
+  createQaCrablineTransportAdapter,
+  type QaCrablineChannelDriverSelection,
+  type QaCrablineProviderChannel,
+} from "./crabline-transport.js";
 
-function createSelection(channel: "slack" | "telegram" | "whatsapp" = "telegram") {
+function createSelection(
+  channel: QaCrablineProviderChannel = "telegram",
+): QaCrablineChannelDriverSelection {
   return {
     capabilityMatrixPath: "crabline-fake-provider-capabilities.json",
     channel,
     channelDriver: "crabline",
     smokeArtifactPath: "crabline-fake-provider-smoke.json",
   } as const;
+}
+
+function supportsCrablineFakeProvider(channel: QaCrablineProviderChannel) {
+  return (CRABLINE_FAKE_PROVIDER_CHANNELS as readonly string[]).includes(channel);
 }
 
 describe("crabline transport", () => {
@@ -59,63 +72,84 @@ describe("crabline transport", () => {
     });
   });
 
-  it("configures OpenClaw's Slack plugin against a Crabline fake provider server", async () => {
-    await withTempDir("qa-crabline-transport-", async (outputDir) => {
-      const transport = await createQaCrablineTransportAdapter({
-        outputDir,
-        selection: createSelection("slack"),
-        state: createQaBusState(),
-      });
+  it.runIf(supportsCrablineFakeProvider("slack"))(
+    "configures OpenClaw's Slack plugin against a Crabline fake provider server",
+    async () => {
+      await withTempDir("qa-crabline-transport-", async (outputDir) => {
+        const transport = await createQaCrablineTransportAdapter({
+          outputDir,
+          selection: createSelection("slack"),
+          state: createQaBusState(),
+        });
 
-      try {
-        expect(transport.requiredPluginIds).toEqual(["slack"]);
-        expect(transport.createGatewayConfig({ baseUrl: "http://127.0.0.1:1" })).toMatchObject({
-          channels: {
-            slack: {
-              botToken: "xoxb-crabline-slack-token",
-              enabled: true,
-              mode: "http",
-              signingSecret: "crabline-slack-signing-secret",
+        try {
+          expect(transport.requiredPluginIds).toEqual(["slack"]);
+          expect(transport.createGatewayConfig({ baseUrl: "http://127.0.0.1:1" })).toMatchObject({
+            channels: {
+              slack: {
+                botToken: "xoxb-crabline-slack-token",
+                enabled: true,
+                mode: "http",
+                signingSecret: "crabline-slack-signing-secret",
+              },
             },
-          },
-        });
-        expect(transport.createRuntimeEnvPatch?.()).toMatchObject({
-          SLACK_API_URL: expect.stringMatching(/^http:\/\/127\.0\.0\.1:\d+\/api\/$/u),
-          SLACK_BOT_TOKEN: "xoxb-crabline-slack-token",
-          SLACK_SIGNING_SECRET: "crabline-slack-signing-secret",
-        });
+          });
+          expect(transport.createRuntimeEnvPatch?.()).toMatchObject({
+            SLACK_API_URL: expect.stringMatching(/^http:\/\/127\.0\.0\.1:\d+\/api\/$/u),
+            SLACK_BOT_TOKEN: "xoxb-crabline-slack-token",
+            SLACK_SIGNING_SECRET: "crabline-slack-signing-secret",
+          });
 
-        const manifest = JSON.parse(
-          await fs.readFile(path.join(outputDir, OPENCLAW_CRABLINE_MANIFEST_PATH), "utf8"),
-        ) as {
-          provider?: string;
-        };
-        expect(manifest.provider).toBe("slack");
-      } finally {
-        await transport.cleanup?.();
-      }
-    });
-  });
-
-  it("passes Crabline WhatsApp API env to the gateway runtime", async () => {
-    await withTempDir("qa-crabline-transport-", async (outputDir) => {
-      const transport = await createQaCrablineTransportAdapter({
-        outputDir,
-        selection: createSelection("whatsapp"),
-        state: createQaBusState(),
+          const manifest = JSON.parse(
+            await fs.readFile(path.join(outputDir, OPENCLAW_CRABLINE_MANIFEST_PATH), "utf8"),
+          ) as {
+            provider?: string;
+          };
+          expect(manifest.provider).toBe("slack");
+        } finally {
+          await transport.cleanup?.();
+        }
       });
+    },
+  );
 
-      try {
-        expect(transport.requiredPluginIds).toEqual(["whatsapp"]);
-        expect(transport.createRuntimeEnvPatch?.()).toMatchObject({
-          WHATSAPP_ACCESS_TOKEN: "crabline-whatsapp-access-token",
-          WHATSAPP_API_ROOT: expect.stringMatching(
-            /^http:\/\/127\.0\.0\.1:\d+\/crabline\/whatsapp$/u,
-          ),
+  it.runIf(supportsCrablineFakeProvider("whatsapp"))(
+    "passes Crabline WhatsApp API env to the gateway runtime",
+    async () => {
+      await withTempDir("qa-crabline-transport-", async (outputDir) => {
+        const transport = await createQaCrablineTransportAdapter({
+          outputDir,
+          selection: createSelection("whatsapp"),
+          state: createQaBusState(),
         });
-      } finally {
-        await transport.cleanup?.();
-      }
+
+        try {
+          expect(transport.requiredPluginIds).toEqual(["whatsapp"]);
+          expect(transport.createRuntimeEnvPatch?.()).toMatchObject({
+            WHATSAPP_ACCESS_TOKEN: "crabline-whatsapp-access-token",
+            WHATSAPP_API_ROOT: expect.stringMatching(
+              /^http:\/\/127\.0\.0\.1:\d+\/crabline\/whatsapp$/u,
+            ),
+          });
+        } finally {
+          await transport.cleanup?.();
+        }
+      });
+    },
+  );
+
+  it("reports unavailable fake-provider channels from the installed Crabline package", async () => {
+    if (supportsCrablineFakeProvider("slack")) {
+      return;
+    }
+    await withTempDir("qa-crabline-transport-", async (outputDir) => {
+      await expect(
+        createQaCrablineTransportAdapter({
+          outputDir,
+          selection: createSelection("slack"),
+          state: createQaBusState(),
+        }),
+      ).rejects.toThrow(/does not provide a slack fake provider server/u);
     });
   });
 
