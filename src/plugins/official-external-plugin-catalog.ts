@@ -15,6 +15,16 @@ import type {
 
 type ManifestKey = typeof MANIFEST_KEY;
 
+class HostedCatalogSnapshotWriteError extends Error {
+  readonly originalError: unknown;
+
+  constructor(originalError: unknown) {
+    super("hosted catalog snapshot write failed");
+    this.name = "HostedCatalogSnapshotWriteError";
+    this.originalError = originalError;
+  }
+}
+
 export type OfficialExternalProviderAuthChoice = {
   method?: string;
   choiceId?: string;
@@ -695,6 +705,8 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
   ifNoneMatch?: string;
   ifModifiedSince?: string;
   expectedSha256?: string;
+  offline?: boolean;
+  requireSnapshotWrite?: boolean;
   snapshotStore?: HostedOfficialExternalPluginCatalogSnapshotStore | null;
   env?: NodeJS.ProcessEnv;
   stateDir?: string;
@@ -718,10 +730,24 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
     stateDir: params?.stateDir,
     stateDatabasePath: params?.stateDatabasePath,
   });
+  const expectedSha256 = normalizeOptionalString(params?.expectedSha256);
+  const requireManifestInstallSourceRef = shouldRequireManifestInstallSourceRef({
+    feedProfile: params?.feedProfile,
+    catalogConfig: params?.catalogConfig,
+  });
+  if (params?.offline === true) {
+    return await snapshotOrBundledFallbackResult({
+      error: "hosted catalog feed offline mode",
+      snapshotStore,
+      url: url.href,
+      expectedSha256,
+      catalogConfig: params?.catalogConfig,
+      requireManifestInstallSourceRef,
+    });
+  }
   const headers = new Headers();
   const ifNoneMatch = normalizeOptionalString(params?.ifNoneMatch);
   const ifModifiedSince = normalizeOptionalString(params?.ifModifiedSince);
-  const expectedSha256 = normalizeOptionalString(params?.expectedSha256);
   if (ifNoneMatch) {
     headers.set("if-none-match", ifNoneMatch);
   }
@@ -763,10 +789,7 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
         metadata: base,
         expectedSha256,
         catalogConfig: params?.catalogConfig,
-        requireManifestInstallSourceRef: shouldRequireManifestInstallSourceRef({
-          feedProfile: params?.feedProfile,
-          catalogConfig: params?.catalogConfig,
-        }),
+        requireManifestInstallSourceRef,
       });
     }
     if (!response.ok) {
@@ -777,10 +800,7 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
         metadata: base,
         expectedSha256,
         catalogConfig: params?.catalogConfig,
-        requireManifestInstallSourceRef: shouldRequireManifestInstallSourceRef({
-          feedProfile: params?.feedProfile,
-          catalogConfig: params?.catalogConfig,
-        }),
+        requireManifestInstallSourceRef,
       });
     }
     const body = await readHostedCatalogResponseText({
@@ -799,10 +819,7 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
         metadata,
         expectedSha256,
         catalogConfig: params?.catalogConfig,
-        requireManifestInstallSourceRef: shouldRequireManifestInstallSourceRef({
-          feedProfile: params?.feedProfile,
-          catalogConfig: params?.catalogConfig,
-        }),
+        requireManifestInstallSourceRef,
       });
     }
     const raw = JSON.parse(body) as unknown;
@@ -814,20 +831,14 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
         metadata,
         expectedSha256,
         catalogConfig: params?.catalogConfig,
-        requireManifestInstallSourceRef: shouldRequireManifestInstallSourceRef({
-          feedProfile: params?.feedProfile,
-          catalogConfig: params?.catalogConfig,
-        }),
+        requireManifestInstallSourceRef,
       });
     }
     const entries = filterOfficialExternalPluginCatalogEntriesBySourceRefs(
       parseOfficialExternalPluginCatalogEntries(raw),
       {
         catalogConfig: params?.catalogConfig,
-        requireManifestInstallSourceRef: shouldRequireManifestInstallSourceRef({
-          feedProfile: params?.feedProfile,
-          catalogConfig: params?.catalogConfig,
-        }),
+        requireManifestInstallSourceRef,
       },
     );
     await snapshotStore
@@ -836,7 +847,11 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
         metadata,
         savedAt: (params?.now?.() ?? new Date()).toISOString(),
       })
-      .catch(() => undefined);
+      .catch((err: unknown) => {
+        if (params?.requireSnapshotWrite) {
+          throw new HostedCatalogSnapshotWriteError(err);
+        }
+      });
     return {
       source: "hosted",
       entries: dedupeOfficialExternalPluginCatalogEntries(entries),
@@ -844,16 +859,16 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
       metadata,
     };
   } catch (err) {
+    if (err instanceof HostedCatalogSnapshotWriteError) {
+      throw err.originalError;
+    }
     return await snapshotOrBundledFallbackResult({
       error: err,
       snapshotStore,
       url: url.href,
       expectedSha256,
       catalogConfig: params?.catalogConfig,
-      requireManifestInstallSourceRef: shouldRequireManifestInstallSourceRef({
-        feedProfile: params?.feedProfile,
-        catalogConfig: params?.catalogConfig,
-      }),
+      requireManifestInstallSourceRef,
     });
   } finally {
     if (response?.bodyUsed !== true) {
@@ -1041,6 +1056,25 @@ export function resolveOfficialExternalPluginInstall(
     ...(install?.expectedIntegrity ? { expectedIntegrity: install.expectedIntegrity } : {}),
     ...(install?.allowInvalidConfigRecovery === true ? { allowInvalidConfigRecovery: true } : {}),
   };
+}
+
+export function resolveOfficialExternalPluginCatalogProfileConfigFromConfig(config?: {
+  marketplaces?: OfficialExternalPluginCatalogProfileConfig;
+}): OfficialExternalPluginCatalogProfileConfig | undefined {
+  return config?.marketplaces;
+}
+
+export async function loadConfiguredHostedOfficialExternalPluginCatalogEntries(
+  config: { marketplaces?: OfficialExternalPluginCatalogProfileConfig } | undefined,
+  params?: Omit<
+    Parameters<typeof loadHostedOfficialExternalPluginCatalogEntries>[0],
+    "catalogConfig"
+  >,
+): Promise<HostedOfficialExternalPluginCatalogLoadResult> {
+  return await loadHostedOfficialExternalPluginCatalogEntries({
+    ...params,
+    catalogConfig: resolveOfficialExternalPluginCatalogProfileConfigFromConfig(config),
+  });
 }
 
 export function listOfficialExternalPluginCatalogEntries(): OfficialExternalPluginCatalogEntry[] {
