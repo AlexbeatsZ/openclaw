@@ -100,6 +100,10 @@ Important source anchors:
 - Server WSL deployment switched the user systemd `openclaw-gateway.service` from the old global package entrypoint to `/home/meta/Project/Workspaces/openclaw/dist/index.js` without upgrading the global package.
 - Server cron migration changed `Steped_Study_Check`, `Daily_Review_Feedback`, and `Weekly_Academic_Audit` to `sessionTarget: "main"` with `delivery.strategy: "direct"`. `Memory Dreaming Promotion` stayed isolated with `delivery.mode: "none"` because it is an internal memory-core promotion job.
 - First server validation of `Steped_Study_Check` failed with `cron-in-progress`, confirming the direct runner still treated its own cron lane occupancy as blocking. The local fix now skips cron lane-size admission only for direct cron while preserving the other-active-cron marker guard.
+- After redeploying the lane-admission fix, `Steped_Study_Check` reached model execution but failed because the server still had legacy `auth-profiles.json` credentials while the current runtime reads `openclaw-agent.sqlite`.
+- Migrated the existing main-agent legacy auth profiles into SQLite using OpenClaw's own auth store helpers, after backing up the prior SQLite/auth files under `C:\Users\Meta\AppData\Local\Temp\.agents\openclaw-auth-before-sqlite-import-20260625-125416`.
+- After auth migration, `models status` showed no missing auth for configured providers. Re-running `Steped_Study_Check` succeeded with fallback to `sensenova-openai/deepseek-v4-flash`, `delivered=true`, and `lastDeliveryStatus=delivered`.
+- Final server health was `ok`; QQ bot was running and connected. `Daily_Review_Feedback` still has historical `consecutiveErrors=15`, but its delivery config is now `main + direct` and the shared model auth issue has been fixed for future runs.
 
 # Task Board
 
@@ -123,4 +127,5 @@ Important source anchors:
 - [x] Confirm before server backup/deploy and before any global package upgrade.
 - [x] Deploy to server WSL without upgrading the global package.
 - [x] Migrate `Steped_Study_Check`, `Daily_Review_Feedback`, and `Weekly_Academic_Audit` to `main + direct`; keep Memory Dreaming isolated.
-- [ ] Redeploy the direct cron lane-admission fix and re-run `Steped_Study_Check` validation.
+- [x] Redeploy the direct cron lane-admission fix and re-run `Steped_Study_Check` validation.
+- [x] Import legacy main-agent auth profiles into SQLite so direct main cron can resolve model credentials.
