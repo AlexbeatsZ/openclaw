@@ -1432,7 +1432,9 @@ export async function runHeartbeatOnce(opts: {
   const hasBlockingCron = opts.direct
     ? hasActiveCronJobsOtherThan(opts.direct.jobId)
     : hasActiveCronJobs();
-  if (hasBlockingCron || hasQueuedWorkInLanes(HEARTBEAT_ALWAYS_BUSY_LANES, getSize)) {
+  const hasBlockingCronLaneWork =
+    !isDirectCron && hasQueuedWorkInLanes(HEARTBEAT_ALWAYS_BUSY_LANES, getSize);
+  if (hasBlockingCron || hasBlockingCronLaneWork) {
     emitHeartbeatEvent({
       status: "skipped",
       reason: HEARTBEAT_SKIP_CRON_IN_PROGRESS,

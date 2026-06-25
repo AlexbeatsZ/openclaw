@@ -71,6 +71,7 @@ Important source anchors:
 - Direct delivery still runs the model once in the main heartbeat/session chain. The runner captures all user-visible assistant payloads, filters out reasoning/tool/system/internal-error payloads, and sends the visible payload batch directly through the configured channel target.
 - Direct delivery does not call a second model and does not require the model to use the `message` tool. QQ/plugin-specific cleanup and splitting remain in the durable outbound send path.
 - Direct cron bypasses only its own active-cron marker. Other active cron jobs still block execution, preserving the existing concurrency guard.
+- Direct cron must also ignore the current cron command lane occupancy. Manual and scheduled cron executions run inside `CommandLane.Cron`, so checking the raw cron lane size makes the current job block its own heartbeat until timeout with `cron-in-progress`.
 - Cron results now propagate `deliveryAttempted`, `delivered`, delivery target/error details, provider/model, and `fallbackUsed` back into run logs. Direct delivery succeeds only when the full payload batch is sent.
 - UI cron configuration now exposes delivery strategy as "Session delivery" and "Program delivery" for main-session jobs. Program delivery hides best-effort mode and validates explicit channel/target.
 - State/protocol/tool schemas persist and expose `delivery_strategy`, and all shipped UI locales were synced with English fallback strings for the new controls.
@@ -90,10 +91,15 @@ Important source anchors:
 - Passed: `pnpm db:kysely:check`.
 - Passed: local changed-file formatting check with `oxfmt --check` on the modified files.
 - Passed: `pnpm build` after final formatting.
+- Passed after deployment-gate fix: `pnpm vitest run src/infra/heartbeat-runner.skips-busy-session-lane.test.ts src/cron/service.main-job-passes-heartbeat-target-last.test.ts` (2 files, 23 tests).
+- Passed after deployment-gate fix: `pnpm tsgo:core`.
 - `pnpm test:changed` failed outside this change in `packages/memory-host-sdk/src/host/session-files.test.ts` because Windows path casing differed in expected transcript paths and teardown hit `EPERM` on its temp directory.
 - Default `pnpm check:changed` delegates to Blacksmith/Crabbox and reported a crabbox binary sanity-check failure. The local remote-child form reached `prompt snapshot drift` and failed with `spawn EINVAL` in `scripts/generate-prompt-snapshots.ts:49`, matching a Windows local environment issue.
 - Full-repo `pnpm format:check` reported many pre-existing formatting issues outside this task; only modified files were formatted and rechecked.
-- Server deployment, backup under `%LOCALAPPDATA%\Temp\.agents\`, global package upgrades, and the `Steped_Study_Check` migration were not performed in this implementation pass and still require explicit confirmation.
+- Server backup was written under `C:\Users\Meta\AppData\Local\Temp\.agents\openclaw-direct-delivery-20260625-121452` before deployment.
+- Server WSL deployment switched the user systemd `openclaw-gateway.service` from the old global package entrypoint to `/home/meta/Project/Workspaces/openclaw/dist/index.js` without upgrading the global package.
+- Server cron migration changed `Steped_Study_Check`, `Daily_Review_Feedback`, and `Weekly_Academic_Audit` to `sessionTarget: "main"` with `delivery.strategy: "direct"`. `Memory Dreaming Promotion` stayed isolated with `delivery.mode: "none"` because it is an internal memory-core promotion job.
+- First server validation of `Steped_Study_Check` failed with `cron-in-progress`, confirming the direct runner still treated its own cron lane occupancy as blocking. The local fix now skips cron lane-size admission only for direct cron while preserving the other-active-cron marker guard.
 
 # Task Board
 
@@ -114,5 +120,7 @@ Important source anchors:
 - [x] Run targeted tests, typecheck, i18n check, Kysely check, local changed-file format check, and full build.
 - [ ] Resolve or bypass unrelated Windows-local `test:changed` memory-host path casing failure.
 - [ ] Resolve local `check:changed` prompt snapshot `spawn EINVAL` / crabbox sanity issue.
-- [ ] Confirm before server backup/deploy and before any global package upgrade.
-- [ ] After deploy confirmation, migrate `Steped_Study_Check` to `main + direct` first; keep Memory Dreaming isolated.
+- [x] Confirm before server backup/deploy and before any global package upgrade.
+- [x] Deploy to server WSL without upgrading the global package.
+- [x] Migrate `Steped_Study_Check`, `Daily_Review_Feedback`, and `Weekly_Academic_Audit` to `main + direct`; keep Memory Dreaming isolated.
+- [ ] Redeploy the direct cron lane-admission fix and re-run `Steped_Study_Check` validation.

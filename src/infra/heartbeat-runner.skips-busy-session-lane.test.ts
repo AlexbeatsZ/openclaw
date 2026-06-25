@@ -129,6 +129,61 @@ describe("heartbeat runner skips when target session lane is busy", () => {
     });
   });
 
+  it("allows direct cron to run while its own cron lane is active", async () => {
+    await withTempHeartbeatSandbox(async ({ storePath, replySpy }) => {
+      const cfg = createHeartbeatTelegramConfig();
+      await seedHeartbeatTelegramSession(storePath, cfg);
+      markCronJobActive("direct-current-job");
+      replySpy.mockResolvedValue({ text: "HEARTBEAT_OK" });
+
+      const result = await runHeartbeatOnce({
+        cfg,
+        source: "cron",
+        intent: "immediate",
+        heartbeat: { target: "telegram", to: "123" },
+        direct: {
+          jobId: "direct-current-job",
+          delivery: { channel: "telegram", to: "123" },
+        },
+        deps: {
+          getQueueSize: vi.fn((lane?: string) => (lane === CommandLane.Cron ? 1 : 0)),
+          nowMs: () => Date.now(),
+          getReplyFromConfig: replySpy,
+        } as HeartbeatDeps,
+      });
+
+      expect(result.status).toBe("ran");
+      expect(replySpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("blocks direct cron when another cron job is active", async () => {
+    await withTempHeartbeatSandbox(async ({ storePath, replySpy }) => {
+      const cfg = createHeartbeatTelegramConfig();
+      await seedHeartbeatTelegramSession(storePath, cfg);
+      markCronJobActive("other-active-job");
+
+      const result = await runHeartbeatOnce({
+        cfg,
+        source: "cron",
+        intent: "immediate",
+        heartbeat: { target: "telegram", to: "123" },
+        direct: {
+          jobId: "direct-current-job",
+          delivery: { channel: "telegram", to: "123" },
+        },
+        deps: {
+          getQueueSize: vi.fn((_lane?: string) => 0),
+          nowMs: () => Date.now(),
+          getReplyFromConfig: replySpy,
+        } as HeartbeatDeps,
+      });
+
+      expect(result).toEqual({ status: "skipped", reason: HEARTBEAT_SKIP_CRON_IN_PROGRESS });
+      expect(replySpy).not.toHaveBeenCalled();
+    });
+  });
+
   it("does not return lanes-busy for global subagent-lane work alone", async () => {
     // The global Subagent lane has no agent identity in its name — a stalled
     // subagent on any one agent must not silently disable every other
