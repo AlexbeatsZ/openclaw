@@ -12,6 +12,11 @@ const DeliveryModeFieldSchema = z
   // "deliver" is the historical CLI spelling; runtime delivery uses announce.
   .transform((value) => (value === "deliver" ? "announce" : value));
 
+const DeliveryStrategyFieldSchema = z.preprocess(
+  trimLowercaseStringPreprocess,
+  z.enum(["heartbeat", "direct"]),
+);
+
 /** Accepts non-empty string fields after trimming and lowercasing user-provided delivery input. */
 export const LowercaseNonEmptyStringFieldSchema = z.preprocess(
   trimLowercaseStringPreprocess,
@@ -35,6 +40,7 @@ export const TimeoutSecondsFieldSchema = z.number().finite().nonnegative();
 
 type ParsedDeliveryInput = {
   mode?: "announce" | "none" | "webhook";
+  strategy?: "heartbeat" | "direct";
   channel?: string;
   to?: string;
   threadId?: string | number;
@@ -45,6 +51,7 @@ type ParsedDeliveryInput = {
 export function parseDeliveryInput(input: Record<string, unknown>): ParsedDeliveryInput {
   return {
     mode: parseOptionalField(DeliveryModeFieldSchema, input.mode),
+    strategy: parseOptionalField(DeliveryStrategyFieldSchema, input.strategy),
     channel: parseOptionalField(LowercaseNonEmptyStringFieldSchema, input.channel),
     to: parseOptionalField(TrimmedNonEmptyStringFieldSchema, input.to),
     threadId: parseOptionalField(DeliveryThreadIdFieldSchema, input.threadId),

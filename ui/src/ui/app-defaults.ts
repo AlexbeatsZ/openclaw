@@ -42,6 +42,7 @@ export const DEFAULT_CRON_FORM: CronFormState = {
   payloadThinking: "",
   payloadLightContext: false,
   deliveryMode: "announce",
+  deliveryStrategy: "heartbeat",
   deliveryChannel: "last",
   deliveryTo: "",
   deliveryAccountId: "",

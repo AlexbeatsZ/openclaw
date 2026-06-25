@@ -273,7 +273,9 @@ function resolveEveryAnchorMs(params: {
 }
 
 /** Validates that session target and payload kind form a supported cron job shape. */
-export function assertSupportedJobSpec(job: Pick<CronJob, "sessionTarget" | "payload">) {
+export function assertSupportedJobSpec(
+  job: Pick<CronJob, "sessionTarget" | "payload" | "delivery">,
+) {
   if (typeof job.sessionTarget !== "string") {
     throw new Error(
       'cron job is missing sessionTarget; expected "main", "isolated", "current", or "session:<id>"',
@@ -286,8 +288,17 @@ export function assertSupportedJobSpec(job: Pick<CronJob, "sessionTarget" | "pay
   if (job.sessionTarget.startsWith("session:")) {
     assertSafeCronSessionTargetId(job.sessionTarget.slice(8));
   }
-  if (job.sessionTarget === "main" && job.payload.kind !== "systemEvent") {
-    throw new Error('main cron jobs require payload.kind="systemEvent"');
+  const mainDirect = job.sessionTarget === "main" && job.delivery?.strategy === "direct";
+  if (
+    job.sessionTarget === "main" &&
+    job.payload.kind !== "systemEvent" &&
+    !(mainDirect && job.payload.kind === "agentTurn")
+  ) {
+    throw new Error(
+      mainDirect
+        ? 'main direct cron jobs require payload.kind="systemEvent" or "agentTurn"'
+        : 'main cron jobs require payload.kind="systemEvent"',
+    );
   }
   if (isIsolatedLike && job.payload.kind !== "agentTurn" && job.payload.kind !== "command") {
     throw new Error(
@@ -331,6 +342,23 @@ function assertDeliverySupport(job: Pick<CronJob, "sessionTarget" | "delivery">)
   if (!job.delivery) {
     return;
   }
+  const strategy = job.delivery.strategy ?? "heartbeat";
+  if (strategy === "direct") {
+    if (job.sessionTarget !== "main") {
+      throw new Error('cron delivery.strategy="direct" is only supported for sessionTarget="main"');
+    }
+    if (job.delivery.mode !== "announce") {
+      throw new Error('main direct cron delivery requires delivery.mode="announce"');
+    }
+    if (!job.delivery.channel?.trim() || job.delivery.channel === "last") {
+      throw new Error("main direct cron delivery requires an explicit delivery.channel");
+    }
+    if (!job.delivery.to?.trim()) {
+      throw new Error("main direct cron delivery requires an explicit delivery.to");
+    }
+  } else if (job.delivery.strategy !== undefined && job.sessionTarget !== "main") {
+    throw new Error('cron delivery.strategy is only supported for sessionTarget="main"');
+  }
   // No primary delivery and no completion webhook -- nothing to validate.
   if (job.delivery.mode === "none" && !job.delivery.completionDestination) {
     return;
@@ -368,7 +396,7 @@ function assertDeliverySupport(job: Pick<CronJob, "sessionTarget" | "delivery">)
     job.sessionTarget === "isolated" ||
     job.sessionTarget === "current" ||
     job.sessionTarget.startsWith("session:");
-  if (!isIsolatedLike) {
+  if (!isIsolatedLike && strategy !== "direct") {
     throw new Error('cron channel delivery config is only supported for sessionTarget="isolated"');
   }
 }
@@ -393,7 +421,11 @@ function assertFailureDestinationSupport(job: Pick<CronJob, "sessionTarget" | "d
   if (!hasConcreteFailureDestination(failureDestination)) {
     return;
   }
-  if (job.sessionTarget === "main" && job.delivery?.mode !== "webhook") {
+  if (
+    job.sessionTarget === "main" &&
+    job.delivery?.mode !== "webhook" &&
+    job.delivery?.strategy !== "direct"
+  ) {
     throw new Error(
       'cron delivery.failureDestination is only supported for sessionTarget="isolated" unless delivery.mode="webhook"',
     );
@@ -870,7 +902,11 @@ export function applyJobPatch(
       'cron delivery.failureDestination is only supported for sessionTarget="isolated" unless delivery.mode="webhook"',
     );
   }
-  if (job.sessionTarget === "main" && job.delivery?.mode !== "webhook") {
+  if (
+    job.sessionTarget === "main" &&
+    job.delivery?.mode !== "webhook" &&
+    job.delivery?.strategy !== "direct"
+  ) {
     // Main-session jobs cannot auto-announce; keep only an empty failure
     // destination object when the patch is clearing nested fields.
     const failureDestination = job.delivery?.failureDestination;
@@ -1061,6 +1097,7 @@ function mergeCronDelivery(
   const hasCompletionDestinationPatch = "completionDestination" in patch;
   const next: CronDelivery = {
     mode: existing?.mode ?? "none",
+    strategy: existing?.strategy,
     channel: existing?.channel,
     to: existing?.to,
     threadId: existing?.threadId,
@@ -1086,6 +1123,10 @@ function mergeCronDelivery(
     if (!hasCompletionDestinationPatch && (next.mode === "none" || next.mode === "webhook")) {
       next.completionDestination = undefined;
     }
+  }
+  if ("strategy" in patch) {
+    next.strategy =
+      patch.strategy === "heartbeat" || patch.strategy === "direct" ? patch.strategy : undefined;
   }
   if ("channel" in patch) {
     next.channel = normalizeOptionalString(patch.channel);
@@ -1165,6 +1206,7 @@ function mergeCronDelivery(
     existing === undefined &&
     !("mode" in patch) &&
     next.mode === "none" &&
+    next.strategy === undefined &&
     next.channel === undefined &&
     next.to === undefined &&
     next.threadId === undefined &&
@@ -1246,6 +1288,10 @@ export function isJobDue(job: CronJob, nowMs: number, opts: { forced: boolean })
 
 /** Returns main-session queue text for system-event jobs, or undefined when empty/unsupported. */
 export function resolveJobPayloadTextForMain(job: CronJob): string | undefined {
+  if (job.payload.kind === "agentTurn" && job.delivery?.strategy === "direct") {
+    const message = job.payload.message.trim();
+    return message || undefined;
+  }
   if (job.payload.kind !== "systemEvent") {
     return undefined;
   }

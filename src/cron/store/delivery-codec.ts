@@ -14,6 +14,7 @@ export function bindDeliveryColumns(
   | "delivery_completion_mode"
   | "delivery_completion_to"
   | "delivery_mode"
+  | "delivery_strategy"
   | "delivery_thread_id"
   | "delivery_to"
   | "failure_delivery_account_id"
@@ -24,6 +25,7 @@ export function bindDeliveryColumns(
   const failureDestination = delivery?.failureDestination;
   return {
     delivery_mode: delivery?.mode ?? null,
+    delivery_strategy: delivery?.strategy ?? null,
     delivery_channel: delivery?.channel ?? null,
     delivery_to: delivery?.to ?? null,
     delivery_thread_id:
@@ -62,9 +64,14 @@ function cronDeliveryModeFromValue(value: unknown): CronDelivery["mode"] | undef
   return value === "none" || value === "announce" || value === "webhook" ? value : undefined;
 }
 
+function cronDeliveryStrategyFromValue(value: unknown): CronDelivery["strategy"] | undefined {
+  return value === "heartbeat" || value === "direct" ? value : undefined;
+}
+
 /** Reconstructs delivery config from split SQLite columns, preserving legacy partial rows. */
 export function deliveryFromRow(row: CronJobRow): CronDelivery | undefined {
   const rowMode = cronDeliveryModeFromValue(row.delivery_mode);
+  const rowStrategy = cronDeliveryStrategyFromValue(row.delivery_strategy);
   const hasDeliveryColumns =
     Boolean(
       row.delivery_channel ||
@@ -77,7 +84,9 @@ export function deliveryFromRow(row: CronJobRow): CronDelivery | undefined {
       row.failure_delivery_to != null ||
       row.failure_delivery_mode != null ||
       row.failure_delivery_account_id != null,
-    ) || row.delivery_best_effort != null;
+    ) ||
+    row.delivery_best_effort != null ||
+    rowStrategy !== undefined;
   const completionDestination =
     rowMode === "announce" && row.delivery_completion_mode === "webhook"
       ? {
@@ -120,6 +129,7 @@ export function deliveryFromRow(row: CronJobRow): CronDelivery | undefined {
   // historical default for configured channel delivery.
   return {
     mode: rowMode ?? "announce",
+    ...(rowStrategy ? { strategy: rowStrategy } : {}),
     ...(row.delivery_channel ? { channel: row.delivery_channel as CronDelivery["channel"] } : {}),
     ...(row.delivery_to ? { to: row.delivery_to } : {}),
     ...(row.delivery_thread_id ? { threadId: row.delivery_thread_id } : {}),

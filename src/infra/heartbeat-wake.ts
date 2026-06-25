@@ -1,12 +1,47 @@
 // Tracks heartbeat wake requests, busy skips, and retry timing.
 import { normalizeOptionalString } from "@openclaw/normalization-core/string-coerce";
+import type { ReplyPayload } from "../auto-reply/types.js";
+import type { CronDeliveryTrace, CronRunTelemetry } from "../cron/types.js";
 import { resolveTimerTimeoutMs } from "../shared/number-coercion.js";
 import { normalizeHeartbeatWakeReason } from "./heartbeat-reason.js";
 
+export type HeartbeatDirectCronRun = {
+  jobId: string;
+  delivery: {
+    channel: string;
+    to: string;
+    accountId?: string;
+    threadId?: string | number;
+  };
+  model?: string;
+  fallbacks?: string[];
+  thinking?: string;
+  timeoutSeconds?: number;
+  lightContext?: boolean;
+  toolsAllow?: string[];
+};
+
 export type HeartbeatRunResult =
-  | { status: "ran"; durationMs: number }
+  | ({
+      status: "ran";
+      durationMs: number;
+      delivered?: boolean;
+      deliveryAttempted?: boolean;
+      deliveryError?: string;
+      delivery?: CronDeliveryTrace;
+      payloads?: ReplyPayload[];
+      fallbackUsed?: boolean;
+    } & CronRunTelemetry)
   | { status: "skipped"; reason: string }
-  | { status: "failed"; reason: string };
+  | ({
+      status: "failed";
+      reason: string;
+      delivered?: boolean;
+      deliveryAttempted?: boolean;
+      deliveryError?: string;
+      delivery?: CronDeliveryTrace;
+      fallbackUsed?: boolean;
+    } & CronRunTelemetry);
 
 export const HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT = "requests-in-flight";
 export const HEARTBEAT_SKIP_CRON_IN_PROGRESS = "cron-in-progress";

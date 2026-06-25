@@ -26,7 +26,7 @@ import type {
   CronRunsStatusFilter,
   CronSortDir,
 } from "../types.ts";
-import type { CronFormState } from "../ui-types.ts";
+import { CRON_CHANNEL_LAST, type CronFormState } from "../ui-types.ts";
 
 export type CronProps = {
   basePath: string;
@@ -263,6 +263,9 @@ function inputIdForField(key: CronFieldKey) {
   if (key === "timeoutSeconds") {
     return "cron-timeout-seconds";
   }
+  if (key === "deliveryChannel") {
+    return "cron-delivery-channel";
+  }
   if (key === "failureAlertAfter") {
     return "cron-failure-alert-after";
   }
@@ -295,6 +298,7 @@ function fieldLabelForKey(
     payloadModel: t("cron.form.model"),
     payloadThinking: t("cron.form.thinking"),
     timeoutSeconds: t("cron.form.timeoutSeconds"),
+    deliveryChannel: t("cron.form.channel"),
     deliveryTo: t("cron.form.to"),
     failureAlertAfter: "Failure alert after",
     failureAlertCooldownSeconds: "Failure alert cooldown",
@@ -317,6 +321,7 @@ function collectBlockingFields(
     "payloadModel",
     "payloadThinking",
     "timeoutSeconds",
+    "deliveryChannel",
     "deliveryTo",
     "failureAlertAfter",
     "failureAlertCooldownSeconds",
@@ -386,8 +391,9 @@ export function renderCron(props: CronProps) {
   const statusSummary = summarizeSelection(selectedStatusLabels, t("cron.runs.allStatuses"));
   const deliverySummary = summarizeSelection(selectedDeliveryLabels, t("cron.runs.allDelivery"));
   const supportsAnnounce =
-    props.form.sessionTarget !== "main" &&
-    (props.form.payloadKind === "agentTurn" || payloadLocked);
+    (props.form.sessionTarget === "main" && props.form.deliveryStrategy === "direct") ||
+    (props.form.sessionTarget !== "main" &&
+      (props.form.payloadKind === "agentTurn" || payloadLocked));
   const selectedDeliveryMode =
     props.form.deliveryMode === "announce" && !supportsAnnounce ? "none" : props.form.deliveryMode;
   const formOpen = props.cronFormCollapsed === false || isEditing;
@@ -1016,11 +1022,46 @@ export function renderCron(props: CronProps) {
                   <div class="cron-form-section__title">${t("cron.form.deliverySection")}</div>
                   <div class="cron-form-section__sub">${t("cron.form.deliverySub")}</div>
                   <div class="form-grid cron-form-grid">
+                    ${props.form.sessionTarget === "main"
+                      ? html`
+                          <div class="field cron-span-2">
+                            ${renderFieldLabel(t("cron.form.deliveryStrategy"))}
+                            <div class="cfg-segmented" role="group">
+                              <button
+                                type="button"
+                                class="cfg-segmented__btn ${props.form.deliveryStrategy ===
+                                "heartbeat"
+                                  ? "active"
+                                  : ""}"
+                                @click=${() =>
+                                  props.onFormChange({ deliveryStrategy: "heartbeat" })}
+                              >
+                                ${t("cron.form.heartbeatDelivery")}
+                              </button>
+                              <button
+                                type="button"
+                                class="cfg-segmented__btn ${props.form.deliveryStrategy === "direct"
+                                  ? "active"
+                                  : ""}"
+                                @click=${() => props.onFormChange({ deliveryStrategy: "direct" })}
+                              >
+                                ${t("cron.form.directDelivery")}
+                              </button>
+                            </div>
+                            <div class="cron-help">
+                              ${props.form.deliveryStrategy === "direct"
+                                ? t("cron.form.directDeliveryHelp")
+                                : t("cron.form.heartbeatDeliveryHelp")}
+                            </div>
+                          </div>
+                        `
+                      : nothing}
                     <label class="field ${selectedDeliveryMode === "none" ? "cron-span-2" : ""}">
                       ${renderFieldLabel(t("cron.form.resultDelivery"))}
                       <select
                         id="cron-delivery-mode"
                         .value=${selectedDeliveryMode}
+                        ?disabled=${props.form.deliveryStrategy === "direct"}
                         @change=${(e: Event) =>
                           props.onFormChange({
                             deliveryMode: (e.target as HTMLSelectElement)
@@ -1060,6 +1101,12 @@ export function renderCron(props: CronProps) {
                                         ? errorIdForField("deliveryTo")
                                         : undefined,
                                     )}
+                                    aria-invalid=${props.fieldErrors.deliveryTo ? "true" : "false"}
+                                    aria-describedby=${ifDefined(
+                                      props.fieldErrors.deliveryTo
+                                        ? errorIdForField("deliveryTo")
+                                        : undefined,
+                                    )}
                                     @input=${(e: Event) =>
                                       props.onFormChange({
                                         deliveryTo: (e.target as HTMLInputElement).value,
@@ -1071,18 +1118,35 @@ export function renderCron(props: CronProps) {
                                   <select
                                     id="cron-delivery-channel"
                                     .value=${props.form.deliveryChannel || "last"}
+                                    aria-invalid=${props.fieldErrors.deliveryChannel
+                                      ? "true"
+                                      : "false"}
+                                    aria-describedby=${ifDefined(
+                                      props.fieldErrors.deliveryChannel
+                                        ? errorIdForField("deliveryChannel")
+                                        : undefined,
+                                    )}
                                     @change=${(e: Event) =>
                                       props.onFormChange({
                                         deliveryChannel: (e.target as HTMLSelectElement).value,
                                       })}
                                   >
-                                    ${channelOptions.map(
+                                    ${(props.form.deliveryStrategy === "direct"
+                                      ? channelOptions.filter(
+                                          (channel) => channel !== CRON_CHANNEL_LAST,
+                                        )
+                                      : channelOptions
+                                    ).map(
                                       (channel) =>
                                         html`<option value=${channel}>
                                           ${resolveChannelLabel(props, channel)}
                                         </option>`,
                                     )}
                                   </select>
+                                  ${renderFieldError(
+                                    props.fieldErrors.deliveryChannel,
+                                    errorIdForField("deliveryChannel"),
+                                  )}
                                 `}
                             ${selectedDeliveryMode === "announce"
                               ? html` <div class="cron-help">${t("cron.form.channelHelp")}</div> `
@@ -1103,6 +1167,10 @@ export function renderCron(props: CronProps) {
                                     placeholder=${t("cron.form.toPlaceholder")}
                                   />
                                   <div class="cron-help">${t("cron.form.toHelp")}</div>
+                                  ${renderFieldError(
+                                    props.fieldErrors.deliveryTo,
+                                    errorIdForField("deliveryTo"),
+                                  )}
                                 </label>
                               `
                             : nothing}
@@ -1415,7 +1483,7 @@ export function renderCron(props: CronProps) {
                             : nothing}
                         `
                       : nothing}
-                    ${selectedDeliveryMode !== "none"
+                    ${selectedDeliveryMode !== "none" && props.form.deliveryStrategy !== "direct"
                       ? html`
                           <label class="field checkbox cron-checkbox cron-span-2">
                             <input

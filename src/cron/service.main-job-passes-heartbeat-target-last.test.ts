@@ -187,4 +187,66 @@ describe("cron main job passes heartbeat target=last", () => {
     const enqueueOptions = enqueueSystemEvent.mock.calls[0]?.[1] as { sessionKey?: string };
     expect(enqueueOptions.sessionKey).toBe(heartbeatRequest.sessionKey);
   });
+
+  it("passes main direct delivery and agent-turn overrides to the synchronous runner", async () => {
+    const { storePath } = await makeStorePath();
+    const now = Date.now();
+    const job: CronJob = {
+      ...createMainCronJob({ now, id: "test-main-direct", wakeMode: "now" }),
+      deleteAfterRun: false,
+      schedule: { kind: "at", at: new Date(now + 1_000).toISOString() },
+      payload: {
+        kind: "agentTurn",
+        message: "Generate the full report",
+        model: "openai/primary",
+        fallbacks: ["anthropic/fallback"],
+        thinking: "high",
+        timeoutSeconds: 120,
+      },
+      delivery: {
+        mode: "announce",
+        strategy: "direct",
+        channel: "qqbot",
+        to: "qq-user-1",
+        accountId: "qq-main",
+      },
+      state: { nextRunAtMs: now + 1_000 },
+    };
+    await writeCronStoreSnapshot({ storePath, jobs: [job] });
+    const runHeartbeatOnce = vi.fn<RunHeartbeatOnce>(async () => ({
+      status: "ran",
+      durationMs: 50,
+      delivered: true,
+      deliveryAttempted: true,
+      provider: "anthropic",
+      model: "fallback",
+      fallbackUsed: true,
+    }));
+    const { cron, requestHeartbeat } = createCronWithSpies({ storePath, runHeartbeatOnce });
+
+    await runSingleTick(cron);
+
+    expect(requestHeartbeat).not.toHaveBeenCalled();
+    const call = runHeartbeatOnce.mock.calls[0]?.[0];
+    expect(call?.direct).toEqual({
+      jobId: "test-main-direct",
+      delivery: {
+        channel: "qqbot",
+        to: "qq-user-1",
+        accountId: "qq-main",
+      },
+      model: "openai/primary",
+      fallbacks: ["anthropic/fallback"],
+      thinking: "high",
+      timeoutSeconds: 120,
+    });
+    const saved = (await cron.list({ includeDisabled: true })).find(
+      (candidate) => candidate.id === job.id,
+    );
+    expect(saved?.state).toMatchObject({
+      lastRunStatus: "ok",
+      lastDelivered: true,
+      lastDeliveryStatus: "delivered",
+    });
+  });
 });

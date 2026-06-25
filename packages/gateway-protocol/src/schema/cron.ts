@@ -310,6 +310,7 @@ export const CronCompletionDestinationSchema = Type.Object(
 );
 
 const CronDeliverySharedProperties = {
+  strategy: Type.Optional(Type.Union([Type.Literal("heartbeat"), Type.Literal("direct")])),
   channel: Type.Optional(CronAnnounceChannelSchema),
   threadId: Type.Optional(Type.Union([Type.String(), Type.Number()])),
   accountId: Type.Optional(NonEmptyString),
@@ -318,6 +319,9 @@ const CronDeliverySharedProperties = {
 };
 
 const CronDeliveryPatchSharedProperties = {
+  strategy: Type.Optional(
+    Type.Union([Type.Literal("heartbeat"), Type.Literal("direct"), Type.Null()]),
+  ),
   channel: Type.Optional(Type.Union([CronAnnounceChannelSchema, Type.Null()])),
   threadId: Type.Optional(Type.Union([Type.String(), Type.Number(), Type.Null()])),
   accountId: Type.Optional(Type.Union([NonEmptyString, Type.Null()])),
@@ -568,6 +572,7 @@ export const CronRunLogEntrySchema = Type.Object(
     nextRunAtMs: Type.Optional(Type.Integer({ minimum: 0 })),
     model: Type.Optional(Type.String()),
     provider: Type.Optional(Type.String()),
+    fallbackUsed: Type.Optional(Type.Boolean()),
     usage: Type.Optional(
       Type.Object(
         {

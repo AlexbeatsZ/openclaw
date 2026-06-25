@@ -118,6 +118,45 @@ describe("classifyEmbeddedAgentRunResultForModelFallback", () => {
     expect(result).toBeNull();
   });
 
+  it("falls back after partial visible output when a quota error is replay-safe", () => {
+    const errorText =
+      'HTTP 429: {"error":{"code":"insufficient_quota","message":"quota exhausted"}}';
+    const result = classifyEmbeddedAgentRunResultForModelFallback({
+      provider: "openai",
+      model: "gpt-primary",
+      result: {
+        payloads: [{ text: "Partial answer" }, { isError: true, text: errorText }],
+        meta: {
+          durationMs: 42,
+          finalAssistantVisibleText: "Partial answer",
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      reason: "billing",
+      code: "embedded_error_payload",
+      rawError: errorText,
+    });
+  });
+
+  it("does not replay partial quota failures after a potentially side-effecting tool call", () => {
+    const result = classifyEmbeddedAgentRunResultForModelFallback({
+      provider: "openai",
+      model: "gpt-primary",
+      result: {
+        payloads: [{ text: "Partial answer" }, { isError: true, text: "429 insufficient_quota" }],
+        meta: {
+          durationMs: 42,
+          finalAssistantVisibleText: "Partial answer",
+          toolSummary: { calls: 1, tools: ["write"] },
+        },
+      },
+    });
+
+    expect(result).toBeNull();
+  });
+
   it("does not retry generic external runner failure text mixed with non-text visible content", () => {
     const result = classifyEmbeddedAgentRunResultForModelFallback({
       provider: "claude-cli",

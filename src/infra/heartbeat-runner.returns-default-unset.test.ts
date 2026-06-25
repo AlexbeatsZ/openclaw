@@ -722,6 +722,136 @@ describe("runHeartbeatOnce", () => {
       : null),
   });
 
+  it("direct cron delivers every visible assistant payload in order", async () => {
+    const tmpDir = await createCaseDir("hb-direct-all-payloads");
+    const storePath = path.join(tmpDir, "sessions.json");
+    const sessionKey = "agent:main:cron:direct-job:run:1";
+    await fs.writeFile(
+      storePath,
+      JSON.stringify({
+        [sessionKey]: {
+          sessionId: "sid-direct",
+          updatedAt: Date.now(),
+          lastChannel: "whatsapp",
+          lastTo: "+15550000000",
+        },
+      }),
+    );
+    enqueueSystemEvent("Create the complete scheduled report", {
+      sessionKey,
+      contextKey: "cron:direct-job",
+    });
+    const cfg: OpenClawConfig = {
+      agents: { defaults: { workspace: tmpDir } },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+      session: { store: storePath },
+    };
+    const replySpy = vi
+      .fn()
+      .mockResolvedValue([
+        { text: "Part one" },
+        { text: "hidden reasoning", isReasoning: true },
+        { text: "Part two" },
+        { text: "internal provider failure", isError: true },
+      ]);
+    const sendWhatsApp = vi
+      .fn<
+        (to: string, text: string, opts?: unknown) => Promise<{ messageId: string; toJid: string }>
+      >()
+      .mockResolvedValue({ messageId: "m1", toJid: "jid" });
+
+    const result = await runHeartbeatOnce({
+      cfg,
+      source: "cron",
+      intent: "immediate",
+      reason: "cron:direct-job",
+      sessionKey,
+      direct: {
+        jobId: "direct-job",
+        delivery: { channel: "whatsapp", to: "+15551234567" },
+        model: "openai/primary",
+        fallbacks: ["anthropic/fallback"],
+        thinking: "high",
+        timeoutSeconds: 90,
+        lightContext: true,
+      },
+      deps: createHeartbeatDeps(sendWhatsApp, { getReplyFromConfig: replySpy }),
+    });
+
+    expect(result).toMatchObject({
+      status: "ran",
+      delivered: true,
+      deliveryAttempted: true,
+    });
+    expect(sendWhatsApp.mock.calls.map((call) => call[1])).toEqual(["Part one", "Part two"]);
+    expect(replyBody(replySpy).Body).toContain("Return the complete user-facing result");
+    const replyOptions = requireRecord(replySpy.mock.calls[0]?.[1], "direct reply options");
+    expectRecordFields(replyOptions, {
+      heartbeatModelOverride: "openai/primary",
+      thinkingLevelOverride: "high",
+      timeoutOverrideSeconds: 90,
+      bootstrapContextMode: "lightweight",
+    });
+    const runConfig = requireRecord(replySpy.mock.calls[0]?.[2], "direct run config");
+    const agents = requireRecord(runConfig.agents, "direct run agents");
+    const defaults = requireRecord(agents.defaults, "direct run defaults");
+    expect(defaults.model).toEqual({
+      primary: "openai/primary",
+      fallbacks: ["anthropic/fallback"],
+    });
+  });
+
+  it("direct cron reports a partial channel failure as a failed run", async () => {
+    const tmpDir = await createCaseDir("hb-direct-partial-failure");
+    const storePath = path.join(tmpDir, "sessions.json");
+    const sessionKey = "agent:main:cron:direct-fail:run:1";
+    await fs.writeFile(
+      storePath,
+      JSON.stringify({
+        [sessionKey]: {
+          sessionId: "sid-direct-fail",
+          updatedAt: Date.now(),
+          lastChannel: "whatsapp",
+          lastTo: "+15550000000",
+        },
+      }),
+    );
+    enqueueSystemEvent("Create a report", {
+      sessionKey,
+      contextKey: "cron:direct-fail",
+    });
+    const cfg: OpenClawConfig = {
+      agents: { defaults: { workspace: tmpDir } },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+      session: { store: storePath },
+    };
+    const replySpy = vi.fn().mockResolvedValue([{ text: "Part one" }, { text: "Part two" }]);
+    const sendWhatsApp = vi
+      .fn<
+        (to: string, text: string, opts?: unknown) => Promise<{ messageId: string; toJid: string }>
+      >()
+      .mockResolvedValueOnce({ messageId: "m1", toJid: "jid" })
+      .mockRejectedValueOnce(new Error("QQ unavailable"));
+
+    const result = await runHeartbeatOnce({
+      cfg,
+      source: "cron",
+      intent: "immediate",
+      sessionKey,
+      direct: {
+        jobId: "direct-fail",
+        delivery: { channel: "whatsapp", to: "+15551234567" },
+      },
+      deps: createHeartbeatDeps(sendWhatsApp, { getReplyFromConfig: replySpy }),
+    });
+
+    expect(result).toMatchObject({
+      status: "failed",
+      delivered: false,
+      deliveryAttempted: true,
+    });
+  });
+
   it("skips when agent heartbeat is not enabled", async () => {
     const cfg: OpenClawConfig = {
       agents: {

@@ -325,6 +325,13 @@ function coerceDelivery(delivery: UnknownRecord) {
   } else if ("mode" in next) {
     delete next.mode;
   }
+  if ("strategy" in delivery && delivery.strategy === null) {
+    next.strategy = null;
+  } else if (parsed.strategy !== undefined) {
+    next.strategy = parsed.strategy;
+  } else if ("strategy" in next) {
+    delete next.strategy;
+  }
   if ("channel" in delivery && delivery.channel === null) {
     next.channel = null;
   } else if (parsed.channel !== undefined) {

@@ -27,7 +27,10 @@ import { resolveAgentHarnessPolicy } from "../agents/harness/policy.js";
 import { resolveModelRefFromString, type ModelRef } from "../agents/model-selection.js";
 import { resolvePersistedSessionRuntimeId } from "../agents/session-runtime-compat.js";
 import { DEFAULT_HEARTBEAT_FILENAME } from "../agents/workspace.js";
-import { resolveHeartbeatReplyPayload } from "../auto-reply/heartbeat-reply-payload.js";
+import {
+  resolveHeartbeatReplyPayload,
+  resolveHeartbeatReplyPayloads,
+} from "../auto-reply/heartbeat-reply-payload.js";
 import {
   getHeartbeatToolNotificationText,
   resolveHeartbeatToolResponseFromReplyResult,
@@ -87,7 +90,7 @@ import { updateSessionStore } from "../config/sessions/store.js";
 import type { SessionEntry } from "../config/sessions/types.js";
 import type { AgentDefaultsConfig } from "../config/types.agent-defaults.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
-import { hasActiveCronJobs } from "../cron/active-jobs.js";
+import { hasActiveCronJobs, hasActiveCronJobsOtherThan } from "../cron/active-jobs.js";
 import { resolveCronSession } from "../cron/isolated-agent/session.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getActivePluginChannelRegistry } from "../plugins/runtime.js";
@@ -134,6 +137,7 @@ import {
   HEARTBEAT_SKIP_CRON_IN_PROGRESS,
   HEARTBEAT_SKIP_LANES_BUSY,
   HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT,
+  type HeartbeatDirectCronRun,
   type HeartbeatRunResult,
   type HeartbeatWakeHandler,
   type HeartbeatWakeIntent,
@@ -1194,6 +1198,7 @@ function resolveHeartbeatRunPrompt(params: {
   dueTasks: HeartbeatTask[];
   heartbeatFileContent?: string;
   useHeartbeatResponseTool: boolean;
+  directCron?: boolean;
 }): HeartbeatPromptResolution {
   const pendingEventEntries = params.preflight.pendingEventEntries;
   const cronEvents = pendingEventEntries
@@ -1261,20 +1266,23 @@ ${completionInstruction}`;
     };
   }
 
-  const baseUsesHeartbeatResponseTool = params.useHeartbeatResponseTool && !commitmentPrompt;
+  const baseUsesHeartbeatResponseTool =
+    !params.directCron && params.useHeartbeatResponseTool && !commitmentPrompt;
   const basePrompt = hasExecCompletion
     ? buildExecEventPrompt(execEvents, {
         deliverToUser: params.canRelayToUser,
         useHeartbeatResponseTool: baseUsesHeartbeatResponseTool,
       })
-    : hasCronEvents
-      ? buildCronEventPrompt(cronEvents, {
-          deliverToUser: params.canRelayToUser,
-          useHeartbeatResponseTool: baseUsesHeartbeatResponseTool,
-        })
-      : baseUsesHeartbeatResponseTool
-        ? resolveHeartbeatResponseToolPrompt(params.cfg, params.heartbeat)
-        : resolveHeartbeatPrompt(params.cfg, params.heartbeat);
+    : hasCronEvents && params.directCron
+      ? buildDirectCronEventPrompt(cronEvents)
+      : hasCronEvents
+        ? buildCronEventPrompt(cronEvents, {
+            deliverToUser: params.canRelayToUser,
+            useHeartbeatResponseTool: baseUsesHeartbeatResponseTool,
+          })
+        : baseUsesHeartbeatResponseTool
+          ? resolveHeartbeatResponseToolPrompt(params.cfg, params.heartbeat)
+          : resolveHeartbeatPrompt(params.cfg, params.heartbeat);
   const basePromptWithHint = appendHeartbeatWorkspacePathHint(basePrompt, params.workspaceDir);
   const basePromptWithDirectives = appendHeartbeatFileDirectives(
     basePromptWithHint,
@@ -1291,6 +1299,64 @@ ${completionInstruction}`;
     hasCronEvents,
     hasDueCommitments,
     usesHeartbeatResponseTool: baseUsesHeartbeatResponseTool,
+  };
+}
+
+function buildDirectCronEventPrompt(pendingEvents: string[]): string {
+  const eventText = pendingEvents.join("\n").trim();
+  return [
+    "A scheduled task has started. Complete the task described below now.",
+    eventText || "The scheduled task did not include any content.",
+    "Return the complete user-facing result as your normal final response. Do not summarize or paraphrase it as a reminder. Do not use the message tool; delivery is handled by the scheduler.",
+  ].join("\n\n");
+}
+
+function resolveDirectCronRunConfig(params: {
+  cfg: OpenClawConfig;
+  agentId: string;
+  direct?: HeartbeatDirectCronRun;
+}): OpenClawConfig {
+  const fallbacks = params.direct?.fallbacks;
+  if (fallbacks === undefined) {
+    return params.cfg;
+  }
+  const agents = params.cfg.agents;
+  const entries = agents?.list ? [...agents.list] : [];
+  const index = entries.findIndex((entry) => normalizeAgentId(entry.id) === params.agentId);
+  if (index >= 0) {
+    const entry = entries[index];
+    const model = entry.model;
+    const primary =
+      params.direct?.model ??
+      (typeof model === "string" ? model : model?.primary) ??
+      (typeof agents?.defaults?.model === "string"
+        ? agents.defaults.model
+        : agents?.defaults?.model?.primary);
+    entries[index] = {
+      ...entry,
+      model: {
+        ...(primary ? { primary } : {}),
+        fallbacks: [...fallbacks],
+      },
+    };
+    return { ...params.cfg, agents: { ...agents, list: entries } };
+  }
+  const defaultModel = agents?.defaults?.model;
+  const primary =
+    params.direct?.model ??
+    (typeof defaultModel === "string" ? defaultModel : defaultModel?.primary);
+  return {
+    ...params.cfg,
+    agents: {
+      ...agents,
+      defaults: {
+        ...agents?.defaults,
+        model: {
+          ...(primary ? { primary } : {}),
+          fallbacks: [...fallbacks],
+        },
+      },
+    },
   };
 }
 
@@ -1324,6 +1390,7 @@ export async function runHeartbeatOnce(opts: {
   source?: HeartbeatWakeSource;
   intent?: HeartbeatWakeIntent;
   reason?: string;
+  direct?: HeartbeatDirectCronRun;
   deps?: HeartbeatDeps;
 }): Promise<HeartbeatRunResult> {
   const cfg = opts.cfg ?? getRuntimeConfig();
@@ -1340,18 +1407,19 @@ export async function runHeartbeatOnce(opts: {
     source: opts.source,
     mergeRequestedHeartbeat: opts.source === "cron",
   });
-  if (!areHeartbeatsEnabled()) {
+  const isDirectCron = opts.source === "cron" && opts.direct !== undefined;
+  if (!isDirectCron && !areHeartbeatsEnabled()) {
     return { status: "skipped", reason: "disabled" };
   }
-  if (!isHeartbeatEnabledForAgent(cfg, agentId)) {
+  if (!isDirectCron && !isHeartbeatEnabledForAgent(cfg, agentId)) {
     return { status: "skipped", reason: "disabled" };
   }
-  if (!resolveHeartbeatIntervalMs(cfg, undefined, heartbeat)) {
+  if (!isDirectCron && !resolveHeartbeatIntervalMs(cfg, undefined, heartbeat)) {
     return { status: "skipped", reason: "disabled" };
   }
 
   const startedAt = opts.deps?.nowMs?.() ?? Date.now();
-  if (!isWithinActiveHours(cfg, heartbeat, startedAt)) {
+  if (!isDirectCron && !isWithinActiveHours(cfg, heartbeat, startedAt)) {
     return { status: "skipped", reason: "quiet-hours" };
   }
 
@@ -1361,7 +1429,10 @@ export async function runHeartbeatOnce(opts: {
     return { status: "skipped", reason: HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT };
   }
 
-  if (hasActiveCronJobs() || hasQueuedWorkInLanes(HEARTBEAT_ALWAYS_BUSY_LANES, getSize)) {
+  const hasBlockingCron = opts.direct
+    ? hasActiveCronJobsOtherThan(opts.direct.jobId)
+    : hasActiveCronJobs();
+  if (hasBlockingCron || hasQueuedWorkInLanes(HEARTBEAT_ALWAYS_BUSY_LANES, getSize)) {
     emitHeartbeatEvent({
       status: "skipped",
       reason: HEARTBEAT_SKIP_CRON_IN_PROGRESS,
@@ -1493,7 +1564,7 @@ export async function runHeartbeatOnce(opts: {
   const heartbeatForDelivery = commitmentDeliveryContext
     ? { ...heartbeat, target: "last", to: undefined, accountId: undefined }
     : heartbeat;
-  const delivery = await resolveHeartbeatDeliveryTargetWithSessionRoute({
+  const resolvedDelivery = await resolveHeartbeatDeliveryTargetWithSessionRoute({
     cfg,
     agentId,
     entry,
@@ -1509,6 +1580,16 @@ export async function runHeartbeatOnce(opts: {
         ? undefined
         : preflight.turnSourceDeliveryContext,
   });
+  const delivery = opts.direct
+    ? {
+        ...resolvedDelivery,
+        channel: opts.direct.delivery.channel as ChannelId,
+        to: opts.direct.delivery.to,
+        accountId: opts.direct.delivery.accountId,
+        threadId: opts.direct.delivery.threadId,
+        reason: undefined,
+      }
+    : resolvedDelivery;
   const heartbeatAccountId = heartbeat?.accountId?.trim();
   if (delivery.reason === "unknown-account") {
     log.warn("heartbeat: unknown accountId", {
@@ -1522,8 +1603,9 @@ export async function runHeartbeatOnce(opts: {
       channel: delivery.channel,
     });
   }
-  const visibility =
-    delivery.channel !== "none"
+  const visibility = opts.direct
+    ? { showOk: false, showAlerts: true, useIndicator: true }
+    : delivery.channel !== "none"
       ? resolveHeartbeatVisibility({
           cfg,
           channel: delivery.channel,
@@ -1566,6 +1648,7 @@ export async function runHeartbeatOnce(opts: {
     dueTasks: dueHeartbeatTasks,
     heartbeatFileContent: preflight.heartbeatFileContent,
     useHeartbeatResponseTool: useHeartbeatResponseToolPrompt,
+    directCron: isDirectCron,
   });
   const dueCommitmentIds = hasDueCommitments
     ? preflight.dueCommitments.map((commitment) => commitment.id)
@@ -1812,12 +1895,17 @@ export async function runHeartbeatOnce(opts: {
 
   try {
     await heartbeatTyping?.onReplyStart();
-    const heartbeatModelOverride = normalizeOptionalString(heartbeat?.model);
+    const heartbeatModelOverride =
+      normalizeOptionalString(opts.direct?.model) ?? normalizeOptionalString(heartbeat?.model);
     const suppressToolErrorWarnings = heartbeat?.suppressToolErrorWarnings === true;
-    const timeoutOverrideSeconds = resolveHeartbeatTimeoutOverrideSeconds(cfg, heartbeat);
+    const timeoutOverrideSeconds =
+      opts.direct?.timeoutSeconds ?? resolveHeartbeatTimeoutOverrideSeconds(cfg, heartbeat);
     const bootstrapContextMode: "lightweight" | undefined =
-      heartbeat?.lightContext === true ? "lightweight" : undefined;
+      opts.direct?.lightContext === true || heartbeat?.lightContext === true
+        ? "lightweight"
+        : undefined;
     const replyOperationRunState: ReplyOperationRunState = {};
+    const selectedModels: Array<{ provider: string; model: string }> = [];
     const replyOpts = {
       isHeartbeat: true,
       [REPLY_OPERATION_RUN_STATE]: replyOperationRunState,
@@ -1831,11 +1919,119 @@ export async function runHeartbeatOnce(opts: {
       // Heartbeat timeout is a per-run override so user turns keep the global default.
       timeoutOverrideSeconds,
       bootstrapContextMode,
-      onModelSelected: replyPrefix.onModelSelected,
+      ...(opts.direct?.thinking ? { thinkingLevelOverride: opts.direct.thinking } : {}),
+      ...(opts.direct?.toolsAllow ? { toolsAllow: opts.direct.toolsAllow } : {}),
+      onModelSelected: (selected: {
+        provider: string;
+        model: string;
+        thinkLevel: string | undefined;
+      }) => {
+        replyPrefix.onModelSelected(selected);
+        selectedModels.push({ provider: selected.provider, model: selected.model });
+      },
     };
     const getReplyFromConfig =
       opts.deps?.getReplyFromConfig ?? (await loadHeartbeatRunnerRuntime()).getReplyFromConfig;
-    const replyResult = await getReplyFromConfig(ctx, replyOpts, cfg);
+    const runCfg = resolveDirectCronRunConfig({ cfg, agentId, direct: opts.direct });
+    const replyResult = await getReplyFromConfig(ctx, replyOpts, runCfg);
+    if (opts.direct) {
+      const directPayloads = resolveHeartbeatReplyPayloads(replyResult);
+      const selectedModel = selectedModels.at(-1);
+      const fallbackUsed = selectedModels.length > 1;
+      const deliveryTrace = {
+        intended: {
+          channel: opts.direct.delivery.channel,
+          to: opts.direct.delivery.to,
+          accountId: opts.direct.delivery.accountId,
+          threadId: opts.direct.delivery.threadId,
+          source: "explicit" as const,
+        },
+        resolved: {
+          channel: delivery.channel,
+          to: delivery.to,
+          accountId: delivery.accountId,
+          threadId: delivery.threadId,
+          source: "explicit" as const,
+          ok: delivery.channel !== "none" && Boolean(delivery.to),
+        },
+        fallbackUsed,
+      };
+      if (directPayloads.length === 0) {
+        const reason = "main direct cron produced no user-visible assistant output";
+        return {
+          status: "failed",
+          reason,
+          delivered: false,
+          deliveryAttempted: false,
+          deliveryError: reason,
+          delivery: { ...deliveryTrace, delivered: false },
+          fallbackUsed,
+          provider: selectedModel?.provider,
+          model: selectedModel?.model,
+        };
+      }
+      const directPlugin = resolveHeartbeatChannelPlugin(delivery.channel);
+      if (directPlugin?.heartbeat?.checkReady) {
+        const readiness = await directPlugin.heartbeat.checkReady({
+          cfg,
+          accountId: delivery.accountId,
+          deps: opts.deps,
+        });
+        if (!readiness.ok) {
+          return {
+            status: "failed",
+            reason: readiness.reason,
+            delivered: false,
+            deliveryAttempted: true,
+            deliveryError: readiness.reason,
+            delivery: { ...deliveryTrace, delivered: false },
+            fallbackUsed,
+            provider: selectedModel?.provider,
+            model: selectedModel?.model,
+          };
+        }
+      }
+      const directSend = await sendDurableMessageBatch({
+        cfg,
+        channel: delivery.channel,
+        to: opts.direct.delivery.to,
+        accountId: delivery.accountId,
+        session: outboundSession,
+        threadId: delivery.threadId,
+        payloads: directPayloads,
+        deps: opts.deps,
+      });
+      if (directSend.status !== "sent") {
+        const reason =
+          directSend.status === "failed" || directSend.status === "partial_failed"
+            ? formatErrorMessage(directSend.error)
+            : (directSend.reason ?? "direct delivery did not send a visible message");
+        return {
+          status: "failed",
+          reason,
+          delivered: false,
+          deliveryAttempted: true,
+          deliveryError: reason,
+          delivery: { ...deliveryTrace, delivered: false },
+          fallbackUsed,
+          provider: selectedModel?.provider,
+          model: selectedModel?.model,
+        };
+      }
+      await updateTaskTimestamps();
+      consumeInspectedSystemEvents();
+      return {
+        status: "ran",
+        durationMs: Date.now() - startedAt,
+        delivered: true,
+        deliveryAttempted: true,
+        delivery: { ...deliveryTrace, delivered: true },
+        payloads: directPayloads,
+        fallbackUsed,
+        provider: selectedModel?.provider,
+        model: selectedModel?.model,
+      };
+    }
     const heartbeatToolResponse = resolveHeartbeatToolResponseFromReplyResult(replyResult);
     const replyPayload = resolveHeartbeatReplyPayload(replyResult);
     if (

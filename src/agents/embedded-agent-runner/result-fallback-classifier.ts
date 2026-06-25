@@ -209,6 +209,23 @@ export function classifyEmbeddedAgentRunResultForModelFallback(params: {
   if (genericExternalFailureClassification) {
     return genericExternalFailureClassification;
   }
+  const errorText = payloads
+    .filter((payload) => payload?.isError === true)
+    .map((payload) => (typeof payload.text === "string" ? payload.text : ""))
+    .join("\n");
+  const failoverReason = classifyBusinessDenialErrorPayloadReason(errorText, params.provider);
+  const hasPotentialToolSideEffects = (params.result.meta.toolSummary?.calls ?? 0) > 0;
+  if (
+    failoverReason &&
+    (!hasPotentialToolSideEffects || params.result.meta.error?.fallbackSafe === true)
+  ) {
+    return {
+      message: `${params.provider}/${params.model} ended with a provider error: ${errorText}`,
+      reason: failoverReason,
+      code: "embedded_error_payload",
+      rawError: errorText,
+    };
+  }
   if (
     typeof params.result.meta.finalAssistantVisibleText === "string" &&
     params.result.meta.finalAssistantVisibleText.trim().length > 0 &&
@@ -246,20 +263,6 @@ export function classifyEmbeddedAgentRunResultForModelFallback(params: {
   });
   if (harnessClassification) {
     return harnessClassification;
-  }
-
-  const errorText = payloads
-    .filter((payload) => payload?.isError === true)
-    .map((payload) => (typeof payload.text === "string" ? payload.text : ""))
-    .join("\n");
-  const failoverReason = classifyBusinessDenialErrorPayloadReason(errorText, params.provider);
-  if (failoverReason) {
-    return {
-      message: `${params.provider}/${params.model} ended with a provider error: ${errorText}`,
-      reason: failoverReason,
-      code: "embedded_error_payload",
-      rawError: errorText,
-    };
   }
 
   if (!isGpt5ModelId(params.model)) {

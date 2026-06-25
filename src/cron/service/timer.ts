@@ -360,6 +360,14 @@ function resolveMainSessionCronDeliveryContext(
   state: CronServiceState,
   job: CronJob,
 ): DeliveryContext | undefined {
+  if (job.delivery?.strategy === "direct" && job.delivery.channel && job.delivery.to) {
+    return {
+      channel: job.delivery.channel,
+      to: job.delivery.to,
+      accountId: job.delivery.accountId,
+      threadId: job.delivery.threadId,
+    };
+  }
   const targetSessionKey = job.sessionKey?.trim();
   if (!targetSessionKey) {
     return undefined;
@@ -1931,6 +1939,7 @@ async function executeMainSessionCronJob(
       delivery?: CronDeliveryTrace;
     }
 > {
+  const isDirect = job.delivery?.strategy === "direct";
   const text = resolveJobPayloadTextForMain(job);
   if (!text) {
     const kind = job.payload.kind;
@@ -1939,7 +1948,9 @@ async function executeMainSessionCronJob(
       error:
         kind === "systemEvent"
           ? "main job requires non-empty systemEvent text"
-          : 'main job requires payload.kind="systemEvent"',
+          : isDirect
+            ? "main direct job requires a non-empty agentTurn message"
+            : 'main job requires payload.kind="systemEvent"',
     };
   }
   const cronStartedAt =
@@ -1956,7 +1967,11 @@ async function executeMainSessionCronJob(
       ...(deliveryContext ? { deliveryContext } : {}),
     }),
   );
-  if (job.wakeMode === "now" && state.deps.runHeartbeatOnce) {
+  if (isDirect && !state.deps.runHeartbeatOnce) {
+    removeQueuedSystemEventHandle(state, job, queuedSystemEvent);
+    return { status: "error", error: "main direct cron runner is not configured" };
+  }
+  if ((job.wakeMode === "now" || isDirect) && state.deps.runHeartbeatOnce) {
     const reason = `cron:${job.id}`;
     const maxWaitMs = state.deps.wakeNowHeartbeatBusyMaxWaitMs ?? 2 * 60_000;
     const retryDelayMs = state.deps.wakeNowHeartbeatBusyRetryDelayMs ?? 250;
@@ -1974,7 +1989,36 @@ async function executeMainSessionCronJob(
         reason,
         agentId: job.agentId,
         sessionKey: cronRunSessionKey,
-        heartbeat: { target: "last" },
+        heartbeat: isDirect
+          ? {
+              target: job.delivery?.channel,
+              to: job.delivery?.to,
+              accountId: job.delivery?.accountId,
+            }
+          : { target: "last" },
+        ...(isDirect && job.delivery?.channel && job.delivery.to
+          ? {
+              direct: {
+                jobId: job.id,
+                delivery: {
+                  channel: job.delivery.channel,
+                  to: job.delivery.to,
+                  accountId: job.delivery.accountId,
+                  threadId: job.delivery.threadId,
+                },
+                ...(job.payload.kind === "agentTurn"
+                  ? {
+                      model: job.payload.model,
+                      fallbacks: job.payload.fallbacks,
+                      thinking: job.payload.thinking,
+                      timeoutSeconds: job.payload.timeoutSeconds,
+                      lightContext: job.payload.lightContext,
+                      toolsAllow: job.payload.toolsAllow,
+                    }
+                  : {}),
+              },
+            }
+          : {}),
       });
       if (abortSignal?.aborted) {
         removeQueuedSystemEventHandle(state, job, queuedSystemEvent);
@@ -1987,6 +2031,21 @@ async function executeMainSessionCronJob(
         break;
       }
       if (heartbeatResult.reason === HEARTBEAT_SKIP_CRON_IN_PROGRESS) {
+        if (isDirect) {
+          if (state.deps.nowMs() - waitStartedAt > maxWaitMs) {
+            removeQueuedSystemEventHandle(state, job, queuedSystemEvent);
+            return {
+              status: "error",
+              error: heartbeatResult.reason,
+              summary: text,
+              sessionKey: cronRunSessionKey,
+              delivered: false,
+              deliveryAttempted: false,
+            };
+          }
+          await waitWithAbort(retryDelayMs);
+          continue;
+        }
         // The active cron marker blocks direct wake-now until this job returns.
         state.deps.requestHeartbeat({
           source: "cron",
@@ -2007,6 +2066,17 @@ async function executeMainSessionCronJob(
           removeQueuedSystemEventHandle(state, job, queuedSystemEvent);
           return { status: "error", error: timeoutErrorMessage() };
         }
+        if (isDirect) {
+          removeQueuedSystemEventHandle(state, job, queuedSystemEvent);
+          return {
+            status: "error",
+            error: heartbeatResult.reason,
+            summary: text,
+            sessionKey: cronRunSessionKey,
+            delivered: false,
+            deliveryAttempted: false,
+          };
+        }
         state.deps.requestHeartbeat({
           source: "cron",
           intent: "immediate",
@@ -2021,7 +2091,18 @@ async function executeMainSessionCronJob(
     }
 
     if (heartbeatResult.status === "ran") {
-      return { status: "ok", summary: text, sessionKey: cronRunSessionKey };
+      return {
+        status: "ok",
+        summary: text,
+        sessionKey: cronRunSessionKey,
+        delivered: heartbeatResult.delivered,
+        deliveryAttempted: heartbeatResult.deliveryAttempted,
+        delivery: heartbeatResult.delivery,
+        model: heartbeatResult.model,
+        provider: heartbeatResult.provider,
+        usage: heartbeatResult.usage,
+        fallbackUsed: heartbeatResult.fallbackUsed,
+      };
     }
     if (heartbeatResult.status === "skipped") {
       removeQueuedSystemEventHandle(state, job, queuedSystemEvent);
@@ -2038,6 +2119,13 @@ async function executeMainSessionCronJob(
       error: heartbeatResult.reason,
       summary: text,
       sessionKey: cronRunSessionKey,
+      delivered: heartbeatResult.delivered,
+      deliveryAttempted: heartbeatResult.deliveryAttempted,
+      delivery: heartbeatResult.delivery,
+      model: heartbeatResult.model,
+      provider: heartbeatResult.provider,
+      usage: heartbeatResult.usage,
+      fallbackUsed: heartbeatResult.fallbackUsed,
     };
   }
 
@@ -2195,6 +2283,7 @@ function emitJobFinished(
     nextRunAtMs: job.state.nextRunAtMs,
     model: result.model,
     provider: result.provider,
+    fallbackUsed: result.fallbackUsed,
     usage: result.usage,
   });
 }

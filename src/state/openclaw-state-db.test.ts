@@ -592,20 +592,23 @@ describe("openclaw state database", () => {
     expect(journalMode?.journal_mode?.toLowerCase()).toBe("wal");
   });
 
-  it("uses rollback journaling for shared state databases on NFS-backed volumes", () => {
-    const stateDir = createTempStateDir();
-    const statfs = vi.spyOn(fs, "statfsSync").mockReturnValue(statfsFixture(0x6969));
+  it.runIf(process.platform !== "win32")(
+    "uses rollback journaling for shared state databases on NFS-backed volumes",
+    () => {
+      const stateDir = createTempStateDir();
+      const statfs = vi.spyOn(fs, "statfsSync").mockReturnValue(statfsFixture(0x6969));
 
-    const database = openOpenClawStateDatabase({
-      env: { OPENCLAW_STATE_DIR: stateDir },
-    });
+      const database = openOpenClawStateDatabase({
+        env: { OPENCLAW_STATE_DIR: stateDir },
+      });
 
-    const journalMode = database.db.prepare("PRAGMA journal_mode").get() as
-      | { journal_mode?: string }
-      | undefined;
-    expect(journalMode?.journal_mode?.toLowerCase()).toBe("delete");
-    expect(statfs).toHaveBeenCalledWith(fs.realpathSync(path.join(stateDir, "state")));
-  });
+      const journalMode = database.db.prepare("PRAGMA journal_mode").get() as
+        | { journal_mode?: string }
+        | undefined;
+      expect(journalMode?.journal_mode?.toLowerCase()).toBe("delete");
+      expect(statfs).toHaveBeenCalledWith(fs.realpathSync(path.join(stateDir, "state")));
+    },
+  );
 
   it("records durable schema metadata", () => {
     const stateDir = createTempStateDir();

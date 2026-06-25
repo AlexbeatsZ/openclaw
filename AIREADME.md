@@ -1,7 +1,7 @@
 # Project Goal
 
 - Repository: `openclaw/openclaw`, forked to `AlexbeatsZ/openclaw` and cloned locally at `C:\Users\Meta\Project\Workspaces\openclaw`.
-- Current task: study OpenClaw's scheduled task implementation and model fallback logic, then record the analysis here.
+- Current task: implement optional `main + direct` cron delivery so scheduled AI output can be captured by the program and forwarded to QQ without asking the model to call the message tool.
 
 # Lessons Learned
 
@@ -64,6 +64,37 @@ Important source anchors:
 - `src/agents/embedded-agent-runner/result-fallback-classifier.ts:170` classifies embedded-agent terminal results for fallback.
 - `src/cron/isolated-agent/model-selection.ts:69` resolves cron isolated-agent model precedence.
 
+## Main direct cron delivery implementation
+
+- `delivery.strategy` now supports `heartbeat` and `direct`; omitted strategy keeps the existing `heartbeat` behavior.
+- `main + heartbeat` remains constrained to the old main-session heartbeat/system-event path. `main + direct` allows `systemEvent` or `agentTurn`, but requires explicit `delivery.channel` and `delivery.to` so cron cannot accidentally target the most recent conversation.
+- Direct delivery still runs the model once in the main heartbeat/session chain. The runner captures all user-visible assistant payloads, filters out reasoning/tool/system/internal-error payloads, and sends the visible payload batch directly through the configured channel target.
+- Direct delivery does not call a second model and does not require the model to use the `message` tool. QQ/plugin-specific cleanup and splitting remain in the durable outbound send path.
+- Direct cron bypasses only its own active-cron marker. Other active cron jobs still block execution, preserving the existing concurrency guard.
+- Cron results now propagate `deliveryAttempted`, `delivered`, delivery target/error details, provider/model, and `fallbackUsed` back into run logs. Direct delivery succeeds only when the full payload batch is sent.
+- UI cron configuration now exposes delivery strategy as "Session delivery" and "Program delivery" for main-session jobs. Program delivery hides best-effort mode and validates explicit channel/target.
+- State/protocol/tool schemas persist and expose `delivery_strategy`, and all shipped UI locales were synced with English fallback strings for the new controls.
+
+## Model fallback changes from this task
+
+- Embedded-agent fallback classification now treats terminal quota/rate-limit/business-denial errors as fallback-worthy even when partial visible output exists, as long as the run is still replay-safe.
+- Fallback is still blocked after committed outbound delivery or unsafe side-effecting tool calls. A new guard allows replay after tool calls only when the result is explicitly marked `fallbackSafe`.
+- Added coverage for partial visible output followed by `429` / `insufficient_quota` and for the side-effect guard that prevents unsafe replay.
+
+## Verification notes
+
+- Passed: `pnpm tsgo:core`.
+- Passed: targeted Vitest backend set covering direct runner, cron service, fallback classifier, protocol/schema, state DB, and cron tool schema: 16 files, 607 tests passed, 2 skipped.
+- Passed: targeted Vitest UI/i18n set: 5 files, 71 tests passed, 2 skipped.
+- Passed: `pnpm ui:i18n:check`.
+- Passed: `pnpm db:kysely:check`.
+- Passed: local changed-file formatting check with `oxfmt --check` on the modified files.
+- Passed: `pnpm build` after final formatting.
+- `pnpm test:changed` failed outside this change in `packages/memory-host-sdk/src/host/session-files.test.ts` because Windows path casing differed in expected transcript paths and teardown hit `EPERM` on its temp directory.
+- Default `pnpm check:changed` delegates to Blacksmith/Crabbox and reported a crabbox binary sanity-check failure. The local remote-child form reached `prompt snapshot drift` and failed with `spawn EINVAL` in `scripts/generate-prompt-snapshots.ts:49`, matching a Windows local environment issue.
+- Full-repo `pnpm format:check` reported many pre-existing formatting issues outside this task; only modified files were formatted and rechecked.
+- Server deployment, backup under `%LOCALAPPDATA%\Temp\.agents\`, global package upgrades, and the `Steped_Study_Check` migration were not performed in this implementation pass and still require explicit confirmation.
+
 # Task Board
 
 - [x] Confirm local GitHub authentication.
@@ -74,3 +105,14 @@ Important source anchors:
 - [x] Analyze model fallback code.
 - [x] Record findings in `AIREADME.md`.
 - [x] Commit and push this analysis file to the fork.
+- [x] Implement optional `main + direct` cron delivery strategy.
+- [x] Add direct delivery UI controls and validation.
+- [x] Persist/normalize/protocol-expose `delivery.strategy`.
+- [x] Propagate direct delivery status and fallback telemetry into cron run logs.
+- [x] Improve replay-safe quota/rate-limit fallback classification.
+- [x] Add targeted tests for direct delivery and fallback behavior.
+- [x] Run targeted tests, typecheck, i18n check, Kysely check, local changed-file format check, and full build.
+- [ ] Resolve or bypass unrelated Windows-local `test:changed` memory-host path casing failure.
+- [ ] Resolve local `check:changed` prompt snapshot `spawn EINVAL` / crabbox sanity issue.
+- [ ] Confirm before server backup/deploy and before any global package upgrade.
+- [ ] After deploy confirmation, migrate `Steped_Study_Check` to `main + direct` first; keep Memory Dreaming isolated.

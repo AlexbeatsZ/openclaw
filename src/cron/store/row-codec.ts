@@ -83,6 +83,7 @@ function mergeFailureDestinationProjection(
       : projectedJob?.delivery
         ? {
             mode: projectedJob.delivery.mode,
+            ...(projectedJob.delivery.strategy ? { strategy: projectedJob.delivery.strategy } : {}),
             ...(projectedJob.delivery.channel ? { channel: projectedJob.delivery.channel } : {}),
             ...(projectedJob.delivery.to ? { to: projectedJob.delivery.to } : {}),
             ...(projectedJob.delivery.threadId !== undefined

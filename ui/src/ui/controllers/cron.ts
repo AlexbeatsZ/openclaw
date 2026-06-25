@@ -38,6 +38,7 @@ export type CronFieldKey =
   | "payloadModel"
   | "payloadThinking"
   | "timeoutSeconds"
+  | "deliveryChannel"
   | "deliveryTo"
   | "failureAlertAfter"
   | "failureAlertCooldownSeconds";
@@ -98,13 +99,27 @@ export type CronModelSuggestionsState = {
 };
 
 function supportsAnnounceDelivery(
-  form: Pick<CronFormState, "sessionTarget" | "payloadKind" | "payloadLocked">,
+  form: Pick<CronFormState, "sessionTarget" | "payloadKind" | "payloadLocked" | "deliveryStrategy">,
 ) {
-  return form.sessionTarget !== "main" && (form.payloadKind === "agentTurn" || form.payloadLocked);
+  return (
+    (form.sessionTarget === "main" && form.deliveryStrategy === "direct") ||
+    (form.sessionTarget !== "main" && (form.payloadKind === "agentTurn" || form.payloadLocked))
+  );
 }
 
 export function normalizeCronFormState(form: CronFormState): CronFormState {
+  if (form.sessionTarget === "main" && form.deliveryStrategy === "direct") {
+    return form.deliveryMode === "announce" ? form : { ...form, deliveryMode: "announce" };
+  }
   if (form.deliveryMode !== "announce") {
+    if (
+      form.sessionTarget === "main" &&
+      form.deliveryStrategy === "heartbeat" &&
+      form.payloadKind !== "systemEvent" &&
+      !form.payloadLocked
+    ) {
+      return { ...form, payloadKind: "systemEvent" };
+    }
     return form;
   }
   if (supportsAnnounceDelivery(form)) {
@@ -166,6 +181,14 @@ export function validateCronForm(form: CronFormState): CronFieldErrors {
       errors.deliveryTo = "cron.errors.webhookUrlRequired";
     } else if (!/^https?:\/\//i.test(target)) {
       errors.deliveryTo = "cron.errors.webhookUrlInvalid";
+    }
+  }
+  if (form.sessionTarget === "main" && form.deliveryStrategy === "direct") {
+    if (!form.deliveryChannel.trim() || form.deliveryChannel === CRON_CHANNEL_LAST) {
+      errors.deliveryChannel = "cron.errors.directChannelRequired";
+    }
+    if (!form.deliveryTo.trim()) {
+      errors.deliveryTo = "cron.errors.directToRequired";
     }
   }
   if (form.failureAlertMode === "custom") {
@@ -525,6 +548,7 @@ function jobToForm(job: CronJob, prev: CronFormState): CronFormState {
     payloadThinking: payload?.kind === "agentTurn" ? (payload.thinking ?? "") : "",
     payloadLightContext: payload?.kind === "agentTurn" ? payload.lightContext === true : false,
     deliveryMode: job.delivery?.mode ?? "none",
+    deliveryStrategy: job.delivery?.strategy ?? "heartbeat",
     deliveryChannel: job.delivery?.channel ?? CRON_CHANNEL_LAST,
     deliveryTo: job.delivery?.to ?? "",
     deliveryAccountId: job.delivery?.accountId ?? "",
@@ -737,6 +761,7 @@ export async function addCronJob(state: CronState): Promise<boolean> {
       selectedDeliveryMode && selectedDeliveryMode !== "none"
         ? {
             mode: selectedDeliveryMode,
+            strategy: form.sessionTarget === "main" ? form.deliveryStrategy : undefined,
             channel:
               selectedDeliveryMode === "announce"
                 ? normalizePersistedDeliveryChannel(form.deliveryChannel, {
@@ -746,7 +771,7 @@ export async function addCronJob(state: CronState): Promise<boolean> {
             to: form.deliveryTo.trim() || undefined,
             accountId:
               selectedDeliveryMode === "announce" ? form.deliveryAccountId.trim() : undefined,
-            bestEffort: form.deliveryBestEffort,
+            bestEffort: form.deliveryStrategy === "direct" ? false : form.deliveryBestEffort,
           }
         : selectedDeliveryMode === "none"
           ? ({ mode: "none" } as const)

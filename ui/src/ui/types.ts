@@ -624,8 +624,10 @@ export type CronPayload =
 
 export type CronDelivery = {
   mode: "none" | "announce" | "webhook";
+  strategy?: "heartbeat" | "direct";
   channel?: string;
   to?: string;
+  threadId?: string | number;
   accountId?: string;
   bestEffort?: boolean;
   failureDestination?: CronFailureDestination;
@@ -700,6 +702,7 @@ export type CronRunLogEntry = {
   nextRunAtMs?: number;
   model?: string;
   provider?: string;
+  fallbackUsed?: boolean;
   usage?: {
     input_tokens?: number;
     output_tokens?: number;

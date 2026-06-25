@@ -380,6 +380,7 @@ export function buildGatewayCronService(params: {
           agentId,
           heartbeat: opts?.heartbeat,
         }),
+        direct: opts?.direct,
         deps: { ...params.deps, runtime: defaultRuntime },
       });
     },

@@ -1,6 +1,10 @@
 /** Cron service dependency, event, state, and public result types. */
 import type { CronConfig } from "../../config/types.cron.js";
-import type { HeartbeatRunResult, HeartbeatWakeRequest } from "../../infra/heartbeat-wake.js";
+import type {
+  HeartbeatDirectCronRun,
+  HeartbeatRunResult,
+  HeartbeatWakeRequest,
+} from "../../infra/heartbeat-wake.js";
 import type { DeliveryContext } from "../../utils/delivery-context.types.js";
 import type { QuarantinedCronConfigJob } from "../store.js";
 import type {
@@ -119,6 +123,7 @@ export type CronServiceDeps = {
     sessionKey?: string;
     /** Optional heartbeat config override (e.g. target: "last" for cron-triggered heartbeats). */
     heartbeat?: HeartbeatWakeRequest["heartbeat"];
+    direct?: HeartbeatDirectCronRun;
   }) => Promise<HeartbeatRunResult>;
   /**
    * WakeMode=now: max time to wait for runHeartbeatOnce to stop returning

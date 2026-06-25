@@ -886,6 +886,7 @@ CREATE TABLE IF NOT EXISTS cron_jobs (
   payload_tools_allow_json TEXT,
   payload_tools_allow_is_default INTEGER,
   delivery_mode TEXT,
+  delivery_strategy TEXT,
   delivery_channel TEXT,
   delivery_to TEXT,
   delivery_thread_id TEXT,

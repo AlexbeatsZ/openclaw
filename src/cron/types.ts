@@ -29,9 +29,13 @@ export type CronMessageChannel = ChannelId;
 /** Delivery mode for job completion output. */
 export type CronDeliveryMode = "none" | "announce" | "webhook";
 
+/** Delivery strategy for main-session cron output. */
+export type CronDeliveryStrategy = "heartbeat" | "direct";
+
 /** Completion delivery configuration for cron job output. */
 export type CronDelivery = {
   mode: CronDeliveryMode;
+  strategy?: CronDeliveryStrategy;
   channel?: CronMessageChannel;
   to?: string;
   /** Explicit thread/topic id for channels that support threaded delivery. */
@@ -69,6 +73,7 @@ export type CronFailureDestinationPatch = {
 
 /** Partial delivery update shape; null clears optional delivery destinations or fields. */
 export type CronDeliveryPatch = Partial<Pick<CronDelivery, "mode" | "bestEffort">> & {
+  strategy?: CronDeliveryStrategy | null;
   channel?: CronMessageChannel | null;
   to?: string | null;
   threadId?: string | number | null;
@@ -137,6 +142,7 @@ export type CronRunTelemetry = {
   model?: string;
   provider?: string;
   usage?: CronUsageSummary;
+  fallbackUsed?: boolean;
 };
 
 /** Severity level for persisted cron run diagnostics. */

@@ -461,6 +461,7 @@ function backfillCronJobsFromJobJson(db: DatabaseSync): void {
             payload_light_context = ?,
             payload_tools_allow_json = ?,
             delivery_mode = ?,
+            delivery_strategy = ?,
             delivery_channel = ?,
             delivery_to = ?,
             delivery_thread_id = ?,
@@ -553,6 +554,7 @@ function backfillCronJobsFromJobJson(db: DatabaseSync): void {
         : null,
       isAgentTurn ? jsonField(payload.toolsAllow) : null,
       delivery ? textField(delivery, "mode") : null,
+      delivery ? textField(delivery, "strategy") : null,
       delivery ? textField(delivery, "channel") : null,
       delivery ? textField(delivery, "to") : null,
       delivery ? textField(delivery, "threadId") : null,
@@ -714,6 +716,7 @@ function ensureAdditiveStateColumns(db: DatabaseSync): void {
   ensureColumn(db, "cron_jobs", "payload_tools_allow_json TEXT");
   ensureColumn(db, "cron_jobs", "payload_tools_allow_is_default INTEGER");
   ensureColumn(db, "cron_jobs", "delivery_mode TEXT");
+  ensureColumn(db, "cron_jobs", "delivery_strategy TEXT");
   ensureColumn(db, "cron_jobs", "delivery_channel TEXT");
   ensureColumn(db, "cron_jobs", "delivery_to TEXT");
   ensureColumn(db, "cron_jobs", "delivery_thread_id TEXT");

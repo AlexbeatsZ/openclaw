@@ -144,6 +144,17 @@ export function hasActiveCronJobs() {
   return getActiveCronJobCountForGeneration(getCronActiveJobState()) > 0;
 }
 
+/** Returns whether a cron run other than the supplied job is currently active. */
+export function hasActiveCronJobsOtherThan(jobId: string) {
+  const state = getCronActiveJobState();
+  for (const marker of state.activeJobs.values()) {
+    if (marker.jobId !== jobId && isMarkerActiveInGeneration(marker, state.generation)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Returns the number of active cron runs in this process. */
 export function getActiveCronJobCount() {
   return getActiveCronJobCountForGeneration(getCronActiveJobState());

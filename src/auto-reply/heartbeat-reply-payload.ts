@@ -42,3 +42,19 @@ export function resolveHeartbeatReplyPayload(
   }
   return undefined;
 }
+
+/** Selects all user-visible assistant payloads for deterministic cron delivery. */
+export function resolveHeartbeatReplyPayloads(
+  replyResult: ReplyPayload | ReplyPayload[] | undefined,
+): ReplyPayload[] {
+  const payloads = Array.isArray(replyResult) ? replyResult : replyResult ? [replyResult] : [];
+  return payloads.filter(
+    (payload) =>
+      payload.isError !== true &&
+      !isReasoningReplyPayload(payload) &&
+      payload.isCompactionNotice !== true &&
+      payload.isFallbackNotice !== true &&
+      payload.isStatusNotice !== true &&
+      hasOutboundReplyContent(payload),
+  );
+}
