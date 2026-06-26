@@ -76,6 +76,11 @@ export type GetReplyOptions = {
   /** If false, send only the initial typing signal without periodic keepalive refreshes. */
   typingKeepalive?: boolean;
   isHeartbeat?: boolean;
+  /**
+   * For heartbeat-owned runs that should still persist the real user-visible
+   * prompt instead of the generic heartbeat poll marker.
+   */
+  useHeartbeatTranscriptBody?: boolean;
   /** Policy-level typing control for run classes (user/system/internal/heartbeat). */
   typingPolicy?: TypingPolicy;
   /** Force-disable typing indicators for this run (system/internal/cross-channel routes). */

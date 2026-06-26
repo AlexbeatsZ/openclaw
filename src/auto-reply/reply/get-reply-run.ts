@@ -765,6 +765,7 @@ export async function runPreparedReply(
     startupContextPrelude,
     softResetTail,
     isHeartbeat,
+    useHeartbeatTranscriptBody: opts?.useHeartbeatTranscriptBody === true,
     inboundEventKind,
     sourceReplyDeliveryMode,
   });
@@ -842,6 +843,7 @@ export async function runPreparedReply(
       startupContextPrelude,
       softResetTail,
       isHeartbeat,
+      useHeartbeatTranscriptBody: opts?.useHeartbeatTranscriptBody === true,
       inboundEventKind,
       sourceReplyDeliveryMode,
       threadContextNote,

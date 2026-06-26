@@ -1910,6 +1910,7 @@ export async function runHeartbeatOnce(opts: {
     const selectedModels: Array<{ provider: string; model: string }> = [];
     const replyOpts = {
       isHeartbeat: true,
+      ...(opts.direct ? { useHeartbeatTranscriptBody: true } : {}),
       [REPLY_OPERATION_RUN_STATE]: replyOperationRunState,
       ...(heartbeatModelOverride ? { heartbeatModelOverride } : {}),
       suppressToolErrorWarnings,

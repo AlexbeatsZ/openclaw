@@ -112,6 +112,7 @@ type ReplyPromptEnvelopeBaseParams = {
   startupContextPrelude?: string | null;
   softResetTail?: string;
   isHeartbeat?: boolean;
+  useHeartbeatTranscriptBody?: boolean;
   inboundEventKind?: InboundEventKind;
   sourceReplyDeliveryMode?: SourceReplyDeliveryMode;
 };
@@ -198,15 +199,17 @@ export function buildReplyPromptEnvelopeBase(
     : params.hasUserBody
       ? resetModelBody
       : "[User sent media without caption]";
-  const transcriptBody = params.isHeartbeat
-    ? HEARTBEAT_TRANSCRIPT_PROMPT
-    : params.isBareSessionReset
-      ? softResetTail || `[OpenClaw session ${params.startupAction}]`
-      : isRoomEvent
-        ? ""
-        : params.hasUserBody
-          ? params.baseBody
-          : "[User sent media without caption]";
+  const visibleTranscriptBody = params.isBareSessionReset
+    ? softResetTail || `[OpenClaw session ${params.startupAction}]`
+    : isRoomEvent
+      ? ""
+      : params.hasUserBody
+        ? params.baseBody
+        : "[User sent media without caption]";
+  const transcriptBody =
+    params.isHeartbeat && params.useHeartbeatTranscriptBody !== true
+      ? HEARTBEAT_TRANSCRIPT_PROMPT
+      : visibleTranscriptBody;
   const currentInboundContext: CurrentInboundPromptContext | undefined =
     !params.isBareSessionReset && currentInboundContextText
       ? {

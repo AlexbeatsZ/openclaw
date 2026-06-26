@@ -75,6 +75,7 @@ Important source anchors:
 - Cron results now propagate `deliveryAttempted`, `delivered`, delivery target/error details, provider/model, and `fallbackUsed` back into run logs. Direct delivery succeeds only when the full payload batch is sent.
 - UI cron configuration now exposes delivery strategy as "Session delivery" and "Program delivery" for main-session jobs. Program delivery hides best-effort mode and validates explicit channel/target.
 - State/protocol/tool schemas persist and expose `delivery_strategy`, and all shipped UI locales were synced with English fallback strings for the new controls.
+- Direct cron must keep heartbeat execution semantics for event suppression and queue behavior, but its transcript prompt must persist the real scheduled task body. If it uses the generic heartbeat transcript marker, daily task records show `[OpenClaw heartbeat poll]` / empty HEARTBEAT-like prompts even though the persisted cron payload is intact.
 
 ## Model fallback changes from this task
 
@@ -93,6 +94,10 @@ Important source anchors:
 - Passed: `pnpm build` after final formatting.
 - Passed after deployment-gate fix: `pnpm vitest run src/infra/heartbeat-runner.skips-busy-session-lane.test.ts src/cron/service.main-job-passes-heartbeat-target-last.test.ts` (2 files, 23 tests).
 - Passed after deployment-gate fix: `pnpm tsgo:core`.
+- Passed after direct-cron transcript fix: `pnpm vitest run src/auto-reply/reply/prompt-prelude.test.ts src/infra/heartbeat-runner.returns-default-unset.test.ts` (2 files, 53 tests).
+- Passed after direct-cron transcript fix: `pnpm tsgo:core`.
+- Passed after direct-cron transcript fix: modified-file `oxfmt --check`.
+- Passed after direct-cron transcript fix: `pnpm build`.
 - `pnpm test:changed` failed outside this change in `packages/memory-host-sdk/src/host/session-files.test.ts` because Windows path casing differed in expected transcript paths and teardown hit `EPERM` on its temp directory.
 - Default `pnpm check:changed` delegates to Blacksmith/Crabbox and reported a crabbox binary sanity-check failure. The local remote-child form reached `prompt snapshot drift` and failed with `spawn EINVAL` in `scripts/generate-prompt-snapshots.ts:49`, matching a Windows local environment issue.
 - Full-repo `pnpm format:check` reported many pre-existing formatting issues outside this task; only modified files were formatted and rechecked.
@@ -129,3 +134,4 @@ Important source anchors:
 - [x] Migrate `Steped_Study_Check`, `Daily_Review_Feedback`, and `Weekly_Academic_Audit` to `main + direct`; keep Memory Dreaming isolated.
 - [x] Redeploy the direct cron lane-admission fix and re-run `Steped_Study_Check` validation.
 - [x] Import legacy main-agent auth profiles into SQLite so direct main cron can resolve model credentials.
+- [x] Diagnose and fix direct cron records showing heartbeat/HEARTBEAT placeholders instead of the scheduled task body.

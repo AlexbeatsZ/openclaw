@@ -1,5 +1,6 @@
 // Tests prompt prelude construction for sender, routing, and context metadata.
 import { describe, expect, it } from "vitest";
+import { HEARTBEAT_TRANSCRIPT_PROMPT } from "../heartbeat.js";
 import { finalizeInboundContext } from "./inbound-context.js";
 import { buildReplyPromptEnvelope } from "./prompt-prelude.js";
 
@@ -56,6 +57,55 @@ describe("buildReplyPromptEnvelope", () => {
       text: "Current message:\nchat_id=C123",
       promptJoiner: " ",
     });
+  });
+
+  it("uses the generic transcript marker for ordinary heartbeat runs", () => {
+    const sessionCtx = finalizeInboundContext({
+      Body: "Review the queued heartbeat events",
+      BodyStripped: "Review the queued heartbeat events",
+      Provider: "heartbeat",
+      ChatType: "direct",
+    });
+
+    const envelope = buildReplyPromptEnvelope({
+      ctx: sessionCtx,
+      sessionCtx,
+      baseBody: "Review the queued heartbeat events",
+      hasUserBody: true,
+      inboundUserContext: "",
+      isBareSessionReset: false,
+      startupAction: "new",
+      isHeartbeat: true,
+    });
+
+    expect(envelope.prefixedCommandBody).toBe("Review the queued heartbeat events");
+    expect(envelope.transcriptCommandBody).toBe(HEARTBEAT_TRANSCRIPT_PROMPT);
+  });
+
+  it("can preserve the real transcript body for heartbeat-owned direct cron runs", () => {
+    const sessionCtx = finalizeInboundContext({
+      Body: "A scheduled task has started.\n\nWrite the full daily review.",
+      BodyStripped: "A scheduled task has started.\n\nWrite the full daily review.",
+      Provider: "heartbeat",
+      ChatType: "direct",
+    });
+
+    const envelope = buildReplyPromptEnvelope({
+      ctx: sessionCtx,
+      sessionCtx,
+      baseBody: "A scheduled task has started.\n\nWrite the full daily review.",
+      hasUserBody: true,
+      inboundUserContext: "",
+      isBareSessionReset: false,
+      startupAction: "new",
+      isHeartbeat: true,
+      useHeartbeatTranscriptBody: true,
+    });
+
+    expect(envelope.transcriptCommandBody).toBe(
+      "A scheduled task has started.\n\nWrite the full daily review.",
+    );
+    expect(envelope.transcriptCommandBody).not.toBe(HEARTBEAT_TRANSCRIPT_PROMPT);
   });
 
   it("projects room events as context instead of user requests", () => {

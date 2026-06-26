@@ -787,6 +787,8 @@ describe("runHeartbeatOnce", () => {
     expect(replyBody(replySpy).Body).toContain("Return the complete user-facing result");
     const replyOptions = requireRecord(replySpy.mock.calls[0]?.[1], "direct reply options");
     expectRecordFields(replyOptions, {
+      isHeartbeat: true,
+      useHeartbeatTranscriptBody: true,
       heartbeatModelOverride: "openai/primary",
       thinkingLevelOverride: "high",
       timeoutOverrideSeconds: 90,
