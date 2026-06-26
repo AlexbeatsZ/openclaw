@@ -98,6 +98,9 @@ Important source anchors:
 - Passed after direct-cron transcript fix: `pnpm tsgo:core`.
 - Passed after direct-cron transcript fix: modified-file `oxfmt --check`.
 - Passed after direct-cron transcript fix: `pnpm build`.
+- Server WSL deployment of direct-cron transcript fix fast-forwarded `/home/meta/Project/Workspaces/openclaw` to `37db64e148041ab083b150a6e4c3f73aeb36ab12`, rebuilt with `corepack pnpm build`, and restarted `openclaw-gateway.service`.
+- Server backup for the transcript fix was written to `C:\Users\Meta\AppData\Local\Temp\.agents\openclaw-transcript-fix-20260626-193755`.
+- Post-deploy server health returned `ok` and event-loop health normalized after startup. QQ Bot reported configured; a live cron run was not forced while connection status was not confirmed, to avoid creating an expected direct-delivery failure record.
 - `pnpm test:changed` failed outside this change in `packages/memory-host-sdk/src/host/session-files.test.ts` because Windows path casing differed in expected transcript paths and teardown hit `EPERM` on its temp directory.
 - Default `pnpm check:changed` delegates to Blacksmith/Crabbox and reported a crabbox binary sanity-check failure. The local remote-child form reached `prompt snapshot drift` and failed with `spawn EINVAL` in `scripts/generate-prompt-snapshots.ts:49`, matching a Windows local environment issue.
 - Full-repo `pnpm format:check` reported many pre-existing formatting issues outside this task; only modified files were formatted and rechecked.
