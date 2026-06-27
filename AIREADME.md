@@ -3,6 +3,7 @@
 - Repository: `openclaw/openclaw`, forked to `AlexbeatsZ/openclaw` and cloned locally at `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
 - Current task: implement optional `main + direct` cron delivery so scheduled AI output can be captured by the program and forwarded to QQ without asking the model to call the message tool.
 - Maintenance policy: this is now maintained as the user's own fork/project. Do not submit upstream PRs by default; push ongoing work to `origin` (`AlexbeatsZ/openclaw`) and use `upstream` only for fetching/syncing upstream changes.
+- Current task: add an OpenClaw model provider for `agy` CLI so OpenClaw can forward prompts to `agy -p` and return the CLI output as assistant text, without reverse proxying or modifying agy's internal prompts.
 
 # Lessons Learned
 
@@ -91,8 +92,22 @@ Important source anchors:
 - Fallback is still blocked after committed outbound delivery or unsafe side-effecting tool calls. A new guard allows replay after tool calls only when the result is explicitly marked `fallbackSafe`.
 - Added coverage for partial visible output followed by `429` / `insufficient_quota` and for the side-effect guard that prevents unsafe replay.
 
+## Agy CLI provider implementation
+
+- `extensions/agy` registers provider id `agy` with default model ref `agy/default`.
+- The provider uses synthetic local auth marker `agy-cli`; no API key is required because agy CLI owns its own login/session state.
+- The model catalog declares `openai-completions` for schema compatibility, but `createStreamFn` intercepts provider `agy` and runs the local CLI instead of sending HTTP.
+- Runtime invocation defaults to `agy -p <prompt>`. For configured non-default model ids such as `agy/<id>`, the adapter passes `--model <id>` before `-p`.
+- Plugin config supports `command`, `args`, `cwd`, `env`, `timeoutMs`, `maxOutputBytes`, `modelArg`, and `promptArg` under `plugins.entries.agy.config`.
+- The prompt formatter flattens system prompt, user/assistant history, and tool results into plain text. Image parts are marked omitted because the CLI prompt mode is text-only here.
+- The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
+- Do not add reverse proxy behavior or mutate agy's internal prompt/config for this provider; it is intentionally only a local CLI forwarding adapter.
+
 ## Verification notes
 
+- Passed for agy provider: `.\node_modules\.bin\tsc.cmd -p extensions\agy\tsconfig.json --noEmit`.
+- Passed for agy provider: lightweight `tsx` stream smoke using a fake runner, confirming ANSI-stripped stdout returns `start`, `text_start`, `text_delta`, `text_end`, `done`.
+- Attempted for agy provider: `.\node_modules\.bin\vitest.cmd run extensions\agy\index.test.ts`, but it stayed in Rolldown/Vitest build plugin timing output for over two minutes and was stopped. The test file remains added for normal CI/local Vitest runs.
 - Passed: `pnpm tsgo:core`.
 - Passed: targeted Vitest backend set covering direct runner, cron service, fallback classifier, protocol/schema, state DB, and cron tool schema: 16 files, 607 tests passed, 2 skipped.
 - Passed: targeted Vitest UI/i18n set: 5 files, 71 tests passed, 2 skipped.
@@ -147,3 +162,5 @@ Important source anchors:
 - [x] Import legacy main-agent auth profiles into SQLite so direct main cron can resolve model credentials.
 - [x] Diagnose and fix direct cron records showing heartbeat/HEARTBEAT placeholders instead of the scheduled task body.
 - [x] Switch project handling policy to maintain the user's fork directly and disable accidental upstream pushes.
+- [x] Add `agy` CLI-backed model provider extension.
+- [x] Verify `agy` provider TypeScript build and stream smoke behavior.
