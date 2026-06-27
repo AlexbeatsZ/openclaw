@@ -139,6 +139,7 @@ Important source anchors:
 
 # Task Board
 
+- [x] Investigate OpenClaw system prompt structure and write study notes to `docs/research/openclaw-system-prompt.md`.
 - [x] Confirm local GitHub authentication.
 - [x] Fork `openclaw/openclaw` to the logged-in GitHub account.
 - [x] Move fork checkout to `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
