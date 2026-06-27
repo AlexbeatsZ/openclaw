@@ -1,6 +1,6 @@
 # Project Goal
 
-- Repository: `openclaw/openclaw`, forked to `AlexbeatsZ/openclaw` and cloned locally at `C:\Users\Meta\Project\Workspaces\openclaw`.
+- Repository: `openclaw/openclaw`, forked to `AlexbeatsZ/openclaw` and cloned locally at `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
 - Current task: implement optional `main + direct` cron delivery so scheduled AI output can be captured by the program and forwarded to QQ without asking the model to call the message tool.
 - Maintenance policy: this is now maintained as the user's own fork/project. Do not submit upstream PRs by default; push ongoing work to `origin` (`AlexbeatsZ/openclaw`) and use `upstream` only for fetching/syncing upstream changes.
 
@@ -125,7 +125,7 @@ Important source anchors:
 
 - [x] Confirm local GitHub authentication.
 - [x] Fork `openclaw/openclaw` to the logged-in GitHub account.
-- [x] Clone fork to `C:\Users\Meta\Project\Workspaces\openclaw`.
+- [x] Move fork checkout to `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
 - [x] Add `upstream` remote pointing at `https://github.com/openclaw/openclaw.git`.
 - [x] Analyze scheduled task / cron code.
 - [x] Analyze model fallback code.
