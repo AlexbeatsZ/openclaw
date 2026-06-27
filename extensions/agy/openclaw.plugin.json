@@ -103,6 +103,11 @@
         "type": "string",
         "description": "CLI flag used to pass a prompt.",
         "default": "-p"
+      },
+      "includeSystemPrompt": {
+        "type": "boolean",
+        "description": "Include OpenClaw's system prompt in the text sent to agy. Disabled by default because agy CLI uses its own agent prompt and tool instructions.",
+        "default": false
       }
     }
   }

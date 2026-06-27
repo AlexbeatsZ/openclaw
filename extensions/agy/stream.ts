@@ -31,6 +31,7 @@ export type AgyPluginConfig = {
   maxOutputBytes?: number;
   modelArg?: string;
   promptArg?: string;
+  includeSystemPrompt?: boolean;
 };
 
 export type AgyCliRunResult = {
@@ -77,6 +78,10 @@ function readPositiveInteger(value: unknown): number | undefined {
     : undefined;
 }
 
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
+}
+
 function readStringRecord(value: unknown): Record<string, string> | undefined {
   if (!isRecord(value)) {
     return undefined;
@@ -102,6 +107,7 @@ export function readAgyPluginConfig(config?: OpenClawConfig): AgyPluginConfig {
     maxOutputBytes: readPositiveInteger(pluginConfig.maxOutputBytes),
     modelArg: readString(pluginConfig.modelArg),
     promptArg: readString(pluginConfig.promptArg),
+    includeSystemPrompt: readBoolean(pluginConfig.includeSystemPrompt),
   };
 }
 
@@ -119,9 +125,12 @@ export function buildAgyCliArgs(params: {
   return args;
 }
 
-export function formatAgyPrompt(context: Context): string {
+export function formatAgyPrompt(
+  context: Context,
+  options: { includeSystemPrompt?: boolean } = {},
+): string {
   const sections: string[] = [];
-  const systemPrompt = context.systemPrompt?.trim();
+  const systemPrompt = options.includeSystemPrompt ? context.systemPrompt?.trim() : undefined;
   if (systemPrompt) {
     sections.push(`System:\n${systemPrompt}`);
   }
@@ -246,8 +255,10 @@ export function createAgyStreamFn(
   return (model, context, options) => {
     const stream = createAssistantMessageEventStream();
     const run = async () => {
-      const prompt = formatAgyPrompt(context);
       const config = params.config ?? {};
+      const prompt = formatAgyPrompt(context, {
+        includeSystemPrompt: config.includeSystemPrompt === true,
+      });
       const modelInfo = model;
       try {
         const result = await runner({

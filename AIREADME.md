@@ -99,7 +99,8 @@ Important source anchors:
 - The model catalog declares `openai-completions` for schema compatibility, but `createStreamFn` intercepts provider `agy` and runs the local CLI instead of sending HTTP.
 - Runtime invocation defaults to `agy -p <prompt>`. For configured non-default model ids such as `agy/<id>`, the adapter passes `--model <id>` before `-p`.
 - Plugin config supports `command`, `args`, `cwd`, `env`, `timeoutMs`, `maxOutputBytes`, `modelArg`, and `promptArg` under `plugins.entries.agy.config`.
-- The prompt formatter flattens system prompt, user/assistant history, and tool results into plain text. Image parts are marked omitted because the CLI prompt mode is text-only here.
+- The prompt formatter defaults to excluding OpenClaw's system prompt because it often contains OpenClaw-specific tool/channel instructions that can conflict with agy's own CLI agent prompt and tools. Set `plugins.entries.agy.config.includeSystemPrompt: true` only when explicit system prompt forwarding is desired.
+- The prompt formatter flattens user/assistant history and tool results into plain text. Image parts are marked omitted because the CLI prompt mode is text-only here.
 - The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
 - Do not add reverse proxy behavior or mutate agy's internal prompt/config for this provider; it is intentionally only a local CLI forwarding adapter.
 

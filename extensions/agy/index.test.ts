@@ -70,7 +70,7 @@ describe("agy provider", () => {
     });
   });
 
-  it("formats OpenClaw context into a single agy prompt", () => {
+  it("formats visible OpenClaw context into a single agy prompt without system prompt by default", () => {
     const prompt = formatAgyPrompt({
       systemPrompt: "Be direct.",
       messages: [
@@ -103,10 +103,22 @@ describe("agy provider", () => {
       ],
     });
 
-    expect(prompt).toContain("System:\nBe direct.");
+    expect(prompt).not.toContain("System:\nBe direct.");
     expect(prompt).toContain("User:\nhello");
     expect(prompt).toContain("Assistant:\nhi");
     expect(prompt).toContain("Tool result (read_file):\nfile text");
+  });
+
+  it("can include OpenClaw system prompt when explicitly configured", () => {
+    expect(
+      formatAgyPrompt(
+        {
+          systemPrompt: "Be direct.",
+          messages: [{ role: "user", content: "hello", timestamp: 1 }],
+        },
+        { includeSystemPrompt: true },
+      ),
+    ).toContain("System:\nBe direct.");
   });
 
   it("builds default and explicit model cli args", () => {
