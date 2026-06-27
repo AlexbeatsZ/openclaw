@@ -2,6 +2,7 @@
 
 - Repository: `openclaw/openclaw`, forked to `AlexbeatsZ/openclaw` and cloned locally at `C:\Users\Meta\Project\Workspaces\openclaw`.
 - Current task: implement optional `main + direct` cron delivery so scheduled AI output can be captured by the program and forwarded to QQ without asking the model to call the message tool.
+- Maintenance policy: this is now maintained as the user's own fork/project. Do not submit upstream PRs by default; push ongoing work to `origin` (`AlexbeatsZ/openclaw`) and use `upstream` only for fetching/syncing upstream changes.
 
 # Lessons Learned
 
@@ -77,6 +78,13 @@ Important source anchors:
 - State/protocol/tool schemas persist and expose `delivery_strategy`, and all shipped UI locales were synced with English fallback strings for the new controls.
 - Direct cron must keep heartbeat execution semantics for event suppression and queue behavior, but its transcript prompt must persist the real scheduled task body. If it uses the generic heartbeat transcript marker, daily task records show `[OpenClaw heartbeat poll]` / empty HEARTBEAT-like prompts even though the persisted cron payload is intact.
 
+## Fork maintenance policy
+
+- `origin` is the authoritative project remote: `https://github.com/AlexbeatsZ/openclaw.git`.
+- `upstream` is kept only for reading from the original project: `https://github.com/openclaw/openclaw.git`.
+- Upstream pull requests are intentionally out of scope unless the user explicitly asks for one.
+- To avoid accidental upstream pushes, local `upstream` push URL is set to `DISABLED`.
+
 ## Model fallback changes from this task
 
 - Embedded-agent fallback classification now treats terminal quota/rate-limit/business-denial errors as fallback-worthy even when partial visible output exists, as long as the run is still replay-safe.
@@ -138,3 +146,4 @@ Important source anchors:
 - [x] Redeploy the direct cron lane-admission fix and re-run `Steped_Study_Check` validation.
 - [x] Import legacy main-agent auth profiles into SQLite so direct main cron can resolve model credentials.
 - [x] Diagnose and fix direct cron records showing heartbeat/HEARTBEAT placeholders instead of the scheduled task body.
+- [x] Switch project handling policy to maintain the user's fork directly and disable accidental upstream pushes.
