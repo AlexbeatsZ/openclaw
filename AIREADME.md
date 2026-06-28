@@ -122,6 +122,7 @@ Important source anchors:
 - Agy must be bundled into the root OpenClaw dist for the server WSL service. `extensions/agy/package.json` must not set `openclaw.build.bundledDist: false`; otherwise `pnpm build` succeeds but `dist/extensions/agy` is absent and the configured agy provider cannot load.
 - Server agy deployment imports only the two Gemini entries `agy/gemini-3.5-flash` and `agy/gemini-3.1-pro`. Do not bulk-import agy Claude/GPT model names unless the user explicitly asks.
 - Server WSL agy auth diagnostic: `/home/meta/.gemini/antigravity-cli/antigravity-oauth-token` can exist and be unexpired while `agy --print` still emits "Authentication required" because print mode's silent auth waits only about 5 seconds for keyring/userinfo/code-assist. Logs show `keyringAuth: loaded token` followed by `keyringAuth: timed out after 5s` and OAuth fallback. Direct short prompts may succeed while OpenClaw runs fail if the cold-start/auth path is slow.
+- Server WSL currently has `dbus-user-session` but not `gnome-keyring`/`libsecret`. Public Antigravity CLI WSL troubleshooting points to a persistent Secret Service/keyring backend for repeated-login failures; installing that is a global server change and requires explicit user approval first.
 
 ## Verification notes
 
@@ -133,6 +134,8 @@ Important source anchors:
 - Passed after agy CLI-backend prompt filtering fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy CLI-backend prompt filtering fix: `pnpm exec oxfmt --check extensions/agy/cli-backend.ts extensions/agy/stream.ts extensions/agy/index.test.ts`.
 - Passed after agy CLI-backend prompt filtering fix: `pnpm tsgo:extensions`.
+- Server WSL deployment of `1c90018f4f` rebuilt successfully and restarted `openclaw-gateway.service`; health returned `{"ok":true,"status":"live"}`.
+- Post-deploy OpenClaw gateway agy smoke still returned agy OAuth text, but `systemPromptReport.systemPrompt.chars` dropped to `24130`, confirming the CLI-backend prompt filter is active. Remaining blocker is agy/keyring auth persistence in WSL, not provider registration or model selection.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
