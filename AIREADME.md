@@ -92,6 +92,7 @@ Important source anchors:
 - The running OpenClaw instance lives on the user's server, reached as `meta@100.106.169.46`, with the actual build/deployment target inside that server's WSL environment. Runtime config changes, production builds, service restarts, and deployment verification must be performed on the server WSL instance, not by creating or changing local Windows `~/.openclaw` config.
 - The server SSH entry defaults to Windows `cmd`/PowerShell, not Linux bash. For WSL work, explicitly enter WSL from remote PowerShell/cmd; do not assume `/home/meta` exists at the top-level SSH filesystem.
 - Do not create local Windows OpenClaw runtime config as a substitute for server deployment. A mistaken local `C:\Users\Meta\.openclaw\openclaw.json` was created during agy default-model testing and then removed.
+- Local Windows cleanup audit after the mistaken config creation found no local OpenClaw deployment: no `openclaw` command, no `C:\Users\Meta\.openclaw` or `.clawdbot`, no matching Windows service, no scheduled task, and no OpenClaw process. Temporary backup/probe artifacts from that mistaken local config attempt were also removed from `%LOCALAPPDATA%\Temp\.agents`.
 
 ## Model fallback changes from this task
 
@@ -130,6 +131,7 @@ Important source anchors:
 - Passed after agy image-path support: `pnpm tsgo:extensions`.
 - Passed after agy image-path support: `pnpm exec oxfmt --check extensions/agy/cli-backend.ts extensions/agy/catalog.ts extensions/agy/index.test.ts extensions/agy/openclaw.plugin.json`.
 - Mistaken local Windows default config creation was reverted: `C:\Users\Meta\.openclaw\openclaw.json` was deleted. Agy default-model deployment still needs to be applied on the server WSL runtime config/build target.
+- Passed local cleanup verification after mistaken config creation: `C:\Users\Meta\.openclaw` absent, `C:\Users\Meta\.clawdbot` absent, `openclaw` command absent, no OpenClaw Windows service, no OpenClaw scheduled task, and no OpenClaw process.
 - Live agy smoke: `agy -p "Reply exactly: AGY_OK"` and `agy --print-timeout 1m --print "Reply exactly: AGY_OK"` exited 0 and logs showed silent auth, conversation creation, and `streamGenerateContent`, but stdout was empty on this host. This appears to be agy print-mode capture behavior rather than OpenClaw argument construction.
 - Attempted after lockfile cleanup: `pnpm install --frozen-lockfile --ignore-scripts` timed out after 3 minutes with no diagnostic output.
 - Passed for agy provider: lightweight `tsx` stream smoke using a fake runner, confirming ANSI-stripped stdout returns `start`, `text_start`, `text_delta`, `text_end`, `done`.
