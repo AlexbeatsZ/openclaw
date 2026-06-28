@@ -106,6 +106,7 @@ Important source anchors:
 - The prompt formatter flattens user/assistant history and tool results into plain text. Image parts are marked omitted because the CLI prompt mode is text-only here.
 - The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
 - Do not add reverse proxy behavior or mutate agy's internal prompt/config for this provider; it is intentionally only a local CLI forwarding adapter.
+- `agy --help` exposes no dedicated system-prompt file argument. Antigravity CLI documentation describes workspace `GEMINI.md` / `AGENTS.md` project instruction files, so an OpenClaw "write prompt to file" design for agy would be a workspace-instruction-file feature, not a native system-prompt transport. Do not silently overwrite user project instruction files; prefer prompt-prefix unless a scoped temp workspace or explicit user-controlled file path is designed.
 
 ## Verification notes
 
