@@ -125,6 +125,7 @@ Important source anchors:
 - Server WSL currently has `dbus-user-session` but not `gnome-keyring`/`libsecret`. Public Antigravity CLI WSL troubleshooting points to a persistent Secret Service/keyring backend for repeated-login failures; installing that is a global server change and requires explicit user approval first.
 - OpenClaw gateway is a user systemd service and does not read the user's interactive `zsh` startup files. If agy works in an interactive shell but not through OpenClaw, compare proxy/keyring variables in `systemctl --user show openclaw-gateway.service -p Environment`; missing `HTTP_PROXY`/`HTTPS_PROXY`, `XDG_RUNTIME_DIR`, or `DBUS_SESSION_BUS_ADDRESS` can make agy auth fall back to OAuth even with a valid token.
 - Follow-up diagnostic showed keyring was not required once proxy env was present: `agy` succeeded in an empty environment with proxy variables but without `DBUS_SESSION_BUS_ADDRESS`/`XDG_RUNTIME_DIR`. Gateway service now keeps only proxy env for agy network access; keyring-related env was removed from the service unit.
+- Server WSL cron/default AI was switched to agy Gemini High: `/home/meta/.openclaw/openclaw.json` now has `agents.defaults.model.primary = "agy/gemini-3.5-flash"` and `agents.defaults.thinkingDefault = "high"`. The active scheduled jobs `Steped_Study_Check`, `Daily_Review_Feedback`, `Weekly_Academic_Audit`, and `Memory Dreaming Promotion` were also edited to explicit `model: agy/gemini-3.5-flash` and `thinking: high`, so old per-job DeepSeek/local Gemini overrides do not bypass the new default.
 
 ## Verification notes
 
@@ -142,6 +143,9 @@ Important source anchors:
 - Server service-unit backup before proxy/keyring env change: `/home/meta/.openclaw/backups/openclaw-gateway-service-before-proxy-20260628-165900.service`.
 - After removing DBus/keyring env from the gateway service unit while keeping proxy env, OpenClaw gateway agy smoke still passed: payload `OPENCLAW_AGY_NO_KEYRING_OK`. Backup before this service edit: `/home/meta/.openclaw/backups/openclaw-gateway-service-before-remove-keyring-env-20260628-170149.service`.
 - Attempted to uninstall `gnome-keyring`/`gnome-keyring-pkcs11`, but server WSL required a sudo password, so packages remain installed. They are no longer referenced by OpenClaw's service environment.
+- Server config backup before the agy cron/default High switch: `/home/meta/.openclaw/backups/agy-cron-default-high-before-20260628-170947.json`.
+- Server WSL cron/default High verification passed: defaults showed primary `agy/gemini-3.5-flash` plus `thinkingDefault: high`; all four active cron jobs showed `model: agy/gemini-3.5-flash`, `thinking: high`, and `status: ok`; gateway health returned `{"ok":true,"status":"live"}` after service restart.
+- OpenClaw gateway agy High smoke passed without direct delivery: `node dist/index.js agent --agent main --message 'Reply exactly: OPENCLAW_AGY_HIGH_OK' --model agy/gemini-3.5-flash --thinking high --timeout 180 --json` returned payload `OPENCLAW_AGY_HIGH_OK`, provider `agy`, runner `cli`. Agy logs confirmed the actual CLI model variant was `gemini-3.5-flash-high`.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
@@ -230,3 +234,4 @@ Important source anchors:
 - [x] Install real pnpm in server WSL and remove the temporary pnpm shim.
 - [x] Fix agy bundled-dist packaging so `dist/extensions/agy` is emitted by the root build.
 - [x] Redeploy agy bundled-dist/Gemini model fix to server WSL, rebuild, restart gateway, and verify `dist/extensions/agy` exists.
+- [x] Set server WSL OpenClaw default and all active cron jobs to agy `gemini-3.5-flash` with High thinking.
