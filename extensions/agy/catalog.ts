@@ -28,7 +28,7 @@ export function buildAgyModelDefinition(modelId = AGY_DEFAULT_MODEL_ID): ModelDe
     name: id === AGY_DEFAULT_MODEL_ID ? "Agy CLI default" : `Agy CLI ${id}`,
     api: "openai-completions",
     reasoning: false,
-    input: ["text"],
+    input: ["text", "image"],
     agentRuntime: { id: AGY_PROVIDER_ID },
     cost: ZERO_COST,
     contextWindow: DEFAULT_CONTEXT_WINDOW,
@@ -60,7 +60,7 @@ export function buildAgyDynamicModel(modelId: string): ProviderRuntimeModel | un
   const definition = buildAgyModelDefinition(id);
   return {
     ...definition,
-    input: ["text"],
+    input: ["text", "image"],
     provider: AGY_PROVIDER_ID,
     api: "openai-completions",
     baseUrl: AGY_BASE_URL,

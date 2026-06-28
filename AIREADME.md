@@ -100,6 +100,7 @@ Important source anchors:
 - `extensions/agy/cli-backend.ts` mirrors the Gemini CLI pattern by registering a `CliBackendPlugin`: command `agy`, args `--print-timeout 10m --print {prompt}`, text output, `--model` for non-default models, serialized execution, and `nativeToolMode: "always-on"`.
 - Agy has no native system-prompt flag. Core CLI runner config now supports `systemPromptTransport: "prompt-prefix"`, allowing CLI-backend system prompts to be prepended into the prompt text for CLIs without a system channel.
 - Runtime invocation defaults to `agy -p <prompt>`. For configured non-default model ids such as `agy/<id>`, the adapter passes `--model <id>` before `-p`.
+- Agy image support is path-level, not native API multimodal transport: `agy/default` is declared as `text+image`, OpenClaw stages images into the workspace `.openclaw-cli-images` directory, and the CLI backend appends `@<image-path>` to the prompt so agy can use its own native file/vision handling. Actual image understanding still depends on agy/model behavior.
 - Plugin config supports `command`, `args`, `cwd`, `env`, `timeoutMs`, `maxOutputBytes`, `modelArg`, and `promptArg` under `plugins.entries.agy.config`.
 - The fallback stream formatter now defaults to a filtered system prompt: it strips OpenClaw `## ...tool...` sections and adds a short note telling agy to use its native tools. This avoids both extremes: no prompt at all, or injecting OpenClaw tool-call syntax into agy.
 - Fallback stream config supports `systemPromptMode: "filtered" | "full" | "none"`. The old `includeSystemPrompt` remains as compatibility mapping (`true` -> `full`, `false` -> `none`).
@@ -117,6 +118,11 @@ Important source anchors:
 - Passed after CLI backend/prompt update: `node scripts/run-vitest.mjs run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (7 tests).
 - Passed after CLI backend/prompt update: `node scripts/run-vitest.mjs run --config test/vitest/vitest.agents.config.ts src/agents/cli-runner.helpers.test.ts` (27 tests).
 - Passed after CLI backend/prompt update: modified-file `oxfmt --check`.
+- Passed after agy image-path support: `node scripts/run-vitest.mjs run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts`.
+- Passed after agy image-path support: `.\node_modules\.bin\tsc.cmd -p extensions\agy\tsconfig.json --noEmit`.
+- Passed after agy image-path support: `pnpm tsgo:extensions`.
+- Passed after agy image-path support: `pnpm exec oxfmt --check extensions/agy/cli-backend.ts extensions/agy/catalog.ts extensions/agy/index.test.ts extensions/agy/openclaw.plugin.json`.
+- Local default config was created at `C:\Users\Meta\.openclaw\openclaw.json` with `agents.defaults.model = "agy/default"` and a local `agy` provider/model declaration. The previous state DB was backed up under `C:\Users\Meta\AppData\Local\Temp\.agents\openclaw-config-before-agy-default-20260628`.
 - Live agy smoke: `agy -p "Reply exactly: AGY_OK"` and `agy --print-timeout 1m --print "Reply exactly: AGY_OK"` exited 0 and logs showed silent auth, conversation creation, and `streamGenerateContent`, but stdout was empty on this host. This appears to be agy print-mode capture behavior rather than OpenClaw argument construction.
 - Attempted after lockfile cleanup: `pnpm install --frozen-lockfile --ignore-scripts` timed out after 3 minutes with no diagnostic output.
 - Passed for agy provider: lightweight `tsx` stream smoke using a fake runner, confirming ANSI-stripped stdout returns `start`, `text_start`, `text_delta`, `text_end`, `done`.

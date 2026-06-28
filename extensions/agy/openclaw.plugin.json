@@ -19,7 +19,7 @@
             "id": "default",
             "name": "Agy CLI default",
             "reasoning": false,
-            "input": ["text"],
+            "input": ["text", "image"],
             "agentRuntime": {
               "id": "agy"
             },

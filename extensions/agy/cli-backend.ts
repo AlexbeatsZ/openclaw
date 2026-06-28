@@ -18,6 +18,8 @@ export function buildAgyCliBackend(): CliBackendPlugin {
       input: "arg",
       modelArg: "--model",
       sessionMode: "none",
+      imageArg: "@",
+      imagePathScope: "workspace",
       systemPromptTransport: "prompt-prefix",
       systemPromptWhen: "always",
       reliability: {
