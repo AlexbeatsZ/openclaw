@@ -124,6 +124,7 @@ Important source anchors:
 - Server WSL agy auth diagnostic: `/home/meta/.gemini/antigravity-cli/antigravity-oauth-token` can exist and be unexpired while `agy --print` still emits "Authentication required" because print mode's silent auth waits only about 5 seconds for keyring/userinfo/code-assist. Logs show `keyringAuth: loaded token` followed by `keyringAuth: timed out after 5s` and OAuth fallback. Direct short prompts may succeed while OpenClaw runs fail if the cold-start/auth path is slow.
 - Server WSL currently has `dbus-user-session` but not `gnome-keyring`/`libsecret`. Public Antigravity CLI WSL troubleshooting points to a persistent Secret Service/keyring backend for repeated-login failures; installing that is a global server change and requires explicit user approval first.
 - OpenClaw gateway is a user systemd service and does not read the user's interactive `zsh` startup files. If agy works in an interactive shell but not through OpenClaw, compare proxy/keyring variables in `systemctl --user show openclaw-gateway.service -p Environment`; missing `HTTP_PROXY`/`HTTPS_PROXY`, `XDG_RUNTIME_DIR`, or `DBUS_SESSION_BUS_ADDRESS` can make agy auth fall back to OAuth even with a valid token.
+- Follow-up diagnostic showed keyring was not required once proxy env was present: `agy` succeeded in an empty environment with proxy variables but without `DBUS_SESSION_BUS_ADDRESS`/`XDG_RUNTIME_DIR`. Gateway service now keeps only proxy env for agy network access; keyring-related env was removed from the service unit.
 
 ## Verification notes
 
@@ -139,6 +140,8 @@ Important source anchors:
 - Post-deploy OpenClaw gateway agy smoke still returned agy OAuth text, but `systemPromptReport.systemPrompt.chars` dropped to `24130`, confirming the CLI-backend prompt filter is active. Remaining blocker is agy/keyring auth persistence in WSL, not provider registration or model selection.
 - After installing `gnome-keyring`/`libsecret` and adding the interactive-shell proxy plus D-Bus/keyring environment to `/home/meta/.config/systemd/user/openclaw-gateway.service`, OpenClaw gateway agy smoke passed: payload `OPENCLAW_AGY_PROXY_OK`, provider `agy`, model `gemini-3.5-flash`, prompt chars `24130`.
 - Server service-unit backup before proxy/keyring env change: `/home/meta/.openclaw/backups/openclaw-gateway-service-before-proxy-20260628-165900.service`.
+- After removing DBus/keyring env from the gateway service unit while keeping proxy env, OpenClaw gateway agy smoke still passed: payload `OPENCLAW_AGY_NO_KEYRING_OK`. Backup before this service edit: `/home/meta/.openclaw/backups/openclaw-gateway-service-before-remove-keyring-env-20260628-170149.service`.
+- Attempted to uninstall `gnome-keyring`/`gnome-keyring-pkcs11`, but server WSL required a sudo password, so packages remain installed. They are no longer referenced by OpenClaw's service environment.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
