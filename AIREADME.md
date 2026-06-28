@@ -104,11 +104,12 @@ Important source anchors:
 
 - `extensions/agy` registers provider id `agy` with default model ref `agy/default`.
 - The provider uses synthetic local auth marker `agy-cli`; no API key is required because agy CLI owns its own login/session state.
-- The model catalog declares `openai-completions` for schema compatibility, and `agy/default` now carries `agentRuntime: { id: "agy" }` so normal agent runs use the generic CLI backend path rather than pretending agy is an HTTP API.
-- `extensions/agy/cli-backend.ts` mirrors the Gemini CLI pattern by registering a `CliBackendPlugin`: command `agy`, args `--print-timeout 10m --print {prompt}`, text output, `--model` for non-default models, serialized execution, and `nativeToolMode: "always-on"`.
+- The model catalog declares `openai-completions` for schema compatibility, and the static agy model list contains only Gemini entries: `agy/gemini-3.5-flash` and `agy/gemini-3.1-pro`. Both carry `agentRuntime: { id: "agy" }` so normal agent runs use the generic CLI backend path rather than pretending agy is an HTTP API.
+- `extensions/agy/cli-backend.ts` mirrors the Gemini CLI pattern by registering a `CliBackendPlugin`: command `agy`, args `--print-timeout 10m --print {prompt}`, text output, serialized execution, and `nativeToolMode: "always-on"`.
+- Agy's CLI help exposes `--model` but no separate `--thinking` flag. OpenClaw therefore exposes thinking controls through the provider thinking profile and maps selected thinking levels to agy model-id variants before invoking `agy --model <variant>`.
 - Agy has no native system-prompt flag. Core CLI runner config now supports `systemPromptTransport: "prompt-prefix"`, allowing CLI-backend system prompts to be prepended into the prompt text for CLIs without a system channel.
-- Runtime invocation defaults to `agy -p <prompt>`. For configured non-default model ids such as `agy/<id>`, the adapter passes `--model <id>` before `-p`.
-- Agy image support is path-level, not native API multimodal transport: `agy/default` is declared as `text+image`, OpenClaw stages images into the workspace `.openclaw-cli-images` directory, and the CLI backend appends `@<image-path>` to the prompt so agy can use its own native file/vision handling. Actual image understanding still depends on agy/model behavior.
+- Runtime invocation defaults to `agy --model gemini-3.5-flash --print-timeout 10m --print <prompt>` for the default model. `agy/gemini-3.1-pro` is mapped to `--model gemini-3.1-pro`, and selected thinking levels map to suffix variants such as `gemini-3.1-pro-high` or `gemini-3.5-flash-medium`.
+- Agy image support is path-level, not native API multimodal transport: agy Gemini models are declared as `text+image`, OpenClaw stages images into the workspace `.openclaw-cli-images` directory, and the CLI backend appends `@<image-path>` to the prompt so agy can use its own native file/vision handling. Actual image understanding still depends on agy/model behavior.
 - Plugin config supports `command`, `args`, `cwd`, `env`, `timeoutMs`, `maxOutputBytes`, `modelArg`, and `promptArg` under `plugins.entries.agy.config`.
 - The fallback stream formatter now defaults to a filtered system prompt: it strips OpenClaw `## ...tool...` sections and adds a short note telling agy to use its native tools. This avoids both extremes: no prompt at all, or injecting OpenClaw tool-call syntax into agy.
 - Fallback stream config supports `systemPromptMode: "filtered" | "full" | "none"`. The old `includeSystemPrompt` remains as compatibility mapping (`true` -> `full`, `false` -> `none`).
@@ -116,11 +117,15 @@ Important source anchors:
 - The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
 - Do not add reverse proxy behavior or mutate agy's internal prompt/config for this provider; it is intentionally only a local CLI forwarding adapter.
 - `agy --help` exposes no dedicated system-prompt file argument. Antigravity CLI documentation describes workspace `GEMINI.md` / `AGENTS.md` project instruction files, so an OpenClaw "write prompt to file" design for agy would be a workspace-instruction-file feature, not a native system-prompt transport. Do not silently overwrite user project instruction files; prefer prompt-prefix unless a scoped temp workspace or explicit user-controlled file path is designed.
-- Agy must be bundled into the root OpenClaw dist for the server WSL service. `extensions/agy/package.json` must not set `openclaw.build.bundledDist: false`; otherwise `pnpm build` succeeds but `dist/extensions/agy` is absent and the configured `agy/default` provider cannot load.
-- Server agy deployment imports only the Gemini-backed default entry `agy/default`. Do not bulk-import agy Claude/GPT model names unless the user explicitly asks.
+- Agy must be bundled into the root OpenClaw dist for the server WSL service. `extensions/agy/package.json` must not set `openclaw.build.bundledDist: false`; otherwise `pnpm build` succeeds but `dist/extensions/agy` is absent and the configured agy provider cannot load.
+- Server agy deployment imports only the two Gemini entries `agy/gemini-3.5-flash` and `agy/gemini-3.1-pro`. Do not bulk-import agy Claude/GPT model names unless the user explicitly asks.
 
 ## Verification notes
 
+- Passed after agy Gemini model fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
+- Passed after agy Gemini model fix: `pnpm vitest run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (8 tests).
+- Passed after agy Gemini model fix: `pnpm exec oxfmt --check extensions/agy/catalog.ts extensions/agy/cli-backend.ts extensions/agy/index.ts extensions/agy/index.test.ts extensions/agy/openclaw.plugin.json`.
+- Passed after agy Gemini model fix: `pnpm tsgo:extensions`.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.

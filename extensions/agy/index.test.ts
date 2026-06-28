@@ -34,12 +34,12 @@ function collectProviderRegistration(pluginConfig: Record<string, unknown> = {})
 }
 
 const testModel = {
-  id: "default",
-  name: "Agy CLI default",
+  id: "gemini-3.5-flash",
+  name: "Gemini 3.5 Flash",
   api: "openai-completions",
   provider: "agy",
   baseUrl: "cli://agy",
-  reasoning: false,
+  reasoning: true,
   input: ["text", "image"],
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   contextWindow: 200_000,
@@ -61,7 +61,10 @@ describe("agy provider", () => {
         args: ["--print-timeout", "10m", "--print", "{prompt}"],
         output: "text",
         input: "arg",
-        modelArg: "--model",
+        modelAliases: {
+          flash: "gemini-3.5-flash",
+          pro: "gemini-3.1-pro",
+        },
         sessionMode: "none",
         imageArg: "@",
         imagePathScope: "workspace",
@@ -77,7 +80,7 @@ describe("agy provider", () => {
 
     const auth = provider.auth as Array<{ run: () => Promise<unknown> }>;
     await expect(auth[0]?.run()).resolves.toMatchObject({
-      defaultModel: "agy/default",
+      defaultModel: "agy/gemini-3.5-flash",
       profiles: [],
       configPatch: {
         models: {
@@ -85,18 +88,74 @@ describe("agy provider", () => {
             agy: {
               baseUrl: "cli://agy",
               apiKey: "agy-cli",
+              models: [
+                expect.objectContaining({
+                  id: "gemini-3.5-flash",
+                  name: "Gemini 3.5 Flash",
+                  reasoning: true,
+                }),
+                expect.objectContaining({
+                  id: "gemini-3.1-pro",
+                  name: "Gemini 3.1 Pro",
+                  reasoning: true,
+                }),
+              ],
             },
           },
         },
         agents: {
           defaults: {
             models: {
-              "agy/default": { agentRuntime: { id: "agy" } },
+              "agy/gemini-3.5-flash": { agentRuntime: { id: "agy" } },
+              "agy/gemini-3.1-pro": { agentRuntime: { id: "agy" } },
             },
           },
         },
       },
     });
+  });
+
+  it("exposes Gemini thinking profiles and maps thinking to agy model variants", () => {
+    const { provider, cliBackend } = collectProviderRegistration();
+    const resolveThinkingProfile = provider.resolveThinkingProfile as (ctx: {
+      modelId: string;
+    }) => { levels: Array<{ id: string }>; defaultLevel?: string };
+
+    expect(resolveThinkingProfile({ modelId: "gemini-3.5-flash" })).toMatchObject({
+      defaultLevel: "adaptive",
+      levels: [
+        { id: "off" },
+        { id: "minimal" },
+        { id: "low" },
+        { id: "medium" },
+        { id: "adaptive" },
+        { id: "high" },
+      ],
+    });
+    expect(resolveThinkingProfile({ modelId: "gemini-3.1-pro" })).toMatchObject({
+      defaultLevel: "adaptive",
+      levels: [{ id: "off" }, { id: "low" }, { id: "adaptive" }, { id: "high" }],
+    });
+
+    const resolveExecutionArgs = cliBackend.resolveExecutionArgs as (ctx: {
+      baseArgs: string[];
+      modelId: string;
+      thinkingLevel?: "low" | "medium" | "high" | "adaptive";
+    }) => readonly string[];
+    expect(
+      resolveExecutionArgs({
+        baseArgs: ["--print", "{prompt}"],
+        modelId: "gemini-3.5-flash",
+        thinkingLevel: "medium",
+      }),
+    ).toEqual(["--model", "gemini-3.5-flash-medium", "--print", "{prompt}"]);
+    expect(
+      resolveExecutionArgs({
+        baseArgs: ["--print", "{prompt}"],
+        modelId: "gemini-3.1-pro",
+        thinkingLevel: "high",
+      }),
+    ).toEqual(["--model", "gemini-3.1-pro-high", "--print", "{prompt}"]);
   });
 
   it("formats visible OpenClaw context into a single agy prompt with filtered system prompt", () => {
@@ -173,7 +232,10 @@ describe("agy provider", () => {
   });
 
   it("builds default and explicit model cli args", () => {
-    expect(buildAgyCliArgs({ modelId: "default", prompt: "hello" })).toEqual(["-p", "hello"]);
+    expect(buildAgyCliArgs({ modelId: "gemini-3.5-flash", prompt: "hello" })).toEqual([
+      "-p",
+      "hello",
+    ]);
     expect(buildAgyCliArgs({ modelId: "gemini", prompt: "hello" })).toEqual([
       "--model",
       "gemini",
@@ -232,7 +294,7 @@ describe("agy provider", () => {
       role: "assistant",
       content: [{ type: "text", text: "answer" }],
       provider: "agy",
-      model: "default",
+      model: "gemini-3.5-flash",
       stopReason: "stop",
     });
   });
@@ -253,8 +315,8 @@ describe("agy provider", () => {
     expect(createStreamFn({ provider: "other", model: testModel, modelId: "default" })).toBe(
       undefined,
     );
-    expect(createStreamFn({ provider: "agy", model: testModel, modelId: "default" })).toEqual(
-      expect.any(Function),
-    );
+    expect(
+      createStreamFn({ provider: "agy", model: testModel, modelId: "gemini-3.5-flash" }),
+    ).toEqual(expect.any(Function));
   });
 });

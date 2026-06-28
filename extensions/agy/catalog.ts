@@ -6,7 +6,9 @@ import type {
 } from "openclaw/plugin-sdk/provider-model-shared";
 
 export const AGY_PROVIDER_ID = "agy";
-export const AGY_DEFAULT_MODEL_ID = "default";
+export const AGY_GEMINI_FLASH_MODEL_ID = "gemini-3.5-flash";
+export const AGY_GEMINI_PRO_MODEL_ID = "gemini-3.1-pro";
+export const AGY_DEFAULT_MODEL_ID = AGY_GEMINI_FLASH_MODEL_ID;
 export const AGY_DEFAULT_MODEL_REF = `${AGY_PROVIDER_ID}/${AGY_DEFAULT_MODEL_ID}`;
 export const AGY_BASE_URL = "cli://agy";
 export const AGY_AUTH_MARKER = "agy-cli";
@@ -21,13 +23,33 @@ const ZERO_COST = {
   cacheWrite: 0,
 };
 
+type AgyKnownModel = {
+  id: string;
+  name: string;
+};
+
+const AGY_KNOWN_MODELS: AgyKnownModel[] = [
+  {
+    id: AGY_GEMINI_FLASH_MODEL_ID,
+    name: "Gemini 3.5 Flash",
+  },
+  {
+    id: AGY_GEMINI_PRO_MODEL_ID,
+    name: "Gemini 3.1 Pro",
+  },
+];
+
+function resolveAgyModelName(id: string): string {
+  return AGY_KNOWN_MODELS.find((model) => model.id === id)?.name ?? `Agy CLI ${id}`;
+}
+
 export function buildAgyModelDefinition(modelId = AGY_DEFAULT_MODEL_ID): ModelDefinitionConfig {
   const id = modelId.trim() || AGY_DEFAULT_MODEL_ID;
   return {
     id,
-    name: id === AGY_DEFAULT_MODEL_ID ? "Agy CLI default" : `Agy CLI ${id}`,
+    name: resolveAgyModelName(id),
     api: "openai-completions",
-    reasoning: false,
+    reasoning: true,
     input: ["text", "image"],
     agentRuntime: { id: AGY_PROVIDER_ID },
     cost: ZERO_COST,
@@ -35,7 +57,7 @@ export function buildAgyModelDefinition(modelId = AGY_DEFAULT_MODEL_ID): ModelDe
     maxTokens: DEFAULT_MAX_TOKENS,
     compat: {
       supportsUsageInStreaming: true,
-      supportsReasoningEffort: false,
+      supportsReasoningEffort: true,
       supportsTools: false,
       requiresStringContent: true,
     },
@@ -48,7 +70,7 @@ export function buildAgyProviderConfig(): ModelProviderConfig {
     apiKey: AGY_AUTH_MARKER,
     auth: "token",
     api: "openai-completions",
-    models: [buildAgyModelDefinition()],
+    models: AGY_KNOWN_MODELS.map((model) => buildAgyModelDefinition(model.id)),
   };
 }
 
@@ -72,10 +94,7 @@ export function applyAgyConfig(): {
   agents: {
     defaults: {
       model: typeof AGY_DEFAULT_MODEL_REF;
-      models: Record<
-        typeof AGY_DEFAULT_MODEL_REF,
-        { agentRuntime: { id: typeof AGY_PROVIDER_ID } }
-      >;
+      models: Record<string, { agentRuntime: { id: typeof AGY_PROVIDER_ID } }>;
     };
   };
 } {
@@ -90,6 +109,9 @@ export function applyAgyConfig(): {
         model: AGY_DEFAULT_MODEL_REF,
         models: {
           [AGY_DEFAULT_MODEL_REF]: { agentRuntime: { id: AGY_PROVIDER_ID } },
+          [`${AGY_PROVIDER_ID}/${AGY_GEMINI_PRO_MODEL_ID}`]: {
+            agentRuntime: { id: AGY_PROVIDER_ID },
+          },
         },
       },
     },

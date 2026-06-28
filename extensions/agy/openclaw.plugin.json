@@ -16,9 +16,9 @@
         "api": "openai-completions",
         "models": [
           {
-            "id": "default",
-            "name": "Agy CLI default",
-            "reasoning": false,
+            "id": "gemini-3.5-flash",
+            "name": "Gemini 3.5 Flash",
+            "reasoning": true,
             "input": ["text", "image"],
             "agentRuntime": {
               "id": "agy"
@@ -33,7 +33,30 @@
             },
             "compat": {
               "supportsUsageInStreaming": true,
-              "supportsReasoningEffort": false,
+              "supportsReasoningEffort": true,
+              "supportsTools": false,
+              "requiresStringContent": true
+            }
+          },
+          {
+            "id": "gemini-3.1-pro",
+            "name": "Gemini 3.1 Pro",
+            "reasoning": true,
+            "input": ["text", "image"],
+            "agentRuntime": {
+              "id": "agy"
+            },
+            "contextWindow": 200000,
+            "maxTokens": 32000,
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "compat": {
+              "supportsUsageInStreaming": true,
+              "supportsReasoningEffort": true,
               "supportsTools": false,
               "requiresStringContent": true
             }
