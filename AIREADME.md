@@ -86,6 +86,13 @@ Important source anchors:
 - Upstream pull requests are intentionally out of scope unless the user explicitly asks for one.
 - To avoid accidental upstream pushes, local `upstream` push URL is set to `DISABLED`.
 
+## Deployment policy
+
+- The Windows local checkout at `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw` is for code edits, tests, commits, and pushes only.
+- The running OpenClaw instance lives on the user's server, reached as `meta@100.106.169.46`, with the actual build/deployment target inside that server's WSL environment. Runtime config changes, production builds, service restarts, and deployment verification must be performed on the server WSL instance, not by creating or changing local Windows `~/.openclaw` config.
+- The server SSH entry defaults to Windows `cmd`/PowerShell, not Linux bash. For WSL work, explicitly enter WSL from remote PowerShell/cmd; do not assume `/home/meta` exists at the top-level SSH filesystem.
+- Do not create local Windows OpenClaw runtime config as a substitute for server deployment. A mistaken local `C:\Users\Meta\.openclaw\openclaw.json` was created during agy default-model testing and then removed.
+
 ## Model fallback changes from this task
 
 - Embedded-agent fallback classification now treats terminal quota/rate-limit/business-denial errors as fallback-worthy even when partial visible output exists, as long as the run is still replay-safe.
@@ -122,7 +129,7 @@ Important source anchors:
 - Passed after agy image-path support: `.\node_modules\.bin\tsc.cmd -p extensions\agy\tsconfig.json --noEmit`.
 - Passed after agy image-path support: `pnpm tsgo:extensions`.
 - Passed after agy image-path support: `pnpm exec oxfmt --check extensions/agy/cli-backend.ts extensions/agy/catalog.ts extensions/agy/index.test.ts extensions/agy/openclaw.plugin.json`.
-- Local default config was created at `C:\Users\Meta\.openclaw\openclaw.json` with `agents.defaults.model = "agy/default"` and a local `agy` provider/model declaration. The previous state DB was backed up under `C:\Users\Meta\AppData\Local\Temp\.agents\openclaw-config-before-agy-default-20260628`.
+- Mistaken local Windows default config creation was reverted: `C:\Users\Meta\.openclaw\openclaw.json` was deleted. Agy default-model deployment still needs to be applied on the server WSL runtime config/build target.
 - Live agy smoke: `agy -p "Reply exactly: AGY_OK"` and `agy --print-timeout 1m --print "Reply exactly: AGY_OK"` exited 0 and logs showed silent auth, conversation creation, and `streamGenerateContent`, but stdout was empty on this host. This appears to be agy print-mode capture behavior rather than OpenClaw argument construction.
 - Attempted after lockfile cleanup: `pnpm install --frozen-lockfile --ignore-scripts` timed out after 3 minutes with no diagnostic output.
 - Passed for agy provider: lightweight `tsx` stream smoke using a fake runner, confirming ANSI-stripped stdout returns `start`, `text_start`, `text_delta`, `text_end`, `done`.
