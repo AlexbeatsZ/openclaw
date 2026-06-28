@@ -158,6 +158,60 @@ describe("agy provider", () => {
     ).toEqual(["--model", "gemini-3.1-pro-high", "--print", "{prompt}"]);
   });
 
+  it("filters OpenClaw system prompts for the CLI backend transport", () => {
+    const { cliBackend } = collectProviderRegistration();
+    const transformSystemPrompt = cliBackend.transformSystemPrompt as (ctx: {
+      provider: string;
+      modelId: string;
+      modelDisplay: string;
+      systemPrompt: string;
+    }) => string;
+    const transformed = transformSystemPrompt({
+      provider: "agy",
+      modelId: "gemini-3.5-flash",
+      modelDisplay: "Gemini 3.5 Flash",
+      systemPrompt: [
+        "You are an assistant.",
+        "",
+        "## Tooling",
+        "Call OpenClaw JSON tools.",
+        "",
+        "## Skills",
+        "<available_skills>large skill list</available_skills>",
+        "",
+        "## Safety",
+        "Stay safe.",
+      ].join("\n"),
+    });
+
+    expect(transformed).toContain("Use agy's native tools");
+    expect(transformed).toContain("You are an assistant.");
+    expect(transformed).toContain("## Safety\nStay safe.");
+    expect(transformed).not.toContain("Call OpenClaw JSON tools.");
+    expect(transformed).not.toContain("<available_skills>");
+  });
+
+  it("caps filtered system prompts before sending them through agy CLI", () => {
+    const { cliBackend } = collectProviderRegistration();
+    const transformSystemPrompt = cliBackend.transformSystemPrompt as (ctx: {
+      provider: string;
+      modelId: string;
+      modelDisplay: string;
+      systemPrompt: string;
+    }) => string;
+    const transformed = transformSystemPrompt({
+      provider: "agy",
+      modelId: "gemini-3.5-flash",
+      modelDisplay: "Gemini 3.5 Flash",
+      systemPrompt: ["Intro", "x".repeat(60_000), "Tail"].join("\n"),
+    });
+
+    expect(transformed.length).toBeLessThan(25_000);
+    expect(transformed).toContain("Intro");
+    expect(transformed).toContain("Tail");
+    expect(transformed).toContain("truncated for agy CLI transport");
+  });
+
   it("formats visible OpenClaw context into a single agy prompt with filtered system prompt", () => {
     const prompt = formatAgyPrompt({
       systemPrompt: ["Be direct.", "", "## Tooling", "Use OpenClaw tool JSON."].join("\n"),

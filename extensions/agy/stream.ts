@@ -153,10 +153,11 @@ export function formatAgyPrompt(
   return sections.join("\n\n").trim();
 }
 
-const AGY_NATIVE_TOOL_NOTE =
+export const AGY_NATIVE_TOOL_NOTE =
   "You are running inside agy CLI via OpenClaw. Use agy's native tools when needed; do not emit OpenClaw-specific tool-call syntax.";
+const AGY_FILTERED_SYSTEM_PROMPT_MAX_CHARS = 24_000;
 
-function resolveAgySystemPrompt(
+export function resolveAgySystemPrompt(
   systemPrompt: string | undefined,
   options: { includeSystemPrompt?: boolean; systemPromptMode?: AgySystemPromptMode },
 ): string | undefined {
@@ -171,7 +172,13 @@ function resolveAgySystemPrompt(
     return undefined;
   }
   const base = systemPrompt?.trim();
-  const filtered = mode === "full" ? base : stripOpenClawToolingSections(base);
+  const filtered =
+    mode === "full"
+      ? base
+      : limitAgySystemPrompt(
+          stripOpenClawToolingSections(base),
+          AGY_FILTERED_SYSTEM_PROMPT_MAX_CHARS,
+        );
   return [AGY_NATIVE_TOOL_NOTE, filtered].filter(Boolean).join("\n\n").trim();
 }
 
@@ -187,7 +194,15 @@ export function stripOpenClawToolingSections(systemPrompt: string | undefined): 
     const heading = /^##\s+(.+?)\s*$/.exec(line);
     if (heading) {
       const title = heading[1]?.replaceAll("`", "").trim().toLowerCase() ?? "";
-      skipping = title.includes("tool");
+      skipping =
+        title.includes("tool") ||
+        title === "skills" ||
+        title === "model aliases" ||
+        title === "assistant output directives" ||
+        title === "messaging" ||
+        title === "heartbeats" ||
+        title === "control ui embed" ||
+        title === "openclaw control";
     }
     if (!skipping) {
       kept.push(line);
@@ -197,6 +212,19 @@ export function stripOpenClawToolingSections(systemPrompt: string | undefined): 
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function limitAgySystemPrompt(systemPrompt: string, maxChars: number): string {
+  if (systemPrompt.length <= maxChars) {
+    return systemPrompt;
+  }
+  const marker = "\n\n[OpenClaw system prompt truncated for agy CLI transport]\n\n";
+  const remaining = Math.max(0, maxChars - marker.length);
+  const headChars = Math.floor(remaining * 0.55);
+  const tailChars = remaining - headChars;
+  return `${systemPrompt.slice(0, headChars).trimEnd()}${marker}${systemPrompt
+    .slice(-tailChars)
+    .trimStart()}`;
 }
 
 function formatMessage(message: Message): string {

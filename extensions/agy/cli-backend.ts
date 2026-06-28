@@ -6,6 +6,7 @@ import {
   AGY_GEMINI_PRO_MODEL_ID,
   AGY_PROVIDER_ID,
 } from "./catalog.js";
+import { readAgyPluginConfig, resolveAgySystemPrompt } from "./stream.js";
 
 type AgyThinkingLevel = NonNullable<
   Parameters<NonNullable<CliBackendPlugin["resolveExecutionArgs"]>>[0]["thinkingLevel"]
@@ -53,6 +54,15 @@ export function buildAgyCliBackend(): CliBackendPlugin {
       defaultModelRef: AGY_DEFAULT_MODEL_REF,
     },
     nativeToolMode: "always-on",
+    transformSystemPrompt: ({ config, systemPrompt }) => {
+      const agyConfig = readAgyPluginConfig(config);
+      return (
+        resolveAgySystemPrompt(systemPrompt, {
+          systemPromptMode: agyConfig.systemPromptMode,
+          includeSystemPrompt: agyConfig.includeSystemPrompt,
+        }) ?? systemPrompt
+      );
+    },
     config: {
       command: "agy",
       args: ["--print-timeout", "10m", "--print", "{prompt}"],

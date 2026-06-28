@@ -112,6 +112,8 @@ Important source anchors:
 - Agy image support is path-level, not native API multimodal transport: agy Gemini models are declared as `text+image`, OpenClaw stages images into the workspace `.openclaw-cli-images` directory, and the CLI backend appends `@<image-path>` to the prompt so agy can use its own native file/vision handling. Actual image understanding still depends on agy/model behavior.
 - Plugin config supports `command`, `args`, `cwd`, `env`, `timeoutMs`, `maxOutputBytes`, `modelArg`, and `promptArg` under `plugins.entries.agy.config`.
 - The fallback stream formatter now defaults to a filtered system prompt: it strips OpenClaw `## ...tool...` sections and adds a short note telling agy to use its native tools. This avoids both extremes: no prompt at all, or injecting OpenClaw tool-call syntax into agy.
+- The active agy runtime path is the generic CLI backend, not `extensions/agy/stream.ts`. Keep the same system-prompt filtering wired through `CliBackendPlugin.transformSystemPrompt`; otherwise agy receives the full OpenClaw tool/skills/messaging prompt and the server run can exceed 60k prompt chars.
+- Agy filtered system prompts are capped before transport. This keeps useful identity/safety/context guidance while stripping OpenClaw-specific tool-call, skill-list, messaging, and output-directive sections that agy cannot consume directly.
 - Fallback stream config supports `systemPromptMode: "filtered" | "full" | "none"`. The old `includeSystemPrompt` remains as compatibility mapping (`true` -> `full`, `false` -> `none`).
 - The prompt formatter flattens user/assistant history and tool results into plain text. Image parts are marked omitted because the CLI prompt mode is text-only here.
 - The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
@@ -119,6 +121,7 @@ Important source anchors:
 - `agy --help` exposes no dedicated system-prompt file argument. Antigravity CLI documentation describes workspace `GEMINI.md` / `AGENTS.md` project instruction files, so an OpenClaw "write prompt to file" design for agy would be a workspace-instruction-file feature, not a native system-prompt transport. Do not silently overwrite user project instruction files; prefer prompt-prefix unless a scoped temp workspace or explicit user-controlled file path is designed.
 - Agy must be bundled into the root OpenClaw dist for the server WSL service. `extensions/agy/package.json` must not set `openclaw.build.bundledDist: false`; otherwise `pnpm build` succeeds but `dist/extensions/agy` is absent and the configured agy provider cannot load.
 - Server agy deployment imports only the two Gemini entries `agy/gemini-3.5-flash` and `agy/gemini-3.1-pro`. Do not bulk-import agy Claude/GPT model names unless the user explicitly asks.
+- Server WSL agy auth diagnostic: `/home/meta/.gemini/antigravity-cli/antigravity-oauth-token` can exist and be unexpired while `agy --print` still emits "Authentication required" because print mode's silent auth waits only about 5 seconds for keyring/userinfo/code-assist. Logs show `keyringAuth: loaded token` followed by `keyringAuth: timed out after 5s` and OAuth fallback. Direct short prompts may succeed while OpenClaw runs fail if the cold-start/auth path is slow.
 
 ## Verification notes
 
@@ -126,6 +129,10 @@ Important source anchors:
 - Passed after agy Gemini model fix: `pnpm vitest run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (8 tests).
 - Passed after agy Gemini model fix: `pnpm exec oxfmt --check extensions/agy/catalog.ts extensions/agy/cli-backend.ts extensions/agy/index.ts extensions/agy/index.test.ts extensions/agy/openclaw.plugin.json`.
 - Passed after agy Gemini model fix: `pnpm tsgo:extensions`.
+- Passed after agy CLI-backend prompt filtering fix: `pnpm vitest run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (10 tests).
+- Passed after agy CLI-backend prompt filtering fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
+- Passed after agy CLI-backend prompt filtering fix: `pnpm exec oxfmt --check extensions/agy/cli-backend.ts extensions/agy/stream.ts extensions/agy/index.test.ts`.
+- Passed after agy CLI-backend prompt filtering fix: `pnpm tsgo:extensions`.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
