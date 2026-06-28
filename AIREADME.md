@@ -116,9 +116,18 @@ Important source anchors:
 - The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
 - Do not add reverse proxy behavior or mutate agy's internal prompt/config for this provider; it is intentionally only a local CLI forwarding adapter.
 - `agy --help` exposes no dedicated system-prompt file argument. Antigravity CLI documentation describes workspace `GEMINI.md` / `AGENTS.md` project instruction files, so an OpenClaw "write prompt to file" design for agy would be a workspace-instruction-file feature, not a native system-prompt transport. Do not silently overwrite user project instruction files; prefer prompt-prefix unless a scoped temp workspace or explicit user-controlled file path is designed.
+- Agy must be bundled into the root OpenClaw dist for the server WSL service. `extensions/agy/package.json` must not set `openclaw.build.bundledDist: false`; otherwise `pnpm build` succeeds but `dist/extensions/agy` is absent and the configured `agy/default` provider cannot load.
+- Server agy deployment imports only the Gemini-backed default entry `agy/default`. Do not bulk-import agy Claude/GPT model names unless the user explicitly asks.
 
 ## Verification notes
 
+- Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
+- Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
+- Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
+- Passed after agy bundled-dist fix: `pnpm vitest run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (7 tests).
+- Passed after agy bundled-dist fix: `pnpm exec oxfmt --check extensions/agy/package.json test/scripts/bundled-plugin-build-entries.test.ts`.
+- Server WSL pnpm prerequisite is now installed correctly via Corepack at `/home/meta/.local/bin/pnpm` (`pnpm --version` = `11.2.2`). The temporary `/tmp/openclaw-pnpm-shim` workaround was removed and must not be recreated.
+- Server WSL deployment attempt before the bundled-dist fix fast-forwarded the repo and rebuilt successfully, but `dist/extensions/agy` was absent because `extensions/agy` was marked `bundledDist: false`. Treat that deployment as incomplete until the bundled-dist fix is pulled, rebuilt, verified, and the service restarted.
 - Passed for agy provider: `.\node_modules\.bin\tsc.cmd -p extensions\agy\tsconfig.json --noEmit`.
 - Passed after CLI backend/prompt update: `pnpm build:plugin-sdk:dts` and `node --experimental-strip-types scripts/write-plugin-sdk-entry-dts.ts`.
 - Passed after CLI backend/prompt update: `pnpm tsgo:core`.
@@ -194,3 +203,6 @@ Important source anchors:
 - [x] Add `agy` CLI-backed model provider extension.
 - [x] Verify `agy` provider TypeScript build and stream smoke behavior.
 - [x] Rework `agy` provider to mimic Gemini CLI backend/runtime binding and filtered prompt handling.
+- [x] Install real pnpm in server WSL and remove the temporary pnpm shim.
+- [x] Fix agy bundled-dist packaging so `dist/extensions/agy` is emitted by the root build.
+- [ ] Redeploy agy bundled-dist fix to server WSL, rebuild, restart gateway, and verify `dist/extensions/agy` exists.

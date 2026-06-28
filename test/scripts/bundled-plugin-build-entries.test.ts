@@ -199,6 +199,16 @@ describe("bundled plugin build entries", () => {
     expect(artifacts).toContain("dist/extensions/cohere/package.json");
   });
 
+  it("packs the agy CLI provider with the root dist build", () => {
+    const entries = listBundledPluginBuildEntries();
+    const artifacts = listBundledPluginPackArtifacts();
+
+    expect(entries["extensions/agy/index"]).toBe("extensions/agy/index.ts");
+    expect(artifacts).toContain("dist/extensions/agy/index.js");
+    expect(artifacts).toContain("dist/extensions/agy/openclaw.plugin.json");
+    expect(artifacts).toContain("dist/extensions/agy/package.json");
+  });
+
   it("keeps bundled channel secret contracts on packed top-level sidecars", () => {
     const artifacts = listBundledPluginPackArtifacts();
     const excludedPackageDirs = collectRootPackageExcludedExtensionDirs();
