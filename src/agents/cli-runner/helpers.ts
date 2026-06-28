@@ -232,6 +232,9 @@ export function resolveSystemPromptUsage(params: {
   if (when === "first" && !params.isNewSession) {
     return null;
   }
+  if (params.backend.systemPromptTransport === "prompt-prefix") {
+    return systemPrompt;
+  }
   if (
     !params.backend.systemPromptArg?.trim() &&
     !params.backend.systemPromptFileArg?.trim() &&
@@ -240,6 +243,24 @@ export function resolveSystemPromptUsage(params: {
     return null;
   }
   return systemPrompt;
+}
+
+/** Prepends a generated system prompt into prompt text for CLIs without a native system channel. */
+export function prependCliSystemPromptToPrompt(params: {
+  systemPrompt: string;
+  prompt: string;
+}): string {
+  const systemPrompt = stripSystemPromptCacheBoundary(params.systemPrompt).trim();
+  if (!systemPrompt) {
+    return params.prompt;
+  }
+  return [
+    "OpenClaw system instructions for this CLI run:",
+    systemPrompt,
+    "",
+    "User request:",
+    params.prompt.trim(),
+  ].join("\n");
 }
 
 /** Resolves the CLI session id to send and whether the turn starts a new session. */

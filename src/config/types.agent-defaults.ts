@@ -170,6 +170,8 @@ export type CliBackendConfig = {
   systemPromptFileConfigKey?: string;
   /** System prompt behavior (append vs replace). */
   systemPromptMode?: "append" | "replace";
+  /** How to deliver the system prompt when a CLI lacks a native system-prompt channel. */
+  systemPromptTransport?: "native" | "prompt-prefix";
   /** When to send system prompt. */
   systemPromptWhen?: "first" | "always" | "never";
   /** Flag used to pass image paths. */

@@ -12,6 +12,8 @@ import {
   buildClaudeOwnerKey,
   loadPromptRefImages,
   prepareCliPromptImagePayload,
+  prependCliSystemPromptToPrompt,
+  resolveSystemPromptUsage,
   resolveCliRunQueueKey,
   writeCliImages,
   writeCliSystemPromptFile,
@@ -169,6 +171,33 @@ describe("buildCliArgs", () => {
     ).toEqual(["-p", "--append-system-prompt", "Stable prefix\nDynamic suffix"]);
   });
 
+  it("allows system prompts to be delivered as a prompt prefix", () => {
+    expect(
+      resolveSystemPromptUsage({
+        backend: {
+          command: "agy",
+          systemPromptTransport: "prompt-prefix",
+        },
+        isNewSession: true,
+        systemPrompt: "Be direct.",
+      }),
+    ).toBe("Be direct.");
+    expect(
+      prependCliSystemPromptToPrompt({
+        systemPrompt: `Stable${SYSTEM_PROMPT_CACHE_BOUNDARY}Dynamic`,
+        prompt: "Do the task.",
+      }),
+    ).toBe(
+      [
+        "OpenClaw system instructions for this CLI run:",
+        "Stable\nDynamic",
+        "",
+        "User request:",
+        "Do the task.",
+      ].join("\n"),
+    );
+  });
+
   it("passes Codex system prompts via a model instructions file config override", () => {
     expect(
       buildCliArgs({
@@ -251,7 +280,9 @@ describe("writeCliImages", () => {
       expect(first.paths).toStrictEqual([
         expect.stringMatching(
           new RegExp(
-            `^${escapeRegExp(`${resolvePreferredOpenClawTmpDir()}/openclaw-cli-images/`)}.*\\.png$`,
+            `^${escapeRegExp(
+              `${path.join(resolvePreferredOpenClawTmpDir(), "openclaw-cli-images")}${path.sep}`,
+            )}.*\\.png$`,
           ),
         ),
       ]);

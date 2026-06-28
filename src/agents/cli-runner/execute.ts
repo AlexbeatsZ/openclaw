@@ -76,6 +76,7 @@ import {
   resolveCliRunQueueKey,
   enqueueCliRun,
   prepareCliPromptImagePayload,
+  prependCliSystemPromptToPrompt,
   resolveCliNoOutputTimeoutMs,
   resolveCliRunTimeoutOverrideMs,
   resolvePromptInput,
@@ -468,6 +469,16 @@ export async function executePreparedCliRun(
     }),
     context.backendResolved.textTransforms?.input,
   );
+  if (
+    systemPromptArg &&
+    backend.systemPromptTransport === "prompt-prefix" &&
+    (!useResume || backend.systemPromptWhen === "always")
+  ) {
+    prompt = prependCliSystemPromptToPrompt({
+      systemPrompt: systemPromptArg,
+      prompt,
+    });
+  }
   const {
     prompt: promptWithImages,
     imagePaths,

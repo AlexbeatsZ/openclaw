@@ -31,8 +31,11 @@ export type AgyPluginConfig = {
   maxOutputBytes?: number;
   modelArg?: string;
   promptArg?: string;
+  systemPromptMode?: AgySystemPromptMode;
   includeSystemPrompt?: boolean;
 };
+
+export type AgySystemPromptMode = "filtered" | "full" | "none";
 
 export type AgyCliRunResult = {
   stdout: string;
@@ -82,6 +85,10 @@ function readBoolean(value: unknown): boolean | undefined {
   return typeof value === "boolean" ? value : undefined;
 }
 
+function readSystemPromptMode(value: unknown): AgySystemPromptMode | undefined {
+  return value === "filtered" || value === "full" || value === "none" ? value : undefined;
+}
+
 function readStringRecord(value: unknown): Record<string, string> | undefined {
   if (!isRecord(value)) {
     return undefined;
@@ -107,6 +114,7 @@ export function readAgyPluginConfig(config?: OpenClawConfig): AgyPluginConfig {
     maxOutputBytes: readPositiveInteger(pluginConfig.maxOutputBytes),
     modelArg: readString(pluginConfig.modelArg),
     promptArg: readString(pluginConfig.promptArg),
+    systemPromptMode: readSystemPromptMode(pluginConfig.systemPromptMode),
     includeSystemPrompt: readBoolean(pluginConfig.includeSystemPrompt),
   };
 }
@@ -127,10 +135,10 @@ export function buildAgyCliArgs(params: {
 
 export function formatAgyPrompt(
   context: Context,
-  options: { includeSystemPrompt?: boolean } = {},
+  options: { includeSystemPrompt?: boolean; systemPromptMode?: AgySystemPromptMode } = {},
 ): string {
   const sections: string[] = [];
-  const systemPrompt = options.includeSystemPrompt ? context.systemPrompt?.trim() : undefined;
+  const systemPrompt = resolveAgySystemPrompt(context.systemPrompt, options);
   if (systemPrompt) {
     sections.push(`System:\n${systemPrompt}`);
   }
@@ -143,6 +151,52 @@ export function formatAgyPrompt(
     sections.push(`Conversation:\n${conversation}`);
   }
   return sections.join("\n\n").trim();
+}
+
+const AGY_NATIVE_TOOL_NOTE =
+  "You are running inside agy CLI via OpenClaw. Use agy's native tools when needed; do not emit OpenClaw-specific tool-call syntax.";
+
+function resolveAgySystemPrompt(
+  systemPrompt: string | undefined,
+  options: { includeSystemPrompt?: boolean; systemPromptMode?: AgySystemPromptMode },
+): string | undefined {
+  const legacyMode =
+    options.includeSystemPrompt === true
+      ? "full"
+      : options.includeSystemPrompt === false
+        ? "none"
+        : undefined;
+  const mode = options.systemPromptMode ?? legacyMode ?? "filtered";
+  if (mode === "none") {
+    return undefined;
+  }
+  const base = systemPrompt?.trim();
+  const filtered = mode === "full" ? base : stripOpenClawToolingSections(base);
+  return [AGY_NATIVE_TOOL_NOTE, filtered].filter(Boolean).join("\n\n").trim();
+}
+
+export function stripOpenClawToolingSections(systemPrompt: string | undefined): string {
+  const input = systemPrompt?.trim();
+  if (!input) {
+    return "";
+  }
+  const lines = input.split(/\r?\n/);
+  const kept: string[] = [];
+  let skipping = false;
+  for (const line of lines) {
+    const heading = /^##\s+(.+?)\s*$/.exec(line);
+    if (heading) {
+      const title = heading[1]?.replaceAll("`", "").trim().toLowerCase() ?? "";
+      skipping = title.includes("tool");
+    }
+    if (!skipping) {
+      kept.push(line);
+    }
+  }
+  return kept
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function formatMessage(message: Message): string {
@@ -257,7 +311,8 @@ export function createAgyStreamFn(
     const run = async () => {
       const config = params.config ?? {};
       const prompt = formatAgyPrompt(context, {
-        includeSystemPrompt: config.includeSystemPrompt === true,
+        systemPromptMode: config.systemPromptMode,
+        includeSystemPrompt: config.includeSystemPrompt,
       });
       const modelInfo = model;
       try {

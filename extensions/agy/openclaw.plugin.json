@@ -6,6 +6,7 @@
   },
   "enabledByDefault": true,
   "providers": ["agy"],
+  "cliBackends": ["agy"],
   "modelCatalog": {
     "providers": {
       "agy": {
@@ -19,6 +20,9 @@
             "name": "Agy CLI default",
             "reasoning": false,
             "input": ["text"],
+            "agentRuntime": {
+              "id": "agy"
+            },
             "contextWindow": 200000,
             "maxTokens": 32000,
             "cost": {
@@ -104,10 +108,15 @@
         "description": "CLI flag used to pass a prompt.",
         "default": "-p"
       },
+      "systemPromptMode": {
+        "type": "string",
+        "enum": ["filtered", "full", "none"],
+        "description": "How the fallback stream includes OpenClaw system instructions before forwarding to agy. filtered omits OpenClaw tool sections and lets agy use its native tools.",
+        "default": "filtered"
+      },
       "includeSystemPrompt": {
         "type": "boolean",
-        "description": "Include OpenClaw's system prompt in the text sent to agy. Disabled by default because agy CLI uses its own agent prompt and tool instructions.",
-        "default": false
+        "description": "Deprecated compatibility flag. true maps to systemPromptMode=full; false maps to systemPromptMode=none."
       }
     }
   }

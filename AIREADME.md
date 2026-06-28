@@ -96,10 +96,13 @@ Important source anchors:
 
 - `extensions/agy` registers provider id `agy` with default model ref `agy/default`.
 - The provider uses synthetic local auth marker `agy-cli`; no API key is required because agy CLI owns its own login/session state.
-- The model catalog declares `openai-completions` for schema compatibility, but `createStreamFn` intercepts provider `agy` and runs the local CLI instead of sending HTTP.
+- The model catalog declares `openai-completions` for schema compatibility, and `agy/default` now carries `agentRuntime: { id: "agy" }` so normal agent runs use the generic CLI backend path rather than pretending agy is an HTTP API.
+- `extensions/agy/cli-backend.ts` mirrors the Gemini CLI pattern by registering a `CliBackendPlugin`: command `agy`, args `--print-timeout 10m --print {prompt}`, text output, `--model` for non-default models, serialized execution, and `nativeToolMode: "always-on"`.
+- Agy has no native system-prompt flag. Core CLI runner config now supports `systemPromptTransport: "prompt-prefix"`, allowing CLI-backend system prompts to be prepended into the prompt text for CLIs without a system channel.
 - Runtime invocation defaults to `agy -p <prompt>`. For configured non-default model ids such as `agy/<id>`, the adapter passes `--model <id>` before `-p`.
 - Plugin config supports `command`, `args`, `cwd`, `env`, `timeoutMs`, `maxOutputBytes`, `modelArg`, and `promptArg` under `plugins.entries.agy.config`.
-- The prompt formatter defaults to excluding OpenClaw's system prompt because it often contains OpenClaw-specific tool/channel instructions that can conflict with agy's own CLI agent prompt and tools. Set `plugins.entries.agy.config.includeSystemPrompt: true` only when explicit system prompt forwarding is desired.
+- The fallback stream formatter now defaults to a filtered system prompt: it strips OpenClaw `## ...tool...` sections and adds a short note telling agy to use its native tools. This avoids both extremes: no prompt at all, or injecting OpenClaw tool-call syntax into agy.
+- Fallback stream config supports `systemPromptMode: "filtered" | "full" | "none"`. The old `includeSystemPrompt` remains as compatibility mapping (`true` -> `full`, `false` -> `none`).
 - The prompt formatter flattens user/assistant history and tool results into plain text. Image parts are marked omitted because the CLI prompt mode is text-only here.
 - The stream adapter strips ANSI output, estimates zero-cost usage locally, emits normal assistant `start` / `text_*` / `done` events, and returns CLI failures as provider stream errors.
 - Do not add reverse proxy behavior or mutate agy's internal prompt/config for this provider; it is intentionally only a local CLI forwarding adapter.
@@ -107,6 +110,14 @@ Important source anchors:
 ## Verification notes
 
 - Passed for agy provider: `.\node_modules\.bin\tsc.cmd -p extensions\agy\tsconfig.json --noEmit`.
+- Passed after CLI backend/prompt update: `pnpm build:plugin-sdk:dts` and `node --experimental-strip-types scripts/write-plugin-sdk-entry-dts.ts`.
+- Passed after CLI backend/prompt update: `pnpm tsgo:core`.
+- Passed after CLI backend/prompt update: `pnpm tsgo:extensions`.
+- Passed after CLI backend/prompt update: `node scripts/run-vitest.mjs run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (7 tests).
+- Passed after CLI backend/prompt update: `node scripts/run-vitest.mjs run --config test/vitest/vitest.agents.config.ts src/agents/cli-runner.helpers.test.ts` (27 tests).
+- Passed after CLI backend/prompt update: modified-file `oxfmt --check`.
+- Live agy smoke: `agy -p "Reply exactly: AGY_OK"` and `agy --print-timeout 1m --print "Reply exactly: AGY_OK"` exited 0 and logs showed silent auth, conversation creation, and `streamGenerateContent`, but stdout was empty on this host. This appears to be agy print-mode capture behavior rather than OpenClaw argument construction.
+- Attempted after lockfile cleanup: `pnpm install --frozen-lockfile --ignore-scripts` timed out after 3 minutes with no diagnostic output.
 - Passed for agy provider: lightweight `tsx` stream smoke using a fake runner, confirming ANSI-stripped stdout returns `start`, `text_start`, `text_delta`, `text_end`, `done`.
 - Attempted for agy provider: `.\node_modules\.bin\vitest.cmd run extensions\agy\index.test.ts`, but it stayed in Rolldown/Vitest build plugin timing output for over two minutes and was stopped. The test file remains added for normal CI/local Vitest runs.
 - Passed: `pnpm tsgo:core`.
@@ -166,3 +177,4 @@ Important source anchors:
 - [x] Switch project handling policy to maintain the user's fork directly and disable accidental upstream pushes.
 - [x] Add `agy` CLI-backed model provider extension.
 - [x] Verify `agy` provider TypeScript build and stream smoke behavior.
+- [x] Rework `agy` provider to mimic Gemini CLI backend/runtime binding and filtered prompt handling.

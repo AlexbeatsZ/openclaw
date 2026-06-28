@@ -29,6 +29,7 @@ export function buildAgyModelDefinition(modelId = AGY_DEFAULT_MODEL_ID): ModelDe
     api: "openai-completions",
     reasoning: false,
     input: ["text"],
+    agentRuntime: { id: AGY_PROVIDER_ID },
     cost: ZERO_COST,
     contextWindow: DEFAULT_CONTEXT_WINDOW,
     maxTokens: DEFAULT_MAX_TOKENS,
@@ -68,7 +69,15 @@ export function buildAgyDynamicModel(modelId: string): ProviderRuntimeModel | un
 
 export function applyAgyConfig(): {
   models: { providers: Record<typeof AGY_PROVIDER_ID, ModelProviderConfig> };
-  agents: { defaults: { model: typeof AGY_DEFAULT_MODEL_REF } };
+  agents: {
+    defaults: {
+      model: typeof AGY_DEFAULT_MODEL_REF;
+      models: Record<
+        typeof AGY_DEFAULT_MODEL_REF,
+        { agentRuntime: { id: typeof AGY_PROVIDER_ID } }
+      >;
+    };
+  };
 } {
   return {
     models: {
@@ -79,6 +88,9 @@ export function applyAgyConfig(): {
     agents: {
       defaults: {
         model: AGY_DEFAULT_MODEL_REF,
+        models: {
+          [AGY_DEFAULT_MODEL_REF]: { agentRuntime: { id: AGY_PROVIDER_ID } },
+        },
       },
     },
   };

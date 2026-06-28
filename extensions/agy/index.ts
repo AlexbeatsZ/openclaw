@@ -9,6 +9,7 @@ import {
   buildAgyDynamicModel,
   buildAgyProviderConfig,
 } from "./catalog.js";
+import { buildAgyCliBackend } from "./cli-backend.js";
 import { createAgyStreamFn, readAgyPluginConfig } from "./stream.js";
 
 export default definePluginEntry({
@@ -16,6 +17,7 @@ export default definePluginEntry({
   name: "Agy CLI Provider",
   description: "Local agy CLI provider plugin",
   register(api) {
+    api.registerCliBackend(buildAgyCliBackend());
     const startupConfig = readAgyPluginConfig({
       plugins: {
         entries: {
