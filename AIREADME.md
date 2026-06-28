@@ -133,6 +133,9 @@ Important source anchors:
 - Passed after agy bundled-dist fix: `pnpm exec oxfmt --check extensions/agy/package.json test/scripts/bundled-plugin-build-entries.test.ts`.
 - Server WSL pnpm prerequisite is now installed correctly via Corepack at `/home/meta/.local/bin/pnpm` (`pnpm --version` = `11.2.2`). The temporary `/tmp/openclaw-pnpm-shim` workaround was removed and must not be recreated.
 - Server WSL deployment attempt before the bundled-dist fix fast-forwarded the repo and rebuilt successfully, but `dist/extensions/agy` was absent because `extensions/agy` was marked `bundledDist: false`. Treat that deployment as incomplete until the bundled-dist fix is pulled, rebuilt, verified, and the service restarted.
+- Server WSL deployment of `3f47f70971` rebuilt successfully with real pnpm, verified `dist/extensions/agy/openclaw.plugin.json` contains `Gemini 3.5 Flash`, updated `/home/meta/.openclaw/openclaw.json` so `agents.defaults.model.primary` is `agy/gemini-3.5-flash`, and kept only `gemini-3.5-flash` plus `gemini-3.1-pro` in `models.providers.agy.models`.
+- Server config backup before the Gemini model correction was written under `/home/meta/.openclaw/backups/agy-gemini-models-before-*.json`.
+- Server gateway was restarted after the agy Gemini model correction; health recovered to `200 {"ok":true,"status":"live"}` and logs showed `gateway ready`.
 - Passed for agy provider: `.\node_modules\.bin\tsc.cmd -p extensions\agy\tsconfig.json --noEmit`.
 - Passed after CLI backend/prompt update: `pnpm build:plugin-sdk:dts` and `node --experimental-strip-types scripts/write-plugin-sdk-entry-dts.ts`.
 - Passed after CLI backend/prompt update: `pnpm tsgo:core`.
@@ -210,4 +213,4 @@ Important source anchors:
 - [x] Rework `agy` provider to mimic Gemini CLI backend/runtime binding and filtered prompt handling.
 - [x] Install real pnpm in server WSL and remove the temporary pnpm shim.
 - [x] Fix agy bundled-dist packaging so `dist/extensions/agy` is emitted by the root build.
-- [ ] Redeploy agy bundled-dist fix to server WSL, rebuild, restart gateway, and verify `dist/extensions/agy` exists.
+- [x] Redeploy agy bundled-dist/Gemini model fix to server WSL, rebuild, restart gateway, and verify `dist/extensions/agy` exists.
