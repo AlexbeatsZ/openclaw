@@ -44,6 +44,7 @@ import {
   normalizeOptionalString,
 } from "../utils/string-normalize.js";
 import { decodeMediaPath } from "./decode-media-path.js";
+import { chunkQQBotMarkdownTextByUtf8Bytes } from "./markdown-table-chunking.js";
 import {
   isImageFile as coreIsImageFile,
   isVideoFile as coreIsVideoFile,
@@ -76,6 +77,8 @@ import {
   type DeliveryTarget,
 } from "./sender.js";
 
+const TEXT_CHUNK_LIMIT = 5000;
+
 const isImageFile = coreIsImageFile;
 const isVideoFile = coreIsVideoFile;
 const mediaPathDecodeLog = {
@@ -83,6 +86,11 @@ const mediaPathDecodeLog = {
   error: (message: string) => debugError(`[qqbot] sendText: ${message}`),
   debug: (message: string) => debugLog(`[qqbot] sendText: ${message}`),
 } satisfies EngineLogger;
+
+function chunkOutboundText(text: string): string[] {
+  const chunks = chunkQQBotMarkdownTextByUtf8Bytes(text, TEXT_CHUNK_LIMIT);
+  return chunks.length > 0 ? chunks : [text];
+}
 
 /**
  * Send text, optionally falling back from passive reply mode to proactive mode.
@@ -210,19 +218,21 @@ export async function sendText(ctx: OutboundContext): Promise<OutboundResult> {
             type: target.type === "channel" ? "channel" : target.type,
             id: target.id,
           };
-          const result = await senderSendText(deliveryTarget, item.content, creds, {
-            msgId: replyToId ?? undefined,
-          });
-          if (replyToId) {
-            recordMessageReply(replyToId);
+          for (const chunk of chunkOutboundText(item.content)) {
+            const result = await senderSendText(deliveryTarget, chunk, creds, {
+              msgId: replyToId ?? undefined,
+            });
+            if (replyToId) {
+              recordMessageReply(replyToId);
+            }
+            lastResult = {
+              channel: "qqbot",
+              messageId: result.id,
+              timestamp: result.timestamp,
+              refIdx: result.ext_info?.ref_idx,
+            };
+            debugLog(`[qqbot] sendText: Sent text part: ${chunk.slice(0, 30)}...`);
           }
-          lastResult = {
-            channel: "qqbot",
-            messageId: result.id,
-            timestamp: result.timestamp,
-            refIdx: result.ext_info?.ref_idx,
-          };
-          debugLog(`[qqbot] sendText: Sent text part: ${item.content.slice(0, 30)}...`);
         } else if (item.type === "image") {
           lastResult = await sendPhoto(mediaTarget, item.content);
         } else if (item.type === "voice") {
@@ -286,12 +296,16 @@ export async function sendText(ctx: OutboundContext): Promise<OutboundResult> {
     };
     debugLog("[qqbot] sendText target:", JSON.stringify(target));
 
-    const result = await senderSendText(deliveryTarget, text, creds, {
-      msgId: replyToId ?? undefined,
-    });
-    if (replyToId) {
-      recordMessageReply(replyToId);
+    let lastResult: Awaited<ReturnType<typeof senderSendText>> | undefined;
+    for (const chunk of chunkOutboundText(text)) {
+      lastResult = await senderSendText(deliveryTarget, chunk, creds, {
+        msgId: replyToId ?? undefined,
+      });
+      if (replyToId) {
+        recordMessageReply(replyToId);
+      }
     }
+    const result = lastResult!;
     return {
       channel: "qqbot",
       messageId: result.id,
@@ -382,7 +396,9 @@ async function sendTextAfterMedia(ctx: MediaTargetContext, text: string): Promis
   try {
     const creds = accountToCreds(ctx.account);
     const target: DeliveryTarget = { type: ctx.targetType, id: ctx.targetId };
-    await senderSendText(target, text, creds, { msgId: ctx.replyToId });
+    for (const chunk of chunkOutboundText(text)) {
+      await senderSendText(target, chunk, creds, { msgId: ctx.replyToId });
+    }
   } catch (err) {
     debugError(`[qqbot] sendTextAfterMedia failed: ${formatErrorMessage(err)}`);
   }

@@ -2,7 +2,7 @@
 
 export type QQBotBaseMarkdownChunker = (text: string, limit: number) => string[];
 
-const QQBOT_MARKDOWN_SAFE_CHUNK_BYTE_LIMIT = 3600;
+export const QQBOT_MARKDOWN_SAFE_CHUNK_BYTE_LIMIT = 3600;
 
 type TableHeader = {
   header: string;
@@ -28,6 +28,10 @@ export function chunkQQBotMarkdownText(
 ): string[] {
   const chunker = createQQBotMarkdownChunker(baseChunker);
   return [...chunker.chunkText(text, limit), ...chunker.flushPendingText(limit)];
+}
+
+export function chunkQQBotMarkdownTextByUtf8Bytes(text: string, limit: number): string[] {
+  return chunkQQBotMarkdownText(text, limit, splitByUtf8ByteLimit);
 }
 
 export function createQQBotMarkdownChunker(
@@ -387,9 +391,12 @@ function pushBaseChunks(
   }
 }
 
-function splitByUtf8ByteLimit(text: string, byteLimit: number): string[] {
+export function splitByUtf8ByteLimit(text: string, byteLimit: number): string[] {
   if (!text) {
     return [];
+  }
+  if (byteLimit <= 0) {
+    return [text];
   }
   const chunks: string[] = [];
   let current = "";

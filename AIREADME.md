@@ -146,6 +146,13 @@ Important source anchors:
 - Server config backup before the agy cron/default High switch: `/home/meta/.openclaw/backups/agy-cron-default-high-before-20260628-170947.json`.
 - Server WSL cron/default High verification passed: defaults showed primary `agy/gemini-3.5-flash` plus `thinkingDefault: high`; all four active cron jobs showed `model: agy/gemini-3.5-flash`, `thinking: high`, and `status: ok`; gateway health returned `{"ok":true,"status":"live"}` after service restart.
 - OpenClaw gateway agy High smoke passed without direct delivery: `node dist/index.js agent --agent main --message 'Reply exactly: OPENCLAW_AGY_HIGH_OK' --model agy/gemini-3.5-flash --thinking high --timeout 180 --json` returned payload `OPENCLAW_AGY_HIGH_OK`, provider `agy`, runner `cli`. Agy logs confirmed the actual CLI model variant was `gemini-3.5-flash-high`.
+
+## QQ Bot long text encoding fix
+
+- Agy direct stdout and OpenClaw agy provider JSON preserve UTF-8 correctly for Chinese, Greek, check mark, and emoji smoke prompts. The observed QQ message corruption showed Unicode replacement characters (`�`), not ordinary question marks, which points to downstream UTF-8 byte-boundary damage rather than model output.
+- QQ Bot direct/proactive text delivery previously sent long text as one message when it was under the 5000-character limit. Chinese text can be under that character limit but over QQ's effective byte-safe payload budget, causing the platform/client path to damage UTF-8 sequences.
+- `extensions/qqbot/src/engine/messaging/markdown-table-chunking.ts` already had the right 3600 UTF-8 byte-safe Markdown chunking logic for some paths. The direct `sendText` path in `extensions/qqbot/src/engine/messaging/outbound.ts` now reuses that byte-safe chunker for normal text, text around media tags, and text sent after media.
+- Regression test `extensions/qqbot/src/engine/messaging/outbound.test.ts` covers long Chinese proactive text: chunks join back to the original text, each chunk is <= 3600 UTF-8 bytes, and no chunk contains `\uFFFD`.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
@@ -235,3 +242,5 @@ Important source anchors:
 - [x] Fix agy bundled-dist packaging so `dist/extensions/agy` is emitted by the root build.
 - [x] Redeploy agy bundled-dist/Gemini model fix to server WSL, rebuild, restart gateway, and verify `dist/extensions/agy` exists.
 - [x] Set server WSL OpenClaw default and all active cron jobs to agy `gemini-3.5-flash` with High thinking.
+- [x] Diagnose QQ received-message `�` corruption after agy output; cause is long QQ text delivery not byte-safe, not agy stdout.
+- [x] Fix QQ Bot direct/proactive text delivery to split long output by UTF-8 byte budget before sending.
