@@ -171,6 +171,7 @@ Important source anchors:
 - Passed after CLI UTF-8 streaming decoder fix: `pnpm tsgo:core`.
 - Passed after CLI UTF-8 streaming decoder fix: `pnpm tsgo:extensions`.
 - Passed after CLI UTF-8 streaming decoder fix: `pnpm exec oxfmt --check src/infra/windows-encoding.ts src/infra/windows-encoding.test.ts extensions/agy/stream.ts`.
+- Server WSL deployment of CLI UTF-8 streaming decoder fix fast-forwarded `/home/meta/Project/Workspaces/openclaw` to `84cbbc3445`, rebuilt with `corepack pnpm build`, restarted `openclaw-gateway.service`, and verified remote HEAD `84cbbc3445`, service `active`, QQBot connected, and health `{"ok":true,"status":"live"}` on `127.0.0.1:18789`.
 - Server WSL deployment of QQ Bot UTF-8 chunking fix fast-forwarded `/home/meta/Project/Workspaces/openclaw` to `9f848f77b4`, rebuilt with `corepack pnpm build`, restarted `openclaw-gateway.service`, and verified health `ok`, service `active`, QQBot connected, and plugin errors empty.
 - Server WSL pnpm prerequisite is now installed correctly via Corepack at `/home/meta/.local/bin/pnpm` (`pnpm --version` = `11.2.2`). The temporary `/tmp/openclaw-pnpm-shim` workaround was removed and must not be recreated.
 - Server WSL deployment attempt before the bundled-dist fix fast-forwarded the repo and rebuilt successfully, but `dist/extensions/agy` was absent because `extensions/agy` was marked `bundledDist: false`. Treat that deployment as incomplete until the bundled-dist fix is pulled, rebuilt, verified, and the service restarted.
