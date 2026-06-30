@@ -146,6 +146,7 @@ Important source anchors:
 - Server config backup before the agy cron/default High switch: `/home/meta/.openclaw/backups/agy-cron-default-high-before-20260628-170947.json`.
 - Server WSL cron/default High verification passed: defaults showed primary `agy/gemini-3.5-flash` plus `thinkingDefault: high`; all four active cron jobs showed `model: agy/gemini-3.5-flash`, `thinking: high`, and `status: ok`; gateway health returned `{"ok":true,"status":"live"}` after service restart.
 - OpenClaw gateway agy High smoke passed without direct delivery: `node dist/index.js agent --agent main --message 'Reply exactly: OPENCLAW_AGY_HIGH_OK' --model agy/gemini-3.5-flash --thinking high --timeout 180 --json` returned payload `OPENCLAW_AGY_HIGH_OK`, provider `agy`, runner `cli`. Agy logs confirmed the actual CLI model variant was `gemini-3.5-flash-high`.
+- 2026-06-30 diagnosis for QQ message `你好，我无法给到相关内容。`: the visible text was not produced by agy. `Steped_Study_Check` first selected `agy/gemini-3.5-flash`, agy returned an empty response, OpenClaw fell back to `sensenova-openai/deepseek-v4-flash`, and Sensenova returned `Provider finish_reason: content_filter` with that Chinese fallback text. Direct agy logging showed silent auth can refresh successfully, then Gemini fails with `FAILED_PRECONDITION (code 400): User location is not supported for the API use.` Treat this as an agy/Gemini regional/API availability restriction or proxy egress issue, plus a secondary Sensenova content-filter fallback symptom.
 
 ## QQ Bot long text encoding fix
 
@@ -249,3 +250,4 @@ Important source anchors:
 - [x] Set server WSL OpenClaw default and all active cron jobs to agy `gemini-3.5-flash` with High thinking.
 - [x] Diagnose QQ received-message `�` corruption after agy output; cause is long QQ text delivery not byte-safe, not agy stdout.
 - [x] Fix QQ Bot direct/proactive text delivery to split long output by UTF-8 byte budget before sending.
+- [x] Diagnose 2026-06-30 `你好，我无法给到相关内容。`: agy failed on Gemini regional/API availability (`User location is not supported`), then fallback Sensenova content-filtered the cron output.
