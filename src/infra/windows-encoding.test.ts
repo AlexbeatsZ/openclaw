@@ -79,6 +79,29 @@ describe("windows output encoding", () => {
     expect(decoder.flush()).toBe("");
   });
 
+  it("keeps split valid UTF-8 output intact on non-Windows", () => {
+    const decoder = createWindowsOutputDecoder({ platform: "linux" });
+    const raw = Buffer.from("需要我帮忙", "utf8");
+    const splitAt = Buffer.byteLength("需要", "utf8") + 1;
+
+    expect(decoder.decode(raw.subarray(0, splitAt))).toBe("需要");
+    expect(decoder.decode(raw.subarray(splitAt))).toBe("我帮忙");
+    expect(decoder.flush()).toBe("");
+  });
+
+  it("keeps split valid UTF-8 output intact when the Windows console is UTF-8", () => {
+    const decoder = createWindowsOutputDecoder({
+      platform: "win32",
+      windowsEncoding: "utf-8",
+    });
+    const raw = Buffer.from("需要我帮忙", "utf8");
+    const splitAt = Buffer.byteLength("需要", "utf8") + 1;
+
+    expect(decoder.decode(raw.subarray(0, splitAt))).toBe("需要");
+    expect(decoder.decode(raw.subarray(splitAt))).toBe("我帮忙");
+    expect(decoder.flush()).toBe("");
+  });
+
   it("replays buffered UTF-8 lead bytes when split GBK output falls back to the console code page", () => {
     const decoder = createWindowsOutputDecoder({
       platform: "win32",

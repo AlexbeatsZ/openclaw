@@ -154,6 +154,7 @@ Important source anchors:
 - QQ Bot direct/proactive text delivery previously sent long text as one message when it was under the 5000-character limit. Chinese text can be under that character limit but over QQ's effective byte-safe payload budget, causing the platform/client path to damage UTF-8 sequences.
 - `extensions/qqbot/src/engine/messaging/markdown-table-chunking.ts` already had the right 3600 UTF-8 byte-safe Markdown chunking logic for some paths. The direct `sendText` path in `extensions/qqbot/src/engine/messaging/outbound.ts` now reuses that byte-safe chunker for normal text, text around media tags, and text sent after media.
 - Regression test `extensions/qqbot/src/engine/messaging/outbound.test.ts` covers long Chinese proactive text: chunks join back to the original text, each chunk is <= 3600 UTF-8 bytes, and no chunk contains `\uFFFD`.
+- 2026-06-30 follow-up diagnosis for short QQ text `需要���帮忙`: the message is too short to hit QQ payload splitting. The root cause was the generic CLI supervisor's output decoder on Linux/WSL decoding each stdout `Buffer` with `toString("utf8")`; when agy split a Chinese UTF-8 character across child-process data events, OpenClaw inserted replacement characters before QQ delivery. `src/infra/windows-encoding.ts` now uses streaming UTF-8 decoding on every platform, while retaining the Windows legacy-codepage fallback path. The fallback `extensions/agy/stream.ts` runner was also changed to streaming UTF-8 decoding.
 - Passed after agy bundled-dist fix: `pnpm vitest run test/scripts/bundled-plugin-build-entries.test.ts src/infra/tsdown-config.test.ts` (2 files, 34 tests).
 - Passed after agy bundled-dist fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy bundled-dist fix: direct build-entry query confirmed `dist/extensions/agy/catalog.js`, `cli-backend.js`, `index.js`, `openclaw.plugin.json`, `package.json`, and `stream.js` are required package artifacts.
@@ -163,6 +164,13 @@ Important source anchors:
 - Passed after QQ Bot UTF-8 chunking fix: `pnpm vitest run --config test/vitest/vitest.extension-messaging.config.ts qqbot/src/engine/messaging/outbound.test.ts qqbot/src/engine/messaging/markdown-table-chunking.test.ts qqbot/src/channel.message-adapter.test.ts` (3 files, 25 tests).
 - Passed after QQ Bot UTF-8 chunking fix: `pnpm tsgo:extensions`.
 - Passed after QQ Bot UTF-8 chunking fix: `pnpm exec oxfmt --check extensions/qqbot/src/engine/messaging/markdown-table-chunking.ts extensions/qqbot/src/engine/messaging/outbound.ts extensions/qqbot/src/engine/messaging/outbound.test.ts`.
+- Passed after CLI UTF-8 streaming decoder fix: `pnpm vitest run src/infra/windows-encoding.test.ts` (10 tests).
+- Passed after CLI UTF-8 streaming decoder fix: direct `pnpm exec tsx -e` smoke splitting the UTF-8 bytes for `我` in `需要我帮忙`, confirming no `\uFFFD`.
+- Passed after CLI UTF-8 streaming decoder fix: `pnpm vitest run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (10 tests).
+- Passed after CLI UTF-8 streaming decoder fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
+- Passed after CLI UTF-8 streaming decoder fix: `pnpm tsgo:core`.
+- Passed after CLI UTF-8 streaming decoder fix: `pnpm tsgo:extensions`.
+- Passed after CLI UTF-8 streaming decoder fix: `pnpm exec oxfmt --check src/infra/windows-encoding.ts src/infra/windows-encoding.test.ts extensions/agy/stream.ts`.
 - Server WSL deployment of QQ Bot UTF-8 chunking fix fast-forwarded `/home/meta/Project/Workspaces/openclaw` to `9f848f77b4`, rebuilt with `corepack pnpm build`, restarted `openclaw-gateway.service`, and verified health `ok`, service `active`, QQBot connected, and plugin errors empty.
 - Server WSL pnpm prerequisite is now installed correctly via Corepack at `/home/meta/.local/bin/pnpm` (`pnpm --version` = `11.2.2`). The temporary `/tmp/openclaw-pnpm-shim` workaround was removed and must not be recreated.
 - Server WSL deployment attempt before the bundled-dist fix fast-forwarded the repo and rebuilt successfully, but `dist/extensions/agy` was absent because `extensions/agy` was marked `bundledDist: false`. Treat that deployment as incomplete until the bundled-dist fix is pulled, rebuilt, verified, and the service restarted.
@@ -250,4 +258,6 @@ Important source anchors:
 - [x] Set server WSL OpenClaw default and all active cron jobs to agy `gemini-3.5-flash` with High thinking.
 - [x] Diagnose QQ received-message `�` corruption after agy output; cause is long QQ text delivery not byte-safe, not agy stdout.
 - [x] Fix QQ Bot direct/proactive text delivery to split long output by UTF-8 byte budget before sending.
+- [x] Diagnose follow-up short QQ `�` corruption; cause was Linux/WSL CLI stdout chunks being decoded without a streaming UTF-8 decoder.
+- [x] Fix generic CLI supervisor and agy fallback runner to preserve UTF-8 characters split across process data events.
 - [x] Diagnose 2026-06-30 `你好，我无法给到相关内容。`: agy failed on Gemini regional/API availability (`User location is not supported`), then fallback Sensenova content-filtered the cron output.

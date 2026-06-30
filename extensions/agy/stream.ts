@@ -1,5 +1,6 @@
 // Agy stream adapter executes the local agy CLI and wraps stdout as an assistant stream.
 import { spawn } from "node:child_process";
+import { TextDecoder } from "node:util";
 import type { StreamFn } from "openclaw/plugin-sdk/agent-core";
 import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type {
@@ -418,6 +419,8 @@ export function runAgyCli(request: {
     let settled = false;
     let stdout = "";
     let stderr = "";
+    const stdoutDecoder = new TextDecoder("utf-8");
+    const stderrDecoder = new TextDecoder("utf-8");
     const program = resolveWindowsSpawnProgram({
       command: request.command,
       env: request.env,
@@ -447,7 +450,10 @@ export function runAgyCli(request: {
     };
 
     const appendOutput = (kind: "stdout" | "stderr", chunk: Buffer) => {
-      const next = chunk.toString("utf8");
+      const next =
+        kind === "stdout"
+          ? stdoutDecoder.decode(chunk, { stream: true })
+          : stderrDecoder.decode(chunk, { stream: true });
       if (kind === "stdout") {
         stdout += next;
       } else {
@@ -469,14 +475,16 @@ export function runAgyCli(request: {
     child.stderr?.on("data", (chunk: Buffer) => appendOutput("stderr", chunk));
     child.on("error", (error) => finish(() => reject(error)));
     child.on("close", (exitCode, signal) =>
-      finish(() =>
+      finish(() => {
+        stdout += stdoutDecoder.decode();
+        stderr += stderrDecoder.decode();
         resolve({
           stdout,
           stderr,
           exitCode,
           signal,
-        }),
-      ),
+        });
+      }),
     );
   });
 }
