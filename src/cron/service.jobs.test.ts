@@ -2,6 +2,8 @@
 import { describe, expect, it } from "vitest";
 import {
   applyJobPatch,
+  computeJobNextRunAtMs,
+  computeJobPreviousRunAtOrBeforeMs,
   createJob,
   nextWakeAtMs,
   recomputeNextRuns,
@@ -449,6 +451,34 @@ describe("applyJobPatch", () => {
     }
   });
 
+  it("preserves the default toolsAllow flag when a self-edit echoes the default list", () => {
+    const job = createIsolatedAgentTurnJob("job-tools-default-echo", {
+      mode: "announce",
+      channel: "telegram",
+    });
+    job.payload = {
+      kind: "agentTurn",
+      message: "do it",
+      toolsAllow: ["exec", "read"],
+      toolsAllowIsDefault: true,
+    };
+
+    applyJobPatch(job, {
+      payload: {
+        kind: "agentTurn",
+        message: "do it later",
+        toolsAllow: ["exec", "read"],
+      },
+    });
+
+    expect(job.payload.kind).toBe("agentTurn");
+    if (job.payload.kind === "agentTurn") {
+      expect(job.payload.message).toBe("do it later");
+      expect(job.payload.toolsAllow).toEqual(["exec", "read"]);
+      expect(job.payload.toolsAllowIsDefault).toBe(true);
+    }
+  });
+
   it("clears agentTurn payload.toolsAllow when patch requests null", () => {
     const job = createIsolatedAgentTurnJob("job-tools-clear", {
       mode: "announce",
@@ -517,6 +547,75 @@ describe("applyJobPatch", () => {
     if (job.payload.kind === "agentTurn") {
       expect(job.payload.message).toBe("do it");
       expect(job.payload.model).toBeUndefined();
+    }
+  });
+
+  it("persists agentTurn payload.thinking updates when editing existing jobs", () => {
+    const job = createIsolatedAgentTurnJob("job-thinking", {
+      mode: "announce",
+      channel: "telegram",
+    });
+    job.payload = {
+      kind: "agentTurn",
+      message: "do it",
+      thinking: "high",
+    };
+
+    applyJobPatch(job, {
+      payload: {
+        kind: "agentTurn",
+        message: "do it",
+        thinking: "low",
+      },
+    });
+
+    expect(job.payload.kind).toBe("agentTurn");
+    if (job.payload.kind === "agentTurn") {
+      expect(job.payload.thinking).toBe("low");
+    }
+  });
+
+  it("clears agentTurn payload.thinking when patch requests null", () => {
+    const job = createIsolatedAgentTurnJob("job-thinking-clear", {
+      mode: "announce",
+      channel: "telegram",
+    });
+    job.payload = {
+      kind: "agentTurn",
+      message: "do it",
+      thinking: "high",
+    };
+
+    applyJobPatch(job, {
+      payload: {
+        kind: "agentTurn",
+        thinking: null,
+      },
+    });
+
+    expect(job.payload.kind).toBe("agentTurn");
+    if (job.payload.kind === "agentTurn") {
+      expect(job.payload.message).toBe("do it");
+      expect(job.payload.thinking).toBeUndefined();
+    }
+  });
+
+  it("omits null thinking when patch builds a replacement agentTurn payload", () => {
+    const job = createMainSystemEventJob("job-thinking-replace", { mode: "none" });
+
+    applyJobPatch(job, {
+      sessionTarget: "isolated",
+      payload: {
+        kind: "agentTurn",
+        message: "do it",
+        thinking: null,
+      },
+    });
+
+    expect(job.payload.kind).toBe("agentTurn");
+    if (job.payload.kind === "agentTurn") {
+      expect(job.payload.message).toBe("do it");
+      expect(job.payload.thinking).toBeUndefined();
     }
   });
 
@@ -996,6 +1095,45 @@ describe("cron stagger defaults", () => {
   });
 });
 
+describe("computeJobPreviousRunAtOrBeforeMs", () => {
+  function createCronJob(schedule: Extract<CronJob["schedule"], { kind: "cron" }>): CronJob {
+    return {
+      id: "inclusive-previous-run",
+      name: "inclusive previous run",
+      enabled: true,
+      createdAtMs: 0,
+      updatedAtMs: 0,
+      schedule,
+      sessionTarget: "main",
+      wakeMode: "now",
+      payload: { kind: "systemEvent", text: "tick" },
+      state: {},
+    };
+  }
+
+  it("includes an exact boundary and keeps the prior slot between boundaries", () => {
+    const job = createCronJob({ kind: "cron", expr: "* * * * * *", tz: "UTC", staggerMs: 0 });
+    const boundary = Date.parse("2025-12-13T04:02:00.000Z");
+
+    expect(computeJobPreviousRunAtOrBeforeMs(job, boundary)).toBe(boundary);
+    expect(computeJobPreviousRunAtOrBeforeMs(job, boundary + 500)).toBe(boundary);
+  });
+
+  it("includes an exact effective boundary after per-job staggering", () => {
+    const job = createCronJob({
+      kind: "cron",
+      expr: "0 * * * * *",
+      tz: "UTC",
+      staggerMs: 30_000,
+    });
+    const cursor = Date.parse("2025-12-13T04:02:00.000Z");
+    const effectiveBoundary = computeJobNextRunAtMs(job, cursor);
+
+    expect(effectiveBoundary).toBeTypeOf("number");
+    expect(computeJobPreviousRunAtOrBeforeMs(job, effectiveBoundary!)).toBe(effectiveBoundary);
+  });
+});
+
 describe("createJob delivery defaults", () => {
   const now = Date.parse("2026-02-28T12:00:00.000Z");
 
@@ -1197,6 +1335,65 @@ describe("recomputeNextRuns", () => {
     expect(job.state.nextRunAtMs).toBe(deferred);
   });
 
+  it("preserves pending startup catch-up deferrals until the deferred slot is reached", () => {
+    const now = Date.parse("2026-05-05T12:00:00.000Z");
+    const deferred = Date.parse("2026-05-05T12:02:00.000Z");
+    const job: CronJob = {
+      id: "daily-pending-startup-deferral",
+      name: "daily pending startup deferral",
+      enabled: true,
+      createdAtMs: Date.parse("2026-05-05T00:00:00.000Z"),
+      updatedAtMs: Date.parse("2026-05-05T00:00:00.000Z"),
+      schedule: { kind: "cron", expr: "0 0 21 * * *", tz: "Asia/Shanghai", staggerMs: 0 },
+      sessionTarget: "main",
+      wakeMode: "now",
+      payload: { kind: "systemEvent", text: "tick" },
+      state: { nextRunAtMs: deferred, startupCatchupAtMs: deferred },
+    };
+    const state = {
+      ...createMockState(now),
+      store: { version: 1 as const, jobs: [job] },
+    } as CronServiceState;
+
+    expect(recomputeNextRunsForMaintenance(state)).toBe(false);
+    expect(job.state.nextRunAtMs).toBe(deferred);
+    expect(job.state.startupCatchupAtMs).toBe(deferred);
+
+    expect(
+      recomputeNextRunsForMaintenance(state, {
+        nowMs: deferred,
+        repairFutureCronNextRunAtMs: true,
+      }),
+    ).toBe(true);
+    expect(job.state.startupCatchupAtMs).toBeUndefined();
+    expect(job.state.nextRunAtMs).toBe(deferred);
+  });
+
+  it("drops startup catch-up deferrals for disabled jobs", () => {
+    const now = Date.parse("2026-05-05T12:00:00.000Z");
+    const deferred = Date.parse("2026-05-05T12:02:00.000Z");
+    const disabledJob: CronJob = {
+      id: "disabled-pending-startup-deferral",
+      name: "disabled pending startup deferral",
+      enabled: false,
+      createdAtMs: Date.parse("2026-05-05T00:00:00.000Z"),
+      updatedAtMs: Date.parse("2026-05-05T00:00:00.000Z"),
+      schedule: { kind: "cron", expr: "0 0 21 * * *", tz: "Asia/Shanghai", staggerMs: 0 },
+      sessionTarget: "main",
+      wakeMode: "now",
+      payload: { kind: "systemEvent", text: "tick" },
+      state: { nextRunAtMs: deferred, startupCatchupAtMs: deferred },
+    };
+    const state = {
+      ...createMockState(now),
+      store: { version: 1 as const, jobs: [disabledJob] },
+    } as CronServiceState;
+
+    expect(recomputeNextRunsForMaintenance(state)).toBe(true);
+    expect(disabledJob.state.startupCatchupAtMs).toBeUndefined();
+    expect(disabledJob.state.nextRunAtMs).toBeUndefined();
+  });
+
   it("preserves cron retry backoff nextRunAtMs values during maintenance", () => {
     const now = Date.parse("2025-12-13T04:02:00.000Z");
     const retryAt = Date.parse("2025-12-13T04:10:00.000Z");
@@ -1286,6 +1483,45 @@ describe("recomputeNextRuns", () => {
     expect(job.state.nextRunAtMs).toBe(expected);
   });
 
+  it("preserves exact-second cron slots that fall multiple intervals into the future (#81691)", () => {
+    // Regression for the stale-future repair path. `isStaggeredCronRunAtMs`
+    // used to probe the cron library at `runAtMs + 1` to classify whether the
+    // persisted timestamp was a real scheduled slot. Croner-style second-
+    // granular schedules normalize that 1ms probe back to the candidate's
+    // second, so `previousRuns(1, probe)` returns the slot before the
+    // candidate rather than the slot itself. The slot then looks "stale" and
+    // future-slot repair rebases it, even though it is a perfectly valid
+    // schedule slot two-or-more intervals out.
+    //
+    // The bug only surfaces when nextRun lands two-plus intervals past
+    // `naturalNext`, because the closer cases are already saved by the
+    // `nextRun === naturalNext` / `followingNaturalNext` guards in
+    // shouldRepairFutureCronNextRunAtMs.
+    const now = Date.parse("2026-05-05T12:00:00.000Z");
+    // "0 9 * * *" Pacific/Honolulu (UTC-10) → 19:00 UTC daily.
+    // Honolulu has no DST, so the UTC offset is stable across the window.
+    const exactFutureSlot = Date.parse("2026-05-08T19:00:00.000Z");
+    const job: CronJob = {
+      id: "honolulu-9am-future-slot",
+      name: "honolulu 9am future slot",
+      enabled: true,
+      createdAtMs: Date.parse("2026-05-01T00:00:00.000Z"),
+      updatedAtMs: Date.parse("2026-05-01T00:00:00.000Z"),
+      schedule: { kind: "cron", expr: "0 9 * * *", tz: "Pacific/Honolulu", staggerMs: 0 },
+      sessionTarget: "main",
+      wakeMode: "now",
+      payload: { kind: "systemEvent", text: "tick" },
+      state: { nextRunAtMs: exactFutureSlot },
+    };
+    const state = {
+      ...createMockState(now),
+      store: { version: 1 as const, jobs: [job] },
+    } as CronServiceState;
+
+    expect(recomputeNextRunsForMaintenance(state)).toBe(false);
+    expect(job.state.nextRunAtMs).toBe(exactFutureSlot);
+  });
+
   it("keeps future nextRunAtMs while probing malformed cron schedules", () => {
     const now = Date.parse("2026-05-05T12:00:00.000Z");
     const future = Date.parse("2026-05-12T16:00:00.000Z");
@@ -1311,3 +1547,4 @@ describe("recomputeNextRuns", () => {
     expect(job.state.scheduleErrorCount).toBeUndefined();
   });
 });
+/* oxlint-disable max-lines -- TODO: split this grandfathered oversized file. */

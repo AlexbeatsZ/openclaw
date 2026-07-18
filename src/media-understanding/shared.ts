@@ -1,6 +1,7 @@
 // Shared provider HTTP/audio helpers for media-understanding integrations,
 // including guarded fetches, deadlines, retries, and multipart upload bodies.
 import path from "node:path";
+import { truncateUtf16Safe } from "@openclaw/normalization-core/utf16-slice";
 import {
   assertOkOrThrowHttpError,
   createProviderHttpError,
@@ -32,6 +33,7 @@ import { shouldUseEnvHttpProxyForUrl } from "../infra/net/proxy-env.js";
 import type { LookupFn, PinnedDispatcherPolicy, SsrFPolicy } from "../infra/net/ssrf.js";
 import {
   executeProviderOperationWithRetry,
+  isTransientProviderHttpStatus,
   type ProviderOperationRetryStage,
   type TransientProviderRetryConfig,
 } from "../provider-runtime/operation-retry.js";
@@ -321,10 +323,22 @@ function sanitizeAuditContext(auditContext: string | undefined): string | undefi
   if (!cleaned) {
     return undefined;
   }
-  return cleaned.slice(0, MAX_AUDIT_CONTEXT_CHARS);
+  return truncateUtf16Safe(cleaned, MAX_AUDIT_CONTEXT_CHARS);
 }
 
-export function resolveProviderHttpRequestConfig(params: {
+type ResolvedProviderHttpRequestConfig = {
+  baseUrl: string;
+  allowPrivateNetwork: boolean;
+  headers: Headers;
+  dispatcherPolicy?: PinnedDispatcherPolicy;
+  requestConfig: ResolvedProviderRequestConfig;
+};
+
+type ResolvedProviderHttpRequestConfigWithOriginTrust = ResolvedProviderHttpRequestConfig & {
+  trustConfiguredBaseUrlOrigin: boolean;
+};
+
+function resolveProviderHttpRequestConfigWithOriginTrustInternal(params: {
   baseUrl?: string;
   defaultBaseUrl: string;
   allowPrivateNetwork?: boolean;
@@ -335,13 +349,7 @@ export function resolveProviderHttpRequestConfig(params: {
   api?: string;
   capability?: ProviderRequestCapability;
   transport?: ProviderRequestTransport;
-}): {
-  baseUrl: string;
-  allowPrivateNetwork: boolean;
-  headers: Headers;
-  dispatcherPolicy?: PinnedDispatcherPolicy;
-  requestConfig: ResolvedProviderRequestConfig;
-} {
+}): ResolvedProviderHttpRequestConfigWithOriginTrust {
   const requestConfig = resolveProviderRequestPolicyConfig({
     provider: params.provider ?? "",
     baseUrl: params.baseUrl,
@@ -368,7 +376,30 @@ export function resolveProviderHttpRequestConfig(params: {
     headers,
     dispatcherPolicy: buildProviderRequestDispatcherPolicy(requestConfig),
     requestConfig,
+    trustConfiguredBaseUrlOrigin:
+      !requestConfig.privateNetworkExplicitlyDenied &&
+      (requestConfig.policy.endpointClass === "custom" ||
+        requestConfig.policy.endpointClass === "local"),
   };
+}
+
+export function resolveProviderHttpRequestConfig(
+  params: Parameters<typeof resolveProviderHttpRequestConfigWithOriginTrustInternal>[0],
+): ResolvedProviderHttpRequestConfig {
+  const resolved = resolveProviderHttpRequestConfigWithOriginTrustInternal(params);
+  return {
+    baseUrl: resolved.baseUrl,
+    allowPrivateNetwork: resolved.allowPrivateNetwork,
+    headers: resolved.headers,
+    dispatcherPolicy: resolved.dispatcherPolicy,
+    requestConfig: resolved.requestConfig,
+  };
+}
+
+export function resolveProviderHttpRequestConfigWithOriginTrust(
+  params: Parameters<typeof resolveProviderHttpRequestConfigWithOriginTrustInternal>[0],
+): ResolvedProviderHttpRequestConfigWithOriginTrust {
+  return resolveProviderHttpRequestConfigWithOriginTrustInternal(params);
 }
 
 /**
@@ -609,10 +640,6 @@ async function postGuardedRequest(params: {
     retry: params.retry,
     operation,
   });
-}
-
-function isTransientProviderHttpStatus(status: number): boolean {
-  return status === 500 || status === 502 || status === 503 || status === 504;
 }
 
 export async function postJsonRequest(params: GuardedPostRequestParams<unknown>) {
