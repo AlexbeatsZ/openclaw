@@ -223,6 +223,7 @@ Important source anchors:
 - After auth migration, `models status` showed no missing auth for configured providers. Re-running `Steped_Study_Check` succeeded with fallback to `sensenova-openai/deepseek-v4-flash`, `delivered=true`, and `lastDeliveryStatus=delivered`.
 - Final server health was `ok`; QQ bot was running and connected. `Daily_Review_Feedback` still has historical `consecutiveErrors=15`, but its delivery config is now `main + direct` and the shared model auth issue has been fixed for future runs.
 - Private QA builds must emit the complete runtime import surface together: `qa-lab`, `qa-runtime`, `qa-channel`, and `qa-channel-protocol`. Emitting only the first two leaves `extensions/qa-lab/src/runtime-api.ts` unable to resolve `openclaw/plugin-sdk/qa-channel` during a cold gateway start.
+- Disabling the Windows WinINET proxy does not remove proxy variables explicitly embedded in the WSL systemd unit. After the localhost proxy listener disappears, unset `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, and `https_proxy` at the service boundary and verify the real gateway process environment plus an endpoint-level QQBot WebSocket connection.
 
 # Task Board
 
@@ -265,4 +266,5 @@ Important source anchors:
 - [x] Diagnose 2026-06-30 `你好，我无法给到相关内容。`: agy failed on Gemini regional/API availability (`User location is not supported`), then fallback Sensenova content-filtered the cron output.
 - [x] Reproduce the `qa-lab` cold-start load failure and trace it to missing private QA SDK build entries.
 - [x] Add the missing `qa-channel` and `qa-channel-protocol` private build entries with a focused regression test.
-- [ ] Deploy the private QA build fix, enable the private QA runtime alias, and verify a clean cold gateway start.
+- [x] Deploy the private QA build fix, enable the private QA runtime alias, and verify a clean cold gateway start.
+- [x] Remove stale service-level localhost proxy variables and verify QQBot reconnects with HTTP 200 and an active WebSocket.
