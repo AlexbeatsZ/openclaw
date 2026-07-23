@@ -15,7 +15,7 @@ import {
 } from "./catalog.js";
 import { buildAgyCliBackend } from "./cli-backend.js";
 import { agyModelDirectory, readAgyModelDirectoryConfig } from "./model-directory.js";
-import { createAgyStreamFn, readAgyPluginConfig } from "./stream.js";
+import { createAgyStreamFn, mergeAgyPluginConfig, readAgyPluginConfig } from "./stream.js";
 
 function resolveAgyThinkingProfile({
   compat,
@@ -106,7 +106,8 @@ export default definePluginEntry({
         if (provider !== AGY_PROVIDER_ID) {
           return undefined;
         }
-        const agyConfig = config ? readAgyPluginConfig(config) : startupConfig;
+        const runtimeConfig = config ? readAgyPluginConfig(config) : {};
+        const agyConfig = mergeAgyPluginConfig(startupConfig, runtimeConfig);
         const directoryConfig = readAgyModelDirectoryConfig(config);
         return createAgyStreamFn({
           config: agyConfig,

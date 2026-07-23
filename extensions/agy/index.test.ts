@@ -10,6 +10,7 @@ import {
   buildAgyCliArgs,
   createAgyStreamFn,
   formatAgyPrompt,
+  mergeAgyPluginConfig,
   readAgyPluginConfig,
   stripOpenClawToolingSections,
 } from "./stream.js";
@@ -491,5 +492,30 @@ describe("agy provider", () => {
     expect(
       createStreamFn({ provider: "agy", model: testModel, modelId: CONFIGURED_MODEL_ID }),
     ).toEqual(expect.any(Function));
+  });
+
+  it("keeps startup plugin env when runtime config omits plugin entries", () => {
+    expect(
+      mergeAgyPluginConfig(
+        {
+          command: "/custom/agy",
+          env: {
+            HTTPS_PROXY: "http://proxy.example:7897",
+            AGY_PROFILE: "startup",
+          },
+        },
+        {
+          timeoutMs: 45_000,
+          env: { AGY_PROFILE: "runtime" },
+        },
+      ),
+    ).toEqual({
+      command: "/custom/agy",
+      timeoutMs: 45_000,
+      env: {
+        HTTPS_PROXY: "http://proxy.example:7897",
+        AGY_PROFILE: "runtime",
+      },
+    });
   });
 });

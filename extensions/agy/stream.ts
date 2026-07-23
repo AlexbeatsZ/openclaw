@@ -54,6 +54,20 @@ export type AgyCliRunner = (request: {
   signal?: AbortSignal;
 }) => Promise<AgyCliRunResult>;
 
+export function mergeAgyPluginConfig(
+  startupConfig: AgyPluginConfig,
+  runtimeConfig: AgyPluginConfig,
+): AgyPluginConfig {
+  return {
+    ...startupConfig,
+    ...runtimeConfig,
+    env:
+      startupConfig.env || runtimeConfig.env
+        ? { ...(startupConfig.env ?? {}), ...(runtimeConfig.env ?? {}) }
+        : undefined,
+  };
+}
+
 const DEFAULT_AGY_COMMAND = "agy";
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_MAX_OUTPUT_BYTES = 10 * 1024 * 1024;

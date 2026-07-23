@@ -228,6 +228,8 @@ Important source anchors:
 - Agy thinking variants must come from the discovered CLI rows. The Adapter only constructs a variant that was reported; `off`/`minimal` map to the lowest discovered level and `xhigh`/`max` to the highest. A persisted runtime snapshot is the fallback Seam when live discovery is temporarily unavailable.
 - `agy models` output may use either slug ids or human-readable names such as `Gemini 3.6 Flash (High)`. Preserve the exact reported executable name; do not reconstruct it from the display family.
 - Generic CLI discovery must use the same effective `agents.defaults.cliBackends.agy` command/env and caller workspace as execution. Plugin-specific command/cwd/env belongs only to the custom stream Adapter.
+- The provider stream factory may receive a runtime config object without plugin entries. Merge its parsed values over the plugin startup config so Agy-specific proxy/cwd/command settings are not silently dropped at inference time.
+- Keep the server gateway globally direct for QQBot. Agy alone uses the reachable Windows/Tailscale proxy `100.113.70.121:7897` through both its CLI backend and plugin stream environment.
 
 # Task Board
 
@@ -274,4 +276,5 @@ Important source anchors:
 - [x] Remove stale service-level localhost proxy variables and verify QQBot reconnects with HTTP 200 and an active WebSocket.
 - [x] Upgrade the server's concrete Agy Flash model and all explicit cron references from 3.5 to 3.6.
 - [x] Replace Agy version hardcoding with a live model-directory Module and stable `agy/flash` / `agy/pro` references.
-- [ ] Deploy the dynamic Agy catalog, persist the current 3.6 discovery snapshot, and migrate the server default plus all explicit cron model references to `agy/flash`.
+- [x] Deploy the dynamic Agy catalog, persist the current 3.6 discovery snapshot, and migrate the server default plus all explicit cron model references to `agy/flash`.
+- [x] Route only Agy through the reachable Tailscale proxy, refresh its WSL credential, and verify model discovery plus a Gemini 3.6 Flash inference.
