@@ -617,7 +617,10 @@ const rootBundledPluginBuildEntries = bundledPluginBuildEntries.filter(
   ({ id }) => shouldBuildPrivateQaEntries || !NON_PACKAGED_BUNDLED_PLUGIN_DIRS.has(id),
 );
 
-function buildUnifiedDistEntries(): Record<string, string> {
+export function buildUnifiedDistEntries(
+  options: { includePrivateQa?: boolean } = {},
+): Record<string, string> {
+  const includePrivateQa = options.includePrivateQa ?? shouldBuildPrivateQaEntries;
   return {
     ...coreDistEntries,
     ...dockerE2eHarnessEntries,
@@ -654,8 +657,10 @@ function buildUnifiedDistEntries(): Record<string, string> {
         ([entry, source]) => [`plugin-sdk/${entry}`, source],
       ),
     ),
-    ...(shouldBuildPrivateQaEntries
+    ...(includePrivateQa
       ? {
+          "plugin-sdk/qa-channel": "src/plugin-sdk/qa-channel.ts",
+          "plugin-sdk/qa-channel-protocol": "src/plugin-sdk/qa-channel-protocol.ts",
           "plugin-sdk/qa-lab": "src/plugin-sdk/qa-lab.ts",
           "plugin-sdk/qa-runtime": "src/plugin-sdk/qa-runtime.ts",
         }

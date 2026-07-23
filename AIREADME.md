@@ -222,6 +222,7 @@ Important source anchors:
 - Migrated the existing main-agent legacy auth profiles into SQLite using OpenClaw's own auth store helpers, after backing up the prior SQLite/auth files under `C:\Users\Meta\AppData\Local\Temp\.agents\openclaw-auth-before-sqlite-import-20260625-125416`.
 - After auth migration, `models status` showed no missing auth for configured providers. Re-running `Steped_Study_Check` succeeded with fallback to `sensenova-openai/deepseek-v4-flash`, `delivered=true`, and `lastDeliveryStatus=delivered`.
 - Final server health was `ok`; QQ bot was running and connected. `Daily_Review_Feedback` still has historical `consecutiveErrors=15`, but its delivery config is now `main + direct` and the shared model auth issue has been fixed for future runs.
+- Private QA builds must emit the complete runtime import surface together: `qa-lab`, `qa-runtime`, `qa-channel`, and `qa-channel-protocol`. Emitting only the first two leaves `extensions/qa-lab/src/runtime-api.ts` unable to resolve `openclaw/plugin-sdk/qa-channel` during a cold gateway start.
 
 # Task Board
 
@@ -262,3 +263,6 @@ Important source anchors:
 - [x] Diagnose follow-up short QQ `�` corruption; cause was Linux/WSL CLI stdout chunks being decoded without a streaming UTF-8 decoder.
 - [x] Fix generic CLI supervisor and agy fallback runner to preserve UTF-8 characters split across process data events.
 - [x] Diagnose 2026-06-30 `你好，我无法给到相关内容。`: agy failed on Gemini regional/API availability (`User location is not supported`), then fallback Sensenova content-filtered the cron output.
+- [x] Reproduce the `qa-lab` cold-start load failure and trace it to missing private QA SDK build entries.
+- [x] Add the missing `qa-channel` and `qa-channel-protocol` private build entries with a focused regression test.
+- [ ] Deploy the private QA build fix, enable the private QA runtime alias, and verify a clean cold gateway start.
