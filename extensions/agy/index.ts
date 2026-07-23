@@ -8,25 +8,27 @@ import { buildProviderReplayFamilyHooks } from "openclaw/plugin-sdk/provider-mod
 import {
   AGY_AUTH_MARKER,
   AGY_DEFAULT_MODEL_REF,
-  AGY_GEMINI_FLASH_MODEL_ID,
-  AGY_GEMINI_PRO_MODEL_ID,
   AGY_PROVIDER_ID,
   applyAgyConfig,
   buildAgyDynamicModel,
   buildAgyProviderConfig,
 } from "./catalog.js";
 import { buildAgyCliBackend } from "./cli-backend.js";
+import { agyModelDirectory, readAgyModelDirectoryConfig } from "./model-directory.js";
 import { createAgyStreamFn, readAgyPluginConfig } from "./stream.js";
 
 function resolveAgyThinkingProfile({
-  modelId,
+  compat,
 }: ProviderDefaultThinkingPolicyContext): ProviderThinkingProfile {
-  const levels: ProviderThinkingProfile["levels"] =
-    modelId === AGY_GEMINI_PRO_MODEL_ID
-      ? ([{ id: "off" }, { id: "low" }, { id: "adaptive" }, { id: "high" }] as const)
-      : modelId === AGY_GEMINI_FLASH_MODEL_ID
-        ? ([{ id: "low" }, { id: "medium" }, { id: "adaptive" }, { id: "high" }] as const)
-        : ([{ id: "off" }, { id: "adaptive" }, { id: "high" }] as const);
+  const validLevels = new Set(["off", "minimal", "low", "medium", "high", "xhigh", "max"]);
+  const configuredLevels = (compat?.supportedReasoningEfforts ?? [])
+    .filter((level) => validLevels.has(level))
+    .map((level) => ({ id: level as ProviderThinkingProfile["levels"][number]["id"] }));
+  const adaptiveIndex = configuredLevels.findIndex(
+    (level) => level.id === "high" || level.id === "xhigh" || level.id === "max",
+  );
+  const levels = [...configuredLevels];
+  levels.splice(adaptiveIndex >= 0 ? adaptiveIndex : levels.length, 0, { id: "adaptive" });
   return {
     levels,
     defaultLevel: "adaptive",
@@ -69,22 +71,31 @@ export default definePluginEntry({
             groupHint: "Local CLI-backed provider",
             onboardingScopes: ["text-inference"],
           },
-          run: async () => ({
-            profiles: [],
-            defaultModel: AGY_DEFAULT_MODEL_REF,
-            configPatch: applyAgyConfig(),
-          }),
+          run: async (ctx) => {
+            const models = await agyModelDirectory.prepare(readAgyModelDirectoryConfig(ctx.config));
+            return {
+              profiles: [],
+              defaultModel: AGY_DEFAULT_MODEL_REF,
+              configPatch: applyAgyConfig(models),
+            };
+          },
         },
       ],
       catalog: {
         order: "late",
-        run: async () => ({ provider: buildAgyProviderConfig() }),
+        run: async (ctx) => {
+          const models = await agyModelDirectory.prepare(readAgyModelDirectoryConfig(ctx.config));
+          return { provider: buildAgyProviderConfig(models) };
+        },
       },
-      staticCatalog: {
-        order: "late",
-        run: async () => ({ provider: buildAgyProviderConfig() }),
+      prepareDynamicModel: async ({ config }) => {
+        await agyModelDirectory.prepare(readAgyModelDirectoryConfig(config));
       },
-      resolveDynamicModel: ({ modelId }) => buildAgyDynamicModel(modelId),
+      resolveDynamicModel: ({ config, modelId }) =>
+        buildAgyDynamicModel(
+          agyModelDirectory.resolve(modelId, readAgyModelDirectoryConfig(config)),
+        ),
+      preferRuntimeResolvedModel: ({ modelId }) => modelId === "flash" || modelId === "pro",
       resolveSyntheticAuth: () => ({
         apiKey: AGY_AUTH_MARKER,
         source: "agy-cli",
@@ -95,8 +106,14 @@ export default definePluginEntry({
         if (provider !== AGY_PROVIDER_ID) {
           return undefined;
         }
+        const agyConfig = config ? readAgyPluginConfig(config) : startupConfig;
+        const directoryConfig = readAgyModelDirectoryConfig(config);
         return createAgyStreamFn({
-          config: config ? readAgyPluginConfig(config) : startupConfig,
+          config: agyConfig,
+          resolveModelId: async (modelId) => {
+            await agyModelDirectory.prepare(directoryConfig);
+            return agyModelDirectory.resolveExecutionModel(modelId, undefined, directoryConfig);
+          },
         });
       },
       ...buildProviderReplayFamilyHooks({
@@ -105,7 +122,7 @@ export default definePluginEntry({
       }),
       resolveThinkingProfile: resolveAgyThinkingProfile,
       buildUnknownModelHint: () =>
-        "Use agy/gemini-3.6-flash or agy/gemini-3.1-pro, or configure models.providers.agy.models with model ids that agy accepts via --model.",
+        "Use agy/flash or agy/pro. These stable aliases are resolved from the local `agy models` catalog.",
     });
   },
 });

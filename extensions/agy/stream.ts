@@ -21,7 +21,6 @@ import {
   materializeWindowsSpawnProgram,
   resolveWindowsSpawnProgram,
 } from "openclaw/plugin-sdk/windows-spawn";
-import { AGY_DEFAULT_MODEL_ID } from "./catalog.js";
 
 export type AgyPluginConfig = {
   command?: string;
@@ -127,7 +126,7 @@ export function buildAgyCliArgs(params: {
 }): string[] {
   const args = [...(params.config?.args ?? [])];
   const modelId = params.modelId.trim();
-  if (modelId && modelId !== AGY_DEFAULT_MODEL_ID) {
+  if (modelId) {
     args.push(params.config?.modelArg ?? "--model", modelId);
   }
   args.push(params.config?.promptArg ?? "-p", params.prompt);
@@ -332,6 +331,7 @@ export function createAgyStreamFn(
   params: {
     config?: AgyPluginConfig;
     runner?: AgyCliRunner;
+    resolveModelId?: (modelId: string) => Promise<string>;
   } = {},
 ): StreamFn {
   const runner = params.runner ?? runAgyCli;
@@ -345,9 +345,12 @@ export function createAgyStreamFn(
       });
       const modelInfo = model;
       try {
+        const resolvedModelId = params.resolveModelId
+          ? await params.resolveModelId(model.id)
+          : model.id;
         const result = await runner({
           command: config.command ?? DEFAULT_AGY_COMMAND,
-          args: buildAgyCliArgs({ modelId: model.id, prompt, config }),
+          args: buildAgyCliArgs({ modelId: resolvedModelId, prompt, config }),
           cwd: config.cwd,
           env: { ...process.env, ...(config.env ?? {}) },
           timeoutMs: config.timeoutMs ?? DEFAULT_TIMEOUT_MS,

@@ -1,14 +1,12 @@
-// Agy provider catalog constants and model helpers.
-import type { ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
+// Agy catalog helpers expose stable aliases backed by the live CLI model directory.
+import type { OpenClawConfig, ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
 import type {
   ModelDefinitionConfig,
   ModelProviderConfig,
 } from "openclaw/plugin-sdk/provider-model-shared";
 
 export const AGY_PROVIDER_ID = "agy";
-export const AGY_GEMINI_FLASH_MODEL_ID = "gemini-3.6-flash";
-export const AGY_GEMINI_PRO_MODEL_ID = "gemini-3.1-pro";
-export const AGY_DEFAULT_MODEL_ID = AGY_GEMINI_FLASH_MODEL_ID;
+export const AGY_DEFAULT_MODEL_ID = "flash";
 export const AGY_DEFAULT_MODEL_REF = `${AGY_PROVIDER_ID}/${AGY_DEFAULT_MODEL_ID}`;
 export const AGY_BASE_URL = "cli://agy";
 export const AGY_AUTH_MARKER = "agy-cli";
@@ -23,65 +21,67 @@ const ZERO_COST = {
   cacheWrite: 0,
 };
 
-type AgyKnownModel = {
+export type AgyCatalogModel = {
   id: string;
   name: string;
+  resolvedModelId: string;
+  thinkingLevels: string[];
+  thinkingModels: Record<string, string>;
 };
 
-const AGY_KNOWN_MODELS: AgyKnownModel[] = [
-  {
-    id: AGY_GEMINI_FLASH_MODEL_ID,
-    name: "Gemini 3.6 Flash",
-  },
-  {
-    id: AGY_GEMINI_PRO_MODEL_ID,
-    name: "Gemini 3.1 Pro",
-  },
-];
-
-function resolveAgyModelName(id: string): string {
-  return AGY_KNOWN_MODELS.find((model) => model.id === id)?.name ?? `Agy CLI ${id}`;
+function buildReasoningEffortMap(levels: readonly string[]): Record<string, string> {
+  const first = levels[0];
+  const last = levels.at(-1);
+  return {
+    ...(first ? { off: first, minimal: first } : {}),
+    ...(last ? { xhigh: last, max: last } : {}),
+  };
 }
 
-export function buildAgyModelDefinition(modelId = AGY_DEFAULT_MODEL_ID): ModelDefinitionConfig {
-  const id = modelId.trim() || AGY_DEFAULT_MODEL_ID;
+export function buildAgyModelDefinition(model: AgyCatalogModel): ModelDefinitionConfig {
   return {
-    id,
-    name: resolveAgyModelName(id),
+    id: model.id,
+    name: model.name,
     api: "openai-completions",
-    reasoning: true,
+    reasoning: model.thinkingLevels.length > 0,
     input: ["text", "image"],
     agentRuntime: { id: AGY_PROVIDER_ID },
     cost: ZERO_COST,
     contextWindow: DEFAULT_CONTEXT_WINDOW,
     maxTokens: DEFAULT_MAX_TOKENS,
+    params: {
+      resolvedModelId: model.resolvedModelId,
+      thinkingModels: model.thinkingModels,
+    },
     compat: {
       supportsUsageInStreaming: true,
-      supportsReasoningEffort: true,
+      supportsReasoningEffort: model.thinkingLevels.length > 0,
+      supportedReasoningEfforts: [...model.thinkingLevels],
+      reasoningEffortMap: buildReasoningEffortMap(model.thinkingLevels),
       supportsTools: false,
       requiresStringContent: true,
     },
   };
 }
 
-export function buildAgyProviderConfig(): ModelProviderConfig {
+export function buildAgyProviderConfig(models: readonly AgyCatalogModel[]): ModelProviderConfig {
   return {
     baseUrl: AGY_BASE_URL,
     apiKey: AGY_AUTH_MARKER,
     auth: "token",
     api: "openai-completions",
-    models: AGY_KNOWN_MODELS.map((model) => buildAgyModelDefinition(model.id)),
+    models: models.map(buildAgyModelDefinition),
   };
 }
 
-export function buildAgyDynamicModel(modelId: string): ProviderRuntimeModel | undefined {
-  const id = modelId.trim();
-  if (!id) {
+export function buildAgyDynamicModel(
+  model: AgyCatalogModel | undefined,
+): ProviderRuntimeModel | undefined {
+  if (!model) {
     return undefined;
   }
-  const definition = buildAgyModelDefinition(id);
   return {
-    ...definition,
+    ...buildAgyModelDefinition(model),
     input: ["text", "image"],
     provider: AGY_PROVIDER_ID,
     api: "openai-completions",
@@ -89,30 +89,23 @@ export function buildAgyDynamicModel(modelId: string): ProviderRuntimeModel | un
   };
 }
 
-export function applyAgyConfig(): {
-  models: { providers: Record<typeof AGY_PROVIDER_ID, ModelProviderConfig> };
-  agents: {
-    defaults: {
-      model: typeof AGY_DEFAULT_MODEL_REF;
-      models: Record<string, { agentRuntime: { id: typeof AGY_PROVIDER_ID } }>;
-    };
-  };
-} {
+export function applyAgyConfig(models: readonly AgyCatalogModel[]): Partial<OpenClawConfig> {
+  const provider = buildAgyProviderConfig(models);
   return {
     models: {
       providers: {
-        [AGY_PROVIDER_ID]: buildAgyProviderConfig(),
+        [AGY_PROVIDER_ID]: provider,
       },
     },
     agents: {
       defaults: {
         model: AGY_DEFAULT_MODEL_REF,
-        models: {
-          [AGY_DEFAULT_MODEL_REF]: { agentRuntime: { id: AGY_PROVIDER_ID } },
-          [`${AGY_PROVIDER_ID}/${AGY_GEMINI_PRO_MODEL_ID}`]: {
-            agentRuntime: { id: AGY_PROVIDER_ID },
-          },
-        },
+        models: Object.fromEntries(
+          models.map((model) => [
+            `${AGY_PROVIDER_ID}/${model.id}`,
+            { agentRuntime: { id: AGY_PROVIDER_ID } },
+          ]),
+        ),
       },
     },
   };

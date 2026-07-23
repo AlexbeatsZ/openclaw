@@ -4,6 +4,7 @@
   "activation": {
     "onStartup": false
   },
+  "providerCatalogEntry": "./provider-discovery.ts",
   "enabledByDefault": true,
   "providers": ["agy"],
   "cliBackends": ["agy"],
@@ -14,58 +15,11 @@
         "apiKey": "agy-cli",
         "auth": "token",
         "api": "openai-completions",
-        "models": [
-          {
-            "id": "gemini-3.6-flash",
-            "name": "Gemini 3.6 Flash",
-            "reasoning": true,
-            "input": ["text", "image"],
-            "agentRuntime": {
-              "id": "agy"
-            },
-            "contextWindow": 200000,
-            "maxTokens": 32000,
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "compat": {
-              "supportsUsageInStreaming": true,
-              "supportsReasoningEffort": true,
-              "supportsTools": false,
-              "requiresStringContent": true
-            }
-          },
-          {
-            "id": "gemini-3.1-pro",
-            "name": "Gemini 3.1 Pro",
-            "reasoning": true,
-            "input": ["text", "image"],
-            "agentRuntime": {
-              "id": "agy"
-            },
-            "contextWindow": 200000,
-            "maxTokens": 32000,
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "compat": {
-              "supportsUsageInStreaming": true,
-              "supportsReasoningEffort": true,
-              "supportsTools": false,
-              "requiresStringContent": true
-            }
-          }
-        ]
+        "models": []
       }
     },
     "discovery": {
-      "agy": "static"
+      "agy": "runtime"
     }
   },
   "setup": {
