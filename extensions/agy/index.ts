@@ -8,6 +8,7 @@ import { buildProviderReplayFamilyHooks } from "openclaw/plugin-sdk/provider-mod
 import {
   AGY_AUTH_MARKER,
   AGY_DEFAULT_MODEL_REF,
+  AGY_GEMINI_FLASH_MODEL_ID,
   AGY_GEMINI_PRO_MODEL_ID,
   AGY_PROVIDER_ID,
   applyAgyConfig,
@@ -23,14 +24,9 @@ function resolveAgyThinkingProfile({
   const levels: ProviderThinkingProfile["levels"] =
     modelId === AGY_GEMINI_PRO_MODEL_ID
       ? ([{ id: "off" }, { id: "low" }, { id: "adaptive" }, { id: "high" }] as const)
-      : [
-          { id: "off" },
-          { id: "minimal" },
-          { id: "low" },
-          { id: "medium" },
-          { id: "adaptive" },
-          { id: "high" },
-        ];
+      : modelId === AGY_GEMINI_FLASH_MODEL_ID
+        ? ([{ id: "low" }, { id: "medium" }, { id: "adaptive" }, { id: "high" }] as const)
+        : ([{ id: "off" }, { id: "adaptive" }, { id: "high" }] as const);
   return {
     levels,
     defaultLevel: "adaptive",
@@ -109,7 +105,7 @@ export default definePluginEntry({
       }),
       resolveThinkingProfile: resolveAgyThinkingProfile,
       buildUnknownModelHint: () =>
-        "Use agy/gemini-3.5-flash or agy/gemini-3.1-pro, or configure models.providers.agy.models with model ids that agy accepts via --model.",
+        "Use agy/gemini-3.6-flash or agy/gemini-3.1-pro, or configure models.providers.agy.models with model ids that agy accepts via --model.",
     });
   },
 });

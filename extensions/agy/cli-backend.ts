@@ -29,10 +29,7 @@ function resolveAgyThinkingModel(modelId: string, thinkingLevel?: AgyThinkingLev
     return `${AGY_GEMINI_PRO_MODEL_ID}-low`;
   }
   if (modelId === AGY_GEMINI_FLASH_MODEL_ID) {
-    if (level === "minimal" || level === "off") {
-      return `${AGY_GEMINI_FLASH_MODEL_ID}-minimal`;
-    }
-    if (level === "low") {
+    if (level === "minimal" || level === "off" || level === "low") {
       return `${AGY_GEMINI_FLASH_MODEL_ID}-low`;
     }
     if (level === "medium") {

@@ -34,8 +34,8 @@ function collectProviderRegistration(pluginConfig: Record<string, unknown> = {})
 }
 
 const testModel = {
-  id: "gemini-3.5-flash",
-  name: "Gemini 3.5 Flash",
+  id: "gemini-3.6-flash",
+  name: "Gemini 3.6 Flash",
   api: "openai-completions",
   provider: "agy",
   baseUrl: "cli://agy",
@@ -62,7 +62,7 @@ describe("agy provider", () => {
         output: "text",
         input: "arg",
         modelAliases: {
-          flash: "gemini-3.5-flash",
+          flash: "gemini-3.6-flash",
           pro: "gemini-3.1-pro",
         },
         sessionMode: "none",
@@ -80,7 +80,7 @@ describe("agy provider", () => {
 
     const auth = provider.auth as Array<{ run: () => Promise<unknown> }>;
     await expect(auth[0]?.run()).resolves.toMatchObject({
-      defaultModel: "agy/gemini-3.5-flash",
+      defaultModel: "agy/gemini-3.6-flash",
       profiles: [],
       configPatch: {
         models: {
@@ -90,8 +90,8 @@ describe("agy provider", () => {
               apiKey: "agy-cli",
               models: [
                 expect.objectContaining({
-                  id: "gemini-3.5-flash",
-                  name: "Gemini 3.5 Flash",
+                  id: "gemini-3.6-flash",
+                  name: "Gemini 3.6 Flash",
                   reasoning: true,
                 }),
                 expect.objectContaining({
@@ -106,7 +106,7 @@ describe("agy provider", () => {
         agents: {
           defaults: {
             models: {
-              "agy/gemini-3.5-flash": { agentRuntime: { id: "agy" } },
+              "agy/gemini-3.6-flash": { agentRuntime: { id: "agy" } },
               "agy/gemini-3.1-pro": { agentRuntime: { id: "agy" } },
             },
           },
@@ -121,16 +121,9 @@ describe("agy provider", () => {
       modelId: string;
     }) => { levels: Array<{ id: string }>; defaultLevel?: string };
 
-    expect(resolveThinkingProfile({ modelId: "gemini-3.5-flash" })).toMatchObject({
+    expect(resolveThinkingProfile({ modelId: "gemini-3.6-flash" })).toMatchObject({
       defaultLevel: "adaptive",
-      levels: [
-        { id: "off" },
-        { id: "minimal" },
-        { id: "low" },
-        { id: "medium" },
-        { id: "adaptive" },
-        { id: "high" },
-      ],
+      levels: [{ id: "low" }, { id: "medium" }, { id: "adaptive" }, { id: "high" }],
     });
     expect(resolveThinkingProfile({ modelId: "gemini-3.1-pro" })).toMatchObject({
       defaultLevel: "adaptive",
@@ -140,15 +133,22 @@ describe("agy provider", () => {
     const resolveExecutionArgs = cliBackend.resolveExecutionArgs as (ctx: {
       baseArgs: string[];
       modelId: string;
-      thinkingLevel?: "low" | "medium" | "high" | "adaptive";
+      thinkingLevel?: "minimal" | "low" | "medium" | "high" | "adaptive";
     }) => readonly string[];
     expect(
       resolveExecutionArgs({
         baseArgs: ["--print", "{prompt}"],
-        modelId: "gemini-3.5-flash",
+        modelId: "gemini-3.6-flash",
+        thinkingLevel: "minimal",
+      }),
+    ).toEqual(["--model", "gemini-3.6-flash-low", "--print", "{prompt}"]);
+    expect(
+      resolveExecutionArgs({
+        baseArgs: ["--print", "{prompt}"],
+        modelId: "gemini-3.6-flash",
         thinkingLevel: "medium",
       }),
-    ).toEqual(["--model", "gemini-3.5-flash-medium", "--print", "{prompt}"]);
+    ).toEqual(["--model", "gemini-3.6-flash-medium", "--print", "{prompt}"]);
     expect(
       resolveExecutionArgs({
         baseArgs: ["--print", "{prompt}"],
@@ -168,8 +168,8 @@ describe("agy provider", () => {
     }) => string;
     const transformed = transformSystemPrompt({
       provider: "agy",
-      modelId: "gemini-3.5-flash",
-      modelDisplay: "Gemini 3.5 Flash",
+      modelId: "gemini-3.6-flash",
+      modelDisplay: "Gemini 3.6 Flash",
       systemPrompt: [
         "You are an assistant.",
         "",
@@ -201,8 +201,8 @@ describe("agy provider", () => {
     }) => string;
     const transformed = transformSystemPrompt({
       provider: "agy",
-      modelId: "gemini-3.5-flash",
-      modelDisplay: "Gemini 3.5 Flash",
+      modelId: "gemini-3.6-flash",
+      modelDisplay: "Gemini 3.6 Flash",
       systemPrompt: ["Intro", "x".repeat(60_000), "Tail"].join("\n"),
     });
 
@@ -286,7 +286,7 @@ describe("agy provider", () => {
   });
 
   it("builds default and explicit model cli args", () => {
-    expect(buildAgyCliArgs({ modelId: "gemini-3.5-flash", prompt: "hello" })).toEqual([
+    expect(buildAgyCliArgs({ modelId: "gemini-3.6-flash", prompt: "hello" })).toEqual([
       "-p",
       "hello",
     ]);
@@ -348,7 +348,7 @@ describe("agy provider", () => {
       role: "assistant",
       content: [{ type: "text", text: "answer" }],
       provider: "agy",
-      model: "gemini-3.5-flash",
+      model: "gemini-3.6-flash",
       stopReason: "stop",
     });
   });
@@ -370,7 +370,7 @@ describe("agy provider", () => {
       undefined,
     );
     expect(
-      createStreamFn({ provider: "agy", model: testModel, modelId: "gemini-3.5-flash" }),
+      createStreamFn({ provider: "agy", model: testModel, modelId: "gemini-3.6-flash" }),
     ).toEqual(expect.any(Function));
   });
 });

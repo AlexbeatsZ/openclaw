@@ -224,6 +224,8 @@ Important source anchors:
 - Final server health was `ok`; QQ bot was running and connected. `Daily_Review_Feedback` still has historical `consecutiveErrors=15`, but its delivery config is now `main + direct` and the shared model auth issue has been fixed for future runs.
 - Private QA builds must emit the complete runtime import surface together: `qa-lab`, `qa-runtime`, `qa-channel`, and `qa-channel-protocol`. Emitting only the first two leaves `extensions/qa-lab/src/runtime-api.ts` unable to resolve `openclaw/plugin-sdk/qa-channel` during a cold gateway start.
 - Disabling the Windows WinINET proxy does not remove proxy variables explicitly embedded in the WSL systemd unit. After the localhost proxy listener disappears, unset `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, and `https_proxy` at the service boundary and verify the real gateway process environment plus an endpoint-level QQBot WebSocket connection.
+- Agy Gemini Flash upgrades must change the provider catalog constant, plugin manifest, CLI alias/thinking-profile tests, runtime default/model catalog, and every explicit cron model together. Changing only `openclaw.json` would leave source defaults and High-thinking variant mapping on the previous model generation.
+- Gemini 3.6 Flash exposes Low, Medium, and High thinking variants but no Minimal variant. Its OpenClaw profile therefore advertises `low`, `medium`, `adaptive`, and `high`; defensive `off`/`minimal` inputs map to the supported Low CLI model instead of constructing an invalid `-minimal` id.
 
 # Task Board
 
@@ -268,3 +270,5 @@ Important source anchors:
 - [x] Add the missing `qa-channel` and `qa-channel-protocol` private build entries with a focused regression test.
 - [x] Deploy the private QA build fix, enable the private QA runtime alias, and verify a clean cold gateway start.
 - [x] Remove stale service-level localhost proxy variables and verify QQBot reconnects with HTTP 200 and an active WebSocket.
+- [x] Upgrade the Agy fixed Flash model and High-thinking mapping from `gemini-3.5-flash` to `gemini-3.6-flash`.
+- [ ] Deploy the Gemini 3.6 build and migrate the server default plus all explicit cron model references.

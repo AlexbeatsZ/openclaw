@@ -6,7 +6,7 @@ import type {
 } from "openclaw/plugin-sdk/provider-model-shared";
 
 export const AGY_PROVIDER_ID = "agy";
-export const AGY_GEMINI_FLASH_MODEL_ID = "gemini-3.5-flash";
+export const AGY_GEMINI_FLASH_MODEL_ID = "gemini-3.6-flash";
 export const AGY_GEMINI_PRO_MODEL_ID = "gemini-3.1-pro";
 export const AGY_DEFAULT_MODEL_ID = AGY_GEMINI_FLASH_MODEL_ID;
 export const AGY_DEFAULT_MODEL_REF = `${AGY_PROVIDER_ID}/${AGY_DEFAULT_MODEL_ID}`;
@@ -31,7 +31,7 @@ type AgyKnownModel = {
 const AGY_KNOWN_MODELS: AgyKnownModel[] = [
   {
     id: AGY_GEMINI_FLASH_MODEL_ID,
-    name: "Gemini 3.5 Flash",
+    name: "Gemini 3.6 Flash",
   },
   {
     id: AGY_GEMINI_PRO_MODEL_ID,
