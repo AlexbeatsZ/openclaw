@@ -247,6 +247,8 @@ Important source anchors:
 - Follow-up diagnosis after the user opened `/chat`: the deployed bundle was current (`index-BIxyV0ne.js`) and contained the Control Center strings, but the earlier implementation only rendered the redesign on `/config`. Calling that a new Web UI was a scope error; `/chat` had intentionally unchanged markup and styling.
 - The follow-up Command Center redesign now reaches the actual chat route. It adds an active-workspace command deck with connection/message/reasoning telemetry and search, refresh, focus, and new-session actions; it also gives the global shell, navigation, transcript, message bubbles, composer, and workspace rail one responsive visual system.
 - Regression coverage now asserts that the chat command deck renders on the real `renderChat` seam and that its primary callbacks work. The focused chat/config suites pass 136 tests, modified files pass formatting/diff checks, and the production Control UI build succeeds.
+- Commit `074283fe2a1207c72a6a211413b3cde57c9d7876` was pushed and deployed. The server completed the private QA build in 292.5 seconds, emitted `index-WOWhasPM.js` plus `index-Bw1sGivB.css`, passed explicit JS/CSS checks for `chat-command-deck`, and restarted cleanly.
+- The exact user-reported `/chat?session=agent%3Amain%3Adashboard%3Ad6b7230d-a5f7-42b2-b18b-674fc4712116` route was opened in the authenticated Chrome session after deployment. DOM and screenshot verification showed the 76px active-workspace deck, connected/message telemetry, command actions, rounded shell, grid transcript, updated bubbles, and elevated composer. Gateway health was live, HTTP was 200, Agy and QA Lab dist were present, and QQBot reconnected with HTTP 200 plus an active WebSocket.
 
 # Task Board
 
@@ -306,5 +308,5 @@ Important source anchors:
 - [x] Add the Command Center shell and active-workspace deck to the real chat route.
 - [x] Restyle navigation, transcript, message bubbles, composer, and workspace rail responsively.
 - [x] Add chat-route regression coverage and complete a production Control UI build.
-- [ ] Commit and push the full chat/shell redesign.
-- [ ] Deploy the full chat/shell redesign and visually verify the user's `/chat` URL.
+- [x] Commit and push the full chat/shell redesign.
+- [x] Deploy the full chat/shell redesign and visually verify the user's `/chat` URL.
