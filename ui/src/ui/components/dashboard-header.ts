@@ -1,10 +1,12 @@
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 // Control UI component implements the dashboard header element.
-import { t } from "../../i18n/index.ts";
+import { I18nController, t } from "../../i18n/index.ts";
 import { pathForTab, titleForTab, type Tab } from "../navigation.js";
 
 export class DashboardHeader extends LitElement {
+  private readonly i18nController = new I18nController(this);
+
   override createRenderRoot() {
     return this;
   }
