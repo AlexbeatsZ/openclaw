@@ -42,6 +42,7 @@ export type QuickSettingsChannel = {
 
 export type QuickSettingsAutomation = {
   cronJobCount: number;
+  directDeliveryJobCount: number;
   skillCount: number;
   mcpServerCount: number;
 };
@@ -72,6 +73,10 @@ export type QuickSettingsProps = {
   onManageCron?: () => void;
   onBrowseSkills?: () => void;
   onConfigureMcp?: () => void;
+  onConfigureAgy?: () => void;
+  onAgySystemPromptModeChange?: (mode: "filtered" | "full" | "none") => void;
+  onConfigureQaLab?: () => void;
+  onQaLabEnabledChange?: (enabled: boolean) => void;
 
   // Security
   security: QuickSettingsSecurity;
@@ -101,6 +106,7 @@ export type QuickSettingsProps = {
   configSaving?: boolean;
   configApplying?: boolean;
   configReady?: boolean;
+  configSectionCount?: number;
   onSelectPreset?: (presetId: ConfigPresetId) => void;
   onResetConfig?: () => void;
   onSaveConfig?: () => void;
@@ -108,6 +114,7 @@ export type QuickSettingsProps = {
 
   // Navigation
   onAdvancedSettings?: () => void;
+  onRawSettings?: () => void;
 
   // Connection
   connected: boolean;
@@ -510,7 +517,7 @@ function renderChannelsCard(props: QuickSettingsProps) {
 }
 
 function renderAutomationsCard(props: QuickSettingsProps) {
-  const { cronJobCount, skillCount, mcpServerCount } = props.automation;
+  const { cronJobCount, directDeliveryJobCount, skillCount, mcpServerCount } = props.automation;
 
   return html`
     <div class="qs-card qs-card--automations">
@@ -524,6 +531,13 @@ function renderAutomationsCard(props: QuickSettingsProps) {
         </div>
         <div class="qs-row">
           <span class="qs-row__label">
+            ${directDeliveryJobCount} program-delivery
+            task${directDeliveryJobCount !== 1 ? "s" : ""}
+          </span>
+          <button class="qs-link-btn" @click=${props.onManageCron}>Configure →</button>
+        </div>
+        <div class="qs-row">
+          <span class="qs-row__label">
             ${skillCount} skill${skillCount !== 1 ? "s" : ""} installed
           </span>
           <button class="qs-link-btn" @click=${props.onBrowseSkills}>Browse →</button>
@@ -533,6 +547,162 @@ function renderAutomationsCard(props: QuickSettingsProps) {
             ${mcpServerCount} MCP server${mcpServerCount !== 1 ? "s" : ""}
           </span>
           <button class="qs-link-btn" @click=${props.onConfigureMcp}>Configure →</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+type PluginEntry = {
+  enabled?: boolean;
+  config?: Record<string, unknown>;
+};
+
+function pluginEntry(
+  config: Record<string, unknown> | undefined,
+  pluginId: string,
+): PluginEntry | undefined {
+  const plugins = config?.plugins;
+  if (!plugins || typeof plugins !== "object" || Array.isArray(plugins)) {
+    return undefined;
+  }
+  const entries = (plugins as Record<string, unknown>).entries;
+  if (!entries || typeof entries !== "object" || Array.isArray(entries)) {
+    return undefined;
+  }
+  const entry = (entries as Record<string, unknown>)[pluginId];
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+    return undefined;
+  }
+  return entry as PluginEntry;
+}
+
+function renderPowerFeaturesCard(props: QuickSettingsProps) {
+  const agy = pluginEntry(props.configObject, "agy");
+  const qaLab = pluginEntry(props.configObject, "qa-lab");
+  const agyMode =
+    typeof agy?.config?.systemPromptMode === "string"
+      ? agy.config.systemPromptMode
+      : agy?.config?.includeSystemPrompt === true
+        ? "full"
+        : agy?.config?.includeSystemPrompt === false
+          ? "none"
+          : "filtered";
+  const normalizedAgyMode =
+    agyMode === "full" || agyMode === "none" || agyMode === "filtered" ? agyMode : "filtered";
+  const agyEnabled = agy?.enabled !== false;
+  const qaLabEnabled = qaLab?.enabled === true;
+  const directCount = props.automation.directDeliveryJobCount;
+
+  return html`
+    <div class="qs-card qs-card--power">
+      ${renderCardHeader(
+        icons.spark,
+        "Power Features",
+        html`<span class="qs-badge qs-badge--accent">Custom fork</span>`,
+      )}
+      <div class="qs-card__body">
+        <div class="qs-feature-row">
+          <div class="qs-feature-row__icon">${icons.terminal}</div>
+          <div class="qs-feature-row__copy">
+            <strong>Agy CLI provider</strong>
+            <span>Dynamic Flash/Pro discovery · ${agyMode} system prompt</span>
+          </div>
+          <div class="qs-feature-row__actions">
+            <select
+              class="qs-feature-select"
+              aria-label="Agy system prompt mode"
+              .value=${normalizedAgyMode}
+              @change=${(event: Event) => {
+                const value = (event.currentTarget as HTMLSelectElement).value;
+                if (value === "filtered" || value === "full" || value === "none") {
+                  props.onAgySystemPromptModeChange?.(value);
+                }
+              }}
+            >
+              <option value="filtered">Filtered prompt</option>
+              <option value="full">Full prompt</option>
+              <option value="none">No system prompt</option>
+            </select>
+            <span class="qs-badge ${agyEnabled ? "qs-badge--ok" : "qs-badge--warn"}">
+              ${agyEnabled ? "Available" : "Disabled"}
+            </span>
+            <button class="qs-link-btn" @click=${props.onConfigureAgy}>Details →</button>
+          </div>
+        </div>
+        <div class="qs-feature-row">
+          <div class="qs-feature-row__icon">${icons.send}</div>
+          <div class="qs-feature-row__copy">
+            <strong>Program delivery</strong>
+            <span>Main-session cron output goes directly to an explicit channel and recipient</span>
+          </div>
+          <div class="qs-feature-row__actions">
+            <span class="qs-badge ${directCount > 0 ? "qs-badge--ok" : ""}">
+              ${directCount} active
+            </span>
+            <button class="qs-link-btn" @click=${props.onManageCron}>Manage →</button>
+          </div>
+        </div>
+        <div class="qs-feature-row">
+          <div class="qs-feature-row__icon">${icons.bug}</div>
+          <div class="qs-feature-row__copy">
+            <strong>QA Lab</strong>
+            <span>Private debugger UI, scenario runner, captures, and evidence gallery</span>
+          </div>
+          <div class="qs-feature-row__actions">
+            <label class="qs-toggle qs-toggle--compact">
+              <input
+                type="checkbox"
+                .checked=${qaLabEnabled}
+                aria-label="Enable QA Lab"
+                @change=${(event: Event) =>
+                  props.onQaLabEnabledChange?.((event.currentTarget as HTMLInputElement).checked)}
+              />
+              <span class="qs-toggle__track"></span>
+            </label>
+            <span class="qs-badge ${qaLabEnabled ? "qs-badge--ok" : ""}">
+              ${qaLabEnabled ? "Enabled" : "Optional"}
+            </span>
+            <button class="qs-link-btn" @click=${props.onConfigureQaLab}>Details →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderConfigurationCoverageCard(props: QuickSettingsProps) {
+  const sectionCount = props.configSectionCount ?? 0;
+  return html`
+    <div class="qs-card qs-card--coverage">
+      ${renderCardHeader(
+        icons.fileCode,
+        "Complete Configuration",
+        props.configDirty
+          ? html`<span class="qs-badge qs-badge--warn">Unsaved changes</span>`
+          : html`<span class="qs-badge qs-badge--ok">In sync</span>`,
+      )}
+      <div class="qs-coverage">
+        <div class="qs-coverage__metric">
+          <strong>${sectionCount || "All"}</strong>
+          <span>${sectionCount === 1 ? "schema section" : "schema sections"}</span>
+        </div>
+        <p>
+          Every OpenClaw setting stays editable. Guided fields come from the live gateway schema;
+          plugin options are merged automatically; raw JSON remains the universal escape hatch.
+        </p>
+        <div class="qs-coverage__layers" aria-label="Configuration coverage">
+          <span>${icons.check} Guided form</span>
+          <span>${icons.check} Plugin settings</span>
+          <span>${icons.check} Raw JSON</span>
+        </div>
+        <div class="qs-coverage__actions">
+          <button class="btn btn--primary btn--sm" @click=${props.onAdvancedSettings}>
+            Browse all settings
+          </button>
+          <button class="btn btn--sm" @click=${props.onRawSettings}>
+            ${icons.fileCode} Edit raw JSON
+          </button>
         </div>
       </div>
     </div>
@@ -1099,10 +1269,21 @@ export function renderQuickSettings(props: QuickSettingsProps) {
   return html`
     <div class="qs-container">
       <div class="qs-header">
-        <h2 class="qs-header__title">${icons.settings} Quick Settings</h2>
-        <button class="btn btn--sm" @click=${props.onAdvancedSettings}>
-          Advanced ${icons.chevronRight}
-        </button>
+        <div class="qs-header__copy">
+          <span class="qs-header__eyebrow">CONTROL CENTER</span>
+          <h2 class="qs-header__title">System settings</h2>
+          <p class="qs-header__subtitle">
+            Models, channels, automations, custom features, and every OpenClaw configuration key.
+          </p>
+        </div>
+        <div class="qs-header__actions">
+          <button class="btn btn--sm" @click=${props.onRawSettings}>
+            ${icons.fileCode} Raw JSON
+          </button>
+          <button class="btn btn--primary btn--sm" @click=${props.onAdvancedSettings}>
+            All settings ${icons.chevronRight}
+          </button>
+        </div>
       </div>
 
       <div class="qs-grid">
@@ -1111,6 +1292,7 @@ export function renderQuickSettings(props: QuickSettingsProps) {
         <div class="qs-side-stack">
           ${renderAppearanceCard(props)} ${renderAutomationsCard(props)}
         </div>
+        ${renderPowerFeaturesCard(props)} ${renderConfigurationCoverageCard(props)}
         ${renderPresetsCard(props)}
       </div>
 

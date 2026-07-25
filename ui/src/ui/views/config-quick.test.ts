@@ -43,12 +43,17 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
     onChannelConfigure: vi.fn(),
     automation: {
       cronJobCount: 0,
+      directDeliveryJobCount: 0,
       skillCount: 0,
       mcpServerCount: 0,
     },
     onManageCron: vi.fn(),
     onBrowseSkills: vi.fn(),
     onConfigureMcp: vi.fn(),
+    onConfigureAgy: vi.fn(),
+    onAgySystemPromptModeChange: vi.fn(),
+    onConfigureQaLab: vi.fn(),
+    onQaLabEnabledChange: vi.fn(),
     security: {
       gatewayAuth: "Unknown",
       execPolicy: "Allowlist",
@@ -75,6 +80,7 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
     configObject: {},
     onSelectPreset: vi.fn(),
     onAdvancedSettings: vi.fn(),
+    onRawSettings: vi.fn(),
     connected: true,
     gatewayUrl: "ws://localhost:18789",
     assistantName: "OpenClaw",
@@ -128,9 +134,100 @@ describe("renderQuickSettings", () => {
       "qs-card--personal",
       "qs-card--appearance",
       "qs-card--automations",
+      "qs-card--power",
+      "qs-card--coverage",
     ]);
     expect(container.querySelectorAll(".qs-side-stack .qs-card")).toHaveLength(2);
     expect(container.querySelectorAll(".qs-card--span-all")).toHaveLength(1);
+  });
+
+  it("surfaces custom fork features and complete configuration access", () => {
+    const onConfigureAgy = vi.fn();
+    const onAgySystemPromptModeChange = vi.fn();
+    const onConfigureQaLab = vi.fn();
+    const onQaLabEnabledChange = vi.fn();
+    const onManageCron = vi.fn();
+    const onAdvancedSettings = vi.fn();
+    const onRawSettings = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderQuickSettings(
+        createProps({
+          currentModel: "agy/flash",
+          automation: {
+            cronJobCount: 4,
+            directDeliveryJobCount: 3,
+            skillCount: 12,
+            mcpServerCount: 2,
+          },
+          configObject: {
+            plugins: {
+              entries: {
+                agy: { enabled: true, config: { systemPromptMode: "filtered" } },
+                "qa-lab": { enabled: true },
+              },
+            },
+          },
+          configSectionCount: 31,
+          onConfigureAgy,
+          onAgySystemPromptModeChange,
+          onConfigureQaLab,
+          onQaLabEnabledChange,
+          onManageCron,
+          onAdvancedSettings,
+          onRawSettings,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.querySelector(".qs-card--power")?.textContent).toContain("Agy CLI provider");
+    expect(container.querySelector(".qs-card--power")?.textContent).toContain("3 active");
+    expect(container.querySelector(".qs-card--power")?.textContent).toContain("QA Lab");
+    expect(
+      container.querySelector(".qs-card--coverage .qs-coverage__metric strong")?.textContent,
+    ).toBe("31");
+    expect(
+      container.querySelector(".qs-card--coverage .qs-coverage__metric span")?.textContent,
+    ).toBe("schema sections");
+
+    const agyPromptMode = container.querySelector<HTMLSelectElement>(
+      'select[aria-label="Agy system prompt mode"]',
+    );
+    expect(agyPromptMode?.value).toBe("filtered");
+    if (!agyPromptMode) {
+      throw new Error("Expected Agy system prompt mode select");
+    }
+    agyPromptMode.value = "none";
+    agyPromptMode.dispatchEvent(new Event("change"));
+    expect(onAgySystemPromptModeChange).toHaveBeenCalledWith("none");
+
+    const qaLabToggle = container.querySelector<HTMLInputElement>(
+      'input[aria-label="Enable QA Lab"]',
+    );
+    expect(qaLabToggle?.checked).toBe(true);
+    if (!qaLabToggle) {
+      throw new Error("Expected QA Lab toggle");
+    }
+    qaLabToggle.checked = false;
+    qaLabToggle.dispatchEvent(new Event("change"));
+    expect(onQaLabEnabledChange).toHaveBeenCalledWith(false);
+
+    expectButtonByText(container, "Details →").click();
+    expectButtonByText(container, "Manage →").click();
+    const detailButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent?.trim() === "Details →");
+    detailButtons[1]?.click();
+    expect(onConfigureAgy).toHaveBeenCalledTimes(1);
+    expect(onManageCron).toHaveBeenCalledTimes(1);
+    expect(onConfigureQaLab).toHaveBeenCalledTimes(1);
+
+    expectButtonByText(container, "Browse all settings").click();
+    expectButtonByText(container, "Raw JSON").click();
+    expect(onAdvancedSettings).toHaveBeenCalledTimes(1);
+    expect(onRawSettings).toHaveBeenCalledTimes(1);
   });
 
   it("shows the current bootstrap default when config omits the explicit limit", () => {

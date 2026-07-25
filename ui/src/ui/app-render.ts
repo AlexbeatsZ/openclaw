@@ -1855,6 +1855,13 @@ export function renderApp(state: AppViewState) {
             },
             automation: {
               cronJobCount: state.cronJobs?.length ?? 0,
+              directDeliveryJobCount:
+                state.cronJobs?.filter(
+                  (job) =>
+                    job.sessionTarget === "main" &&
+                    job.delivery?.mode === "announce" &&
+                    job.delivery?.strategy === "direct",
+                ).length ?? 0,
               skillCount: state.skillsReport?.skills?.length ?? 0,
               mcpServerCount: extractMcpServerCount(state),
             },
@@ -1866,6 +1873,32 @@ export function renderApp(state: AppViewState) {
             },
             onConfigureMcp: () => {
               state.setTab("mcp");
+            },
+            onConfigureAgy: () => {
+              state.automationFormMode = "form";
+              state.automationSearchQuery = "agy";
+              state.automationActiveSection = "plugins";
+              state.automationActiveSubsection = null;
+              state.setTab("automation");
+            },
+            onAgySystemPromptModeChange: (mode) => {
+              updateConfigFormValue(
+                state,
+                ["plugins", "entries", "agy", "config", "systemPromptMode"],
+                mode,
+              );
+              requestHostUpdate?.();
+            },
+            onConfigureQaLab: () => {
+              state.automationFormMode = "form";
+              state.automationSearchQuery = "qa-lab";
+              state.automationActiveSection = "plugins";
+              state.automationActiveSubsection = null;
+              state.setTab("automation");
+            },
+            onQaLabEnabledChange: (enabled) => {
+              updateConfigFormValue(state, ["plugins", "entries", "qa-lab", "enabled"], enabled);
+              requestHostUpdate?.();
             },
             security: extractQuickSettingsSecurity(state),
             onSecurityConfigure: () => {
@@ -1945,6 +1978,7 @@ export function renderApp(state: AppViewState) {
             configSaving: state.configSaving,
             configApplying: state.configApplying,
             configReady: Boolean(state.configSnapshot?.hash),
+            configSectionCount: countScopedTopLevelSchemaProperties(state.configSchema),
             onSelectPreset: (presetId) => {
               const preset = getPresetById(presetId);
               if (!preset) {
@@ -1958,6 +1992,12 @@ export function renderApp(state: AppViewState) {
             onApplyConfig: () => void applyConfig(state),
             onAdvancedSettings: () => {
               state.configSettingsMode = "advanced";
+              state.configFormMode = "form";
+              requestHostUpdate?.();
+            },
+            onRawSettings: () => {
+              state.configSettingsMode = "advanced";
+              state.configFormMode = "raw";
               requestHostUpdate?.();
             },
             connected: state.connected,

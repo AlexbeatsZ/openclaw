@@ -1293,6 +1293,18 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  background:
+    radial-gradient(
+      circle at 84% -10%,
+      color-mix(in srgb, var(--accent) 8%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 8% 108%,
+      color-mix(in srgb, var(--accent-2) 6%, transparent),
+      transparent 30%
+    ),
+    var(--bg);
 }
 
 .content > * + * {
@@ -1300,7 +1312,13 @@
 }
 
 :root[data-theme-mode="light"] .content {
-  background: var(--bg-content);
+  background:
+    radial-gradient(
+      circle at 84% -10%,
+      color-mix(in srgb, var(--accent) 6%, transparent),
+      transparent 34%
+    ),
+    var(--bg-content);
 }
 
 .content--chat {

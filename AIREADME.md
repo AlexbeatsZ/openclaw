@@ -4,6 +4,7 @@
 - Current task: implement optional `main + direct` cron delivery so scheduled AI output can be captured by the program and forwarded to QQ without asking the model to call the message tool.
 - Maintenance policy: this is now maintained as the user's own fork/project. Do not submit upstream PRs by default; push ongoing work to `origin` (`AlexbeatsZ/openclaw`) and use `upstream` only for fetching/syncing upstream changes.
 - Current task: add an OpenClaw model provider for `agy` CLI so OpenClaw can forward prompts to `agy -p` and return the CLI output as assistant text, without reverse proxying or modifying agy's internal prompts.
+- Current task: replace the weak settings landing experience with a polished Control Center that exposes custom-fork capabilities and guarantees access to every OpenClaw setting from the Web UI.
 
 # Lessons Learned
 
@@ -231,6 +232,16 @@ Important source anchors:
 - The provider stream factory may receive a runtime config object without plugin entries. Merge its parsed values over the plugin startup config so Agy-specific proxy/cwd/command settings are not silently dropped at inference time.
 - Keep the server gateway globally direct for QQBot. Host-exec security rejects proxy-variable overrides from CLI backend config, so the server routes only Agy through a dedicated wrapper that loads `100.113.70.121:7897`; the gateway and QQBot inherit no global proxy.
 
+## Control Center Web UI
+
+- Open-source preflight compared Open WebUI, ClawPort, mudrii/openclaw-dashboard, Silos, and other OpenClaw dashboards. ClawPort was the strongest directly relevant visual/information-architecture reference (MIT, roughly 900 stars), while Open WebUI had much higher adoption but primarily solved chat and carried branding/license constraints unsuitable for a deeply customized OpenClaw control plane.
+- Do not replace OpenClaw's native Control UI backend with a second dashboard service. The native gateway already owns authentication, live `config.schema`, plugin schema merging, validation, secret redaction, config save/apply, and restart semantics. A separate CLI/file-editing backend would duplicate security-sensitive behavior and would inevitably lag new config keys.
+- The settings landing page now acts as a Control Center. It combines polished glass/card presentation with direct access to models, channels, security, automations, identities, appearance, bootstrap profiles, custom-fork capabilities, and complete configuration coverage.
+- The Power Features card exposes Agy dynamic-model support, its `systemPromptMode` selector, main-session program-delivery cron counts/management, and QA Lab enablement/details.
+- Complete Web UI coverage uses three layers: the live schema-driven form, dynamically merged plugin schemas, and a raw JSON editor. This means new core/plugin settings remain editable without hand-building a dedicated form for every future key.
+- Custom-feature quick controls only stage changes in the canonical config draft. Existing Save Changes / Apply Now actions remain the single commit path, preserving validation and gateway reload behavior.
+- Relevant validation: four UI unit suites passed (60 tests), the production Vite build passed, and modified files passed `oxfmt` plus `git diff --check`. The broader UI TypeScript gate still reports two pre-existing `packages/net-policy/src/ip.ts` union mismatches for `benchmarking` and `orchid2`, unrelated to this UI change.
+
 # Task Board
 
 - [x] Investigate OpenClaw system prompt structure and write study notes to `docs/research/openclaw-system-prompt.md`.
@@ -278,3 +289,10 @@ Important source anchors:
 - [x] Replace Agy version hardcoding with a live model-directory Module and stable `agy/flash` / `agy/pro` references.
 - [x] Deploy the dynamic Agy catalog, persist the current 3.6 discovery snapshot, and migrate the server default plus all explicit cron model references to `agy/flash`.
 - [x] Route only Agy through the reachable Tailscale proxy, refresh its WSL credential, and verify model discovery plus a Gemini 3.6 Flash inference.
+- [x] Research maintained OpenClaw dashboards and select a compatible UI direction.
+- [x] Add a polished Control Center settings landing page.
+- [x] Surface Agy prompt handling, program-delivery cron status, and QA Lab controls in the Web UI.
+- [x] Add explicit schema-form, plugin-settings, and raw-JSON access so every OpenClaw setting remains editable.
+- [x] Add focused UI tests and complete a production Control UI build.
+- [ ] Commit and push the Control Center Web UI.
+- [ ] Deploy the Control Center Web UI to the server WSL gateway and verify service health.
