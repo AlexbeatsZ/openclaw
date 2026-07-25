@@ -2074,6 +2074,8 @@ export function renderChat(props: ChatProps) {
   const sidebarOpen = Boolean(props.sidebarOpen && props.onCloseSidebar);
   const displayStream = props.stream ?? null;
   const historyRenderLimit = resolveChatHistoryRenderWindow(props);
+  const sessionLabel = props.sessionKey.split(":").filter(Boolean).at(-1) ?? props.sessionKey;
+  const assistantLabel = assistantIdentity.name || props.currentAgentId || "Agent";
 
   const handleCodeBlockCopy = (e: Event) => {
     const btn = (e.target as HTMLElement).closest(".code-block-copy");
@@ -2764,6 +2766,99 @@ export function renderChat(props: ChatProps) {
       >
         ${renderSessionWorkspaceRail(props.sessionWorkspace)}
         <div class="chat-workbench__main">
+          <header class="chat-command-deck" data-testid="chat-command-deck">
+            <div class="chat-command-deck__identity">
+              <span class="chat-command-deck__mark" aria-hidden="true">
+                ${
+                  assistantIdentity.avatar
+                    ? html`<img src=${assistantIdentity.avatar} alt="" />`
+                    : icons.spark
+                }
+              </span>
+              <span class="chat-command-deck__copy">
+                <span class="chat-command-deck__eyebrow">
+                  ${t("common.active")} · ${t("chat.workspaceFiles.files")}
+                </span>
+                <strong class="chat-command-deck__title">${assistantLabel}</strong>
+                <span class="chat-command-deck__session" title=${props.sessionKey}>
+                  ${sessionLabel}
+                </span>
+              </span>
+            </div>
+            <div class="chat-command-deck__telemetry" aria-label="Conversation status">
+              <span
+                class="chat-command-deck__status ${
+                  props.connected
+                    ? "chat-command-deck__status--live"
+                    : "chat-command-deck__status--offline"
+                }"
+              >
+                <span class="chat-command-deck__status-dot" aria-hidden="true"></span>
+                ${props.connected ? t("common.connected") : t("common.offline")}
+              </span>
+              <span class="chat-command-deck__metric">
+                ${props.messages.length} ${t("usage.overview.messages")}
+              </span>
+              ${
+                reasoningLevel !== "off"
+                  ? html`<span class="chat-command-deck__metric"
+                      >${t("common.reasoning")} · ${reasoningLevel}</span
+                    >`
+                  : nothing
+              }
+            </div>
+            <div class="chat-command-deck__actions">
+              <button
+                class="chat-command-deck__action"
+                type="button"
+                title=${t("usage.details.searchConversation")}
+                aria-label=${t("usage.details.searchConversation")}
+                @click=${() => {
+                  vs.searchOpen = !vs.searchOpen;
+                  if (!vs.searchOpen) {
+                    vs.searchQuery = "";
+                  }
+                  requestUpdate();
+                }}
+              >
+                ${icons.search}
+              </button>
+              <button
+                class="chat-command-deck__action"
+                type="button"
+                title=${t("chat.refreshTitle")}
+                aria-label=${t("chat.refreshTitle")}
+                @click=${props.onRefresh}
+              >
+                ${icons.refresh}
+              </button>
+              ${
+                props.onToggleFocusMode
+                  ? html`
+                      <button
+                        class="chat-command-deck__action"
+                        type="button"
+                        title=${props.focusMode ? "Exit focus mode" : "Focus mode"}
+                        aria-label=${props.focusMode ? "Exit focus mode" : "Focus mode"}
+                        @click=${props.onToggleFocusMode}
+                      >
+                        ${props.focusMode ? icons.minimize : icons.maximize}
+                      </button>
+                    `
+                  : nothing
+              }
+              <button
+                class="chat-command-deck__new"
+                type="button"
+                title=${t("chat.runControls.newSession")}
+                aria-label=${t("chat.runControls.newSession")}
+                @click=${props.onNewSession}
+              >
+                ${icons.plus}
+                <span>${t("chat.runControls.newSession")}</span>
+              </button>
+            </div>
+          </header>
           <div class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}">
             <div
               class="chat-main"

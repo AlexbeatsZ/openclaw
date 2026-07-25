@@ -244,6 +244,9 @@ Important source anchors:
 - Control Center commit `5e7131ad6acc5de490d8502663e038122faf6496` was pushed to `origin/fix/qa-lab-private-sdk-build`, then the server WSL checkout was fast-forwarded to it.
 - Server deployment passed `OPENCLAW_BUILD_PRIVATE_QA=1 corepack pnpm build`, emitted the Control Center asset plus Agy and private QA dist entries, restarted `openclaw-gateway.service`, and verified a clean repository, active service, HTTP 200 Control UI, `{"ok":true,"status":"live"}`, and a connected QQBot WebSocket.
 - Existing post-deploy warnings say the separately installed `qqbot` and `zai` packages advertise plugin API `>=2026.7.1` while this host advertises `2026.6.10`. The bundled QQBot still loaded and connected; no unrelated global/package upgrade was performed.
+- Follow-up diagnosis after the user opened `/chat`: the deployed bundle was current (`index-BIxyV0ne.js`) and contained the Control Center strings, but the earlier implementation only rendered the redesign on `/config`. Calling that a new Web UI was a scope error; `/chat` had intentionally unchanged markup and styling.
+- The follow-up Command Center redesign now reaches the actual chat route. It adds an active-workspace command deck with connection/message/reasoning telemetry and search, refresh, focus, and new-session actions; it also gives the global shell, navigation, transcript, message bubbles, composer, and workspace rail one responsive visual system.
+- Regression coverage now asserts that the chat command deck renders on the real `renderChat` seam and that its primary callbacks work. The focused chat/config suites pass 136 tests, modified files pass formatting/diff checks, and the production Control UI build succeeds.
 
 # Task Board
 
@@ -299,3 +302,9 @@ Important source anchors:
 - [x] Add focused UI tests and complete a production Control UI build.
 - [x] Commit and push the Control Center Web UI.
 - [x] Deploy the Control Center Web UI to the server WSL gateway and verify service health.
+- [x] Reproduce the user's unchanged `/chat` UI and identify the settings-only scope error.
+- [x] Add the Command Center shell and active-workspace deck to the real chat route.
+- [x] Restyle navigation, transcript, message bubbles, composer, and workspace rail responsively.
+- [x] Add chat-route regression coverage and complete a production Control UI build.
+- [ ] Commit and push the full chat/shell redesign.
+- [ ] Deploy the full chat/shell redesign and visually verify the user's `/chat` URL.

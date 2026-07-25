@@ -590,6 +590,39 @@ function createDeferred<T>() {
   return { promise, resolve, reject };
 }
 
+describe("chat command deck", () => {
+  it("renders the active workspace and exposes primary conversation actions", () => {
+    const onRefresh = vi.fn();
+    const onNewSession = vi.fn();
+    const onToggleFocusMode = vi.fn();
+    const container = renderChatView({
+      sessionKey: "agent:main:dashboard:workspace-42",
+      assistantName: "Meta",
+      connected: true,
+      messages: [{ role: "user", content: "Hello" }],
+      onRefresh,
+      onNewSession,
+      onToggleFocusMode,
+    });
+
+    const deck = container.querySelector('[data-testid="chat-command-deck"]');
+    expect(deck).not.toBeNull();
+    expect(deck?.textContent).toContain("Active · Workspace");
+    expect(deck?.textContent).toContain("Meta");
+    expect(deck?.textContent).toContain("workspace-42");
+    expect(deck?.textContent).toContain("Connected");
+    expect(deck?.textContent).toContain("1 Messages");
+
+    container.querySelector<HTMLButtonElement>('button[aria-label="Refresh chat data"]')?.click();
+    container.querySelector<HTMLButtonElement>('button[aria-label="Focus mode"]')?.click();
+    container.querySelector<HTMLButtonElement>('button[aria-label="New session"]')?.click();
+
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(onToggleFocusMode).toHaveBeenCalledTimes(1);
+    expect(onNewSession).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("chat compaction divider", () => {
   it("renders checkpoint recovery copy and action", () => {
     const onOpenSessionCheckpoints = vi.fn();
