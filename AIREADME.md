@@ -241,6 +241,9 @@ Important source anchors:
 - Complete Web UI coverage uses three layers: the live schema-driven form, dynamically merged plugin schemas, and a raw JSON editor. This means new core/plugin settings remain editable without hand-building a dedicated form for every future key.
 - Custom-feature quick controls only stage changes in the canonical config draft. Existing Save Changes / Apply Now actions remain the single commit path, preserving validation and gateway reload behavior.
 - Relevant validation: four UI unit suites passed (60 tests), the production Vite build passed, and modified files passed `oxfmt` plus `git diff --check`. The broader UI TypeScript gate still reports two pre-existing `packages/net-policy/src/ip.ts` union mismatches for `benchmarking` and `orchid2`, unrelated to this UI change.
+- Control Center commit `5e7131ad6acc5de490d8502663e038122faf6496` was pushed to `origin/fix/qa-lab-private-sdk-build`, then the server WSL checkout was fast-forwarded to it.
+- Server deployment passed `OPENCLAW_BUILD_PRIVATE_QA=1 corepack pnpm build`, emitted the Control Center asset plus Agy and private QA dist entries, restarted `openclaw-gateway.service`, and verified a clean repository, active service, HTTP 200 Control UI, `{"ok":true,"status":"live"}`, and a connected QQBot WebSocket.
+- Existing post-deploy warnings say the separately installed `qqbot` and `zai` packages advertise plugin API `>=2026.7.1` while this host advertises `2026.6.10`. The bundled QQBot still loaded and connected; no unrelated global/package upgrade was performed.
 
 # Task Board
 
@@ -294,5 +297,5 @@ Important source anchors:
 - [x] Surface Agy prompt handling, program-delivery cron status, and QA Lab controls in the Web UI.
 - [x] Add explicit schema-form, plugin-settings, and raw-JSON access so every OpenClaw setting remains editable.
 - [x] Add focused UI tests and complete a production Control UI build.
-- [ ] Commit and push the Control Center Web UI.
-- [ ] Deploy the Control Center Web UI to the server WSL gateway and verify service health.
+- [x] Commit and push the Control Center Web UI.
+- [x] Deploy the Control Center Web UI to the server WSL gateway and verify service health.
