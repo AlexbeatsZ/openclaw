@@ -2006,7 +2006,7 @@ function renderPinnedSection(
                 ({ index, text, role }) => html`
                   <div class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-item">
                     <span class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-role"
-                      >${role === "user" ? userRoleLabel : "Assistant"}</span
+                      >${role === "user" ? userRoleLabel : t("rawUi.chat_role_assistant")}</span
                     >
                     <span class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-text"
                       >${text.slice(0, 100)}${text.length > 100 ? "..." : ""}</span
@@ -2803,17 +2803,17 @@ export function renderChat(props: ChatProps) {
                   @click=${props.onToggleRealtimeTalk}
                   title=${props.realtimeTalkActive
                     ? t("chat.composer.stopTalk")
-                    : t("chat.composer.startTalk")}
+                    : t("rawUi.chat_startVoiceConversation")}
                   aria-label=${props.realtimeTalkActive
                     ? t("chat.composer.stopTalk")
-                    : t("chat.composer.startTalk")}
+                    : t("rawUi.chat_startVoiceConversation")}
                   ?disabled=${!props.connected}
                 >
                   ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
                   <span class="agent-chat__control-label"
                     >${props.realtimeTalkActive
                       ? t("chat.composer.stopTalk")
-                      : t("chat.composer.startTalk")}</span
+                      : t("rawUi.chat_startVoiceConversation")}</span
                   >
                 </button>
               `
@@ -2825,14 +2825,14 @@ export function renderChat(props: ChatProps) {
                     ? "agent-chat__input-btn--talk"
                     : ""}"
                   @click=${props.onToggleRealtimeTalkOptions}
-                  title=${t("rawUi.chat_attr_2bd9ed8710dc")}
-                  aria-label=${t("rawUi.chat_attr_9bf5c59f84e7")}
+                  title=${t("rawUi.chat_voiceConversationSettings")}
+                  aria-label=${t("rawUi.chat_voiceConversationSettings")}
                   aria-expanded=${props.realtimeTalkOptionsOpen ? "true" : "false"}
                   ?disabled=${!props.connected || props.realtimeTalkActive}
                 >
                   ${icons.settings}
                   <span class="agent-chat__control-label"
-                    >${t("rawUi.chat_text_2519523c57d6")}</span
+                    >${t("rawUi.chat_voiceConversationSettings")}</span
                   >
                 </button>
               `

@@ -128,12 +128,12 @@ describe("i18n", () => {
     expect(fresh.t("common.health")).toBe("健康状况");
   });
 
-  it("keeps module-level UI metadata reactive when the locale changes", async () => {
+  it("keeps internal navigation group keys stable when the locale changes", async () => {
     await translate.i18n.setLocale("en");
     expect(TAB_GROUPS[0].label).toBe("chat");
 
     await translate.i18n.setLocale("zh-CN");
-    expect(TAB_GROUPS[0].label).toBe("聊天");
+    expect(TAB_GROUPS[0].label).toBe("chat");
 
     await translate.i18n.setLocale("en");
     expect(TAB_GROUPS[0].label).toBe("chat");

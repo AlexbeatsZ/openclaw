@@ -827,7 +827,7 @@ function countHiddenCronSessions(state: AppViewState, sessions: SessionsListResu
 type ThemeModeOption = { id: ThemeMode; labelKey: string; short: string };
 const THEME_MODE_OPTIONS: ThemeModeOption[] = [
   { id: "system", labelKey: "common.system", short: "SYS" },
-  { id: "light", labelKey: "common.light", short: "LIGHT" },
+  { id: "light", labelKey: "rawUi.theme_lightMode", short: "LIGHT" },
   { id: "dark", labelKey: "common.dark", short: "DARK" },
 ];
 

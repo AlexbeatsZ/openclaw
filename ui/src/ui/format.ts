@@ -1,11 +1,58 @@
 // Control UI module implements format behavior.
 import { asDateTimestampMs } from "@openclaw/normalization-core/number-coercion";
 import { formatDurationHuman } from "../../../src/infra/format-time/format-duration.ts";
-import { formatRelativeTimestamp } from "../../../src/infra/format-time/format-relative.ts";
-import { t } from "../i18n/index.ts";
+import { formatRelativeTimestamp as formatRelativeTimestampEnglish } from "../../../src/infra/format-time/format-relative.ts";
+import { i18n, t } from "../i18n/index.ts";
 
-export { formatRelativeTimestamp, formatDurationHuman };
+export { formatDurationHuman };
 export { stripThinkingTags } from "./strip-thinking-tags.ts";
+
+export function formatRelativeTimestamp(
+  timestampMs: number | null | undefined,
+  options?: { dateFallback?: boolean; timezone?: string; fallback?: string },
+): string {
+  if (i18n.getLocale() === "en") {
+    return formatRelativeTimestampEnglish(timestampMs, options);
+  }
+  const fallback = options?.fallback ?? t("common.na");
+  if (timestampMs == null || !Number.isFinite(timestampMs)) {
+    return fallback;
+  }
+  const diff = Date.now() - timestampMs;
+  const absDiff = Math.abs(diff);
+  const isPast = diff >= 0;
+  const seconds = Math.round(absDiff / 1000);
+  if (seconds < 60) {
+    return isPast ? t("rawUi.relative_justNow") : t("rawUi.relative_inLessThanMinute");
+  }
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) {
+    return t(isPast ? "rawUi.relative_minutesAgo" : "rawUi.relative_inMinutes", {
+      count: String(minutes),
+    });
+  }
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) {
+    return t(isPast ? "rawUi.relative_hoursAgo" : "rawUi.relative_inHours", {
+      count: String(hours),
+    });
+  }
+  const days = Math.round(hours / 24);
+  if (!options?.dateFallback || days <= 7) {
+    return t(isPast ? "rawUi.relative_daysAgo" : "rawUi.relative_inDays", {
+      count: String(days),
+    });
+  }
+  try {
+    return new Intl.DateTimeFormat(i18n.getLocale(), {
+      month: "short",
+      day: "numeric",
+      ...(options.timezone ? { timeZone: options.timezone } : {}),
+    }).format(new Date(timestampMs));
+  } catch {
+    return t("rawUi.relative_daysAgo", { count: String(days) });
+  }
+}
 
 export function formatUnknownText(
   value: unknown,

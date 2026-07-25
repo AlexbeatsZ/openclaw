@@ -1,4 +1,33 @@
 {
   "version": 1,
-  "entries": []
+  "entries": [
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/navigation.ts",
+      "text": "agent"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/navigation.ts",
+      "text": "chat"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/navigation.ts",
+      "text": "control"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/navigation.ts",
+      "text": "settings"
+    }
+  ]
 }

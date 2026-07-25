@@ -1,5 +1,6 @@
 // Control UI chat module implements chat avatar behavior.
 import { html } from "lit";
+import { t } from "../../i18n/index.ts";
 import type { AssistantIdentity } from "../assistant-identity.ts";
 import {
   resolveLocalUserAvatarText,
@@ -21,7 +22,7 @@ export function renderChatAvatar(
   authToken?: string | null,
 ) {
   const normalized = normalizeRoleForGrouping(role);
-  const assistantName = assistant?.name?.trim() || "Assistant";
+  const assistantName = assistant?.name?.trim() || t("rawUi.chat_role_assistant");
   const assistantAvatar = assistant?.avatar?.trim() || "";
   const assistantAvatarText = resolveAssistantTextAvatar(assistantAvatar);
   const assistantFallbackAvatar = assistantAvatarFallbackUrl(basePath ?? "");

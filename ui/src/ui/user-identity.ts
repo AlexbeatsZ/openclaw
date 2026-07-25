@@ -1,5 +1,6 @@
 // Control UI module implements user identity behavior.
 import { coerceIdentityValue } from "../../../src/shared/assistant-identity-values.js";
+import { t } from "../i18n/index.ts";
 import { normalizeOptionalString } from "./string-coerce.ts";
 import {
   isRenderableControlUiAvatarUrl,
@@ -48,7 +49,7 @@ export function hasLocalUserIdentity(identity: LocalUserIdentity): boolean {
 
 export function resolveLocalUserName(
   input?: Partial<LocalUserIdentity> | null,
-  fallback = "You",
+  fallback = t("rawUi.chat_role_you"),
 ): string {
   return normalizeLocalUserIdentity(input).name ?? fallback;
 }

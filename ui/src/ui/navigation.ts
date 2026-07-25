@@ -1,31 +1,23 @@
+import { t } from "../i18n/index.js";
 // Control UI module implements navigation behavior.
-import { t } from "../i18n/index.ts";
 import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
   {
-    get label() {
-      return t("rawUi.navigation_prop_728e95062444");
-    },
+    label: "chat",
     tabs: ["chat"],
   },
   {
-    get label() {
-      return t("rawUi.navigation_prop_06edbbecc160");
-    },
+    label: "control",
     tabs: ["overview", "activity", "workboard", "instances", "sessions", "usage", "cron"],
   },
   {
-    get label() {
-      return t("rawUi.navigation_prop_380d7f276b55");
-    },
+    label: "agent",
     tabs: ["agents", "skills", "skillWorkshop", "nodes", "dreams"],
   },
   {
-    get label() {
-      return t("rawUi.navigation_prop_4ca8724cc770");
-    },
+    label: "settings",
     tabs: ["config"],
   },
 ] as const;

@@ -256,8 +256,9 @@ Important source anchors:
 - Source English copy lives in `ui/src/i18n/locales/en-raw-ui.ts`; the official generator emits every locale and maintains translation-memory metadata. Simplified Chinese text was translated and placeholder-validated with Agy `gemini-3.6-flash-high`.
 - Top-level label maps use getters so a locale change updates already-imported modules instead of freezing English during module evaluation.
 - The raw-copy audit now ignores only the two intentional slash-command icon/category enum values `book` and `tools`. On Windows the generator invokes the local Oxfmt Node entrypoint directly, avoiding pnpm's non-TTY module-purge prompt and the resulting `write EOF`.
-- Final i18n report: 2604/2604 Simplified Chinese keys filled, zero Chinese fallbacks, and zero entries in the official hardcoded-copy baseline.
-- Focused localization and affected-view tests pass (286/286 plus 138/138); the i18n generator regression suite passes (5 passed, 2 skipped), and the production Vite build succeeds. The broader UI gate still has the pre-existing Vite alias test plus the two `packages/net-policy/src/ip.ts` enum errors; Playwright's downloaded Chromium is absent on this Windows checkout.
+- Authenticated Chrome QA on the exact user-reported chat route caught a second layer of runtime-only residuals: translated navigation IDs produced `nav.聊天`-style keys, while relative timestamps, role fallbacks, Markdown-copy actions, voice controls, thinking levels, and the light theme still contained English or awkward mixed-language labels. Navigation IDs are now stable internal values again, and every visible label uses a dedicated translation key.
+- Final i18n report: 2626/2626 Simplified Chinese keys filled with zero Chinese fallbacks. The raw-copy baseline contains only the four stable internal navigation identifiers `chat`, `control`, `agent`, and `settings`; they are translated at render time and are not visible English copy.
+- Focused localization, chat, navigation, time-format, and app-render tests pass (255/255 plus 75/75), and the production Vite build succeeds. The broader UI gate still has the pre-existing Vite alias test plus the two `packages/net-policy/src/ip.ts` enum errors; Playwright's downloaded Chromium is absent on this Windows checkout.
 
 # Task Board
 
@@ -324,4 +325,4 @@ Important source anchors:
 - [x] Fix dynamic top-level translations, single/plural rendering, and Chinese-locale test assumptions.
 - [x] Fix the Windows i18n formatter invocation and slash-command enum false positives.
 - [x] Verify zero zh-CN fallbacks, focused tests, generator tests, formatting, and production UI build.
-- [ ] Commit, push, deploy, and visually verify the fully localized `/chat` route.
+- [x] Commit, push, deploy, and visually verify the fully localized `/chat` route.

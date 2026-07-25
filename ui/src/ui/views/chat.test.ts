@@ -1060,7 +1060,7 @@ describe("chat composer workbench", () => {
       realtimeTalkOptionsOpen: false,
     });
     const collapsedBtn = collapsed.querySelector<HTMLButtonElement>(
-      'button[aria-label="Talk settings"]',
+      `button[aria-label="${t("rawUi.chat_voiceConversationSettings")}"]`,
     );
     expect(collapsedBtn).not.toBeNull();
     expect(collapsedBtn?.getAttribute("aria-expanded")).toBe("false");
@@ -1071,7 +1071,7 @@ describe("chat composer workbench", () => {
       realtimeTalkOptionsOpen: true,
     });
     const expandedBtn = expanded.querySelector<HTMLButtonElement>(
-      'button[aria-label="Talk settings"]',
+      `button[aria-label="${t("rawUi.chat_voiceConversationSettings")}"]`,
     );
     expect(expandedBtn?.getAttribute("aria-expanded")).toBe("true");
   });
@@ -1085,10 +1085,12 @@ describe("chat composer workbench", () => {
     });
 
     const settings = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Talk settings"]',
+      `button[aria-label="${t("rawUi.chat_voiceConversationSettings")}"]`,
     );
     expect(settings).not.toBeNull();
-    expect(container.querySelector('button[aria-label="Start Talk"]')).toBeNull();
+    expect(
+      container.querySelector(`button[aria-label="${t("rawUi.chat_startVoiceConversation")}"]`),
+    ).toBeNull();
 
     settings?.click();
 
@@ -1101,8 +1103,12 @@ describe("chat composer workbench", () => {
       realtimeTalkOptionsOpen: true,
     });
 
-    expect(container.querySelector('button[aria-label="Start Talk"]')).not.toBeNull();
-    expect(container.querySelector('button[aria-label="Talk settings"]')).toBeNull();
+    expect(
+      container.querySelector(`button[aria-label="${t("rawUi.chat_startVoiceConversation")}"]`),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(`button[aria-label="${t("rawUi.chat_voiceConversationSettings")}"]`),
+    ).toBeNull();
   });
 });
 
@@ -1485,7 +1491,11 @@ describe("chat voice controls", () => {
   it("keeps Talk visible without the stale browser dictation button", () => {
     const container = renderChatView();
 
-    requireElement(container, '[aria-label="Start Talk"]', "Start Talk button");
+    requireElement(
+      container,
+      `[aria-label="${t("rawUi.chat_startVoiceConversation")}"]`,
+      "Start voice conversation button",
+    );
     expect(container.querySelector('[aria-label="Voice input"]')).toBeNull();
   });
 
@@ -1696,7 +1706,7 @@ describe("chat voice controls", () => {
   it("renders composer and Talk labels from the active locale", async () => {
     await i18n.setLocale("zh-CN");
     const container = renderChatView();
-    const startTalkLabel = t("chat.composer.startTalk");
+    const startTalkLabel = t("rawUi.chat_startVoiceConversation");
 
     const talkButton = requireElement(
       container,

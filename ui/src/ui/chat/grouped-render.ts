@@ -468,7 +468,7 @@ function buildGroupedMessageRenderOptions(
 
 export function renderMessageGroup(group: MessageGroup, opts: RenderMessageGroupOptions) {
   const normalizedRole = normalizeRoleForGrouping(group.role);
-  const assistantName = opts.assistantName ?? "Assistant";
+  const assistantName = opts.assistantName ?? t("rawUi.chat_role_assistant");
   const resolvedUserName = resolveLocalUserName({
     name: opts.userName ?? null,
     avatar: opts.userAvatar ?? null,

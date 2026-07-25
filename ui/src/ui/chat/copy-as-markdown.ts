@@ -1,13 +1,14 @@
 // Control UI chat module implements copy as markdown behavior.
 import { html, type TemplateResult } from "lit";
+import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import { copyToClipboard } from "./clipboard.ts";
 
 const COPIED_FOR_MS = 1500;
 const ERROR_FOR_MS = 2000;
-const COPY_LABEL = "Copy as markdown";
-const COPIED_LABEL = "Copied";
-const ERROR_LABEL = "Copy failed";
+const copyLabel = () => t("rawUi.copy_markdown_copy");
+const copiedLabel = () => t("rawUi.copy_markdown_copied");
+const errorLabel = () => t("rawUi.copy_markdown_failed");
 
 type CopyButtonOptions = {
   text: () => string;
@@ -20,7 +21,7 @@ function setButtonLabel(button: HTMLButtonElement, label: string) {
 }
 
 function createCopyButton(options: CopyButtonOptions): TemplateResult {
-  const idleLabel = options.label ?? COPY_LABEL;
+  const idleLabel = options.label ?? copyLabel();
   return html`
     <button
       class="btn btn--xs chat-copy-btn"
@@ -49,7 +50,7 @@ function createCopyButton(options: CopyButtonOptions): TemplateResult {
 
         if (!copied) {
           btn.dataset.error = "1";
-          setButtonLabel(btn, ERROR_LABEL);
+          setButtonLabel(btn, errorLabel());
 
           window.setTimeout(() => {
             if (!btn.isConnected) {
@@ -62,7 +63,7 @@ function createCopyButton(options: CopyButtonOptions): TemplateResult {
         }
 
         btn.dataset.copied = "1";
-        setButtonLabel(btn, COPIED_LABEL);
+        setButtonLabel(btn, copiedLabel());
 
         window.setTimeout(() => {
           if (!btn.isConnected) {
@@ -81,10 +82,10 @@ function createCopyButton(options: CopyButtonOptions): TemplateResult {
   `;
 }
 
-export function renderCopyButton(text: string, label = COPY_LABEL): TemplateResult {
+export function renderCopyButton(text: string, label = copyLabel()): TemplateResult {
   return createCopyButton({ text: () => text, label });
 }
 
 export function renderCopyAsMarkdownButton(markdown: string): TemplateResult {
-  return renderCopyButton(markdown, COPY_LABEL);
+  return renderCopyButton(markdown, copyLabel());
 }
