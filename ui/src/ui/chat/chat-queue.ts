@@ -15,13 +15,13 @@ export type ChatQueueProps = {
 function sendStateLabel(item: ChatQueueItem): string | null {
   switch (item.sendState) {
     case "waiting-model":
-      return "Waiting for model";
+      return t("rawUi.chat_queue_waitingModel");
     case "sending":
-      return "Sending";
+      return t("rawUi.chat_queue_sending");
     case "waiting-reconnect":
-      return "Waiting for reconnect";
+      return t("rawUi.chat_queue_waitingReconnect");
     case "failed":
-      return "Failed";
+      return t("rawUi.chat_queue_failed");
     default:
       return null;
   }
@@ -33,7 +33,9 @@ export function renderChatQueue(props: ChatQueueProps) {
   }
   return html`
     <div class="chat-queue" role="status" aria-live="polite">
-      <div class="chat-queue__title">Queued (${props.queue.length})</div>
+      <div class="chat-queue__title">
+        ${t("rawUi.chat_queue_fragment_dff7f397b516")}${props.queue.length})
+      </div>
       <div class="chat-queue__list">
         ${props.queue.map((item) => {
           const stateLabel = sendStateLabel(item);
@@ -43,12 +45,18 @@ export function renderChatQueue(props: ChatQueueProps) {
             >
               <div class="chat-queue__main">
                 ${item.kind === "steered"
-                  ? html`<span class="chat-queue__badge">Steered</span>`
+                  ? html`<span class="chat-queue__badge"
+                      >${t("rawUi.chat_queue_text_a79dd37f4053")}</span
+                    >`
                   : nothing}
                 ${stateLabel ? html`<span class="chat-queue__badge">${stateLabel}</span>` : nothing}
                 <div class="chat-queue__text">
                   ${item.text ||
-                  (item.attachments?.length ? `Image (${item.attachments.length})` : "")}
+                  (item.attachments?.length
+                    ? t("rawUi.chat_queue_dynamic_imageCount", {
+                        count: String(item.attachments.length),
+                      })
+                    : "")}
                 </div>
                 ${item.sendError
                   ? html`<div class="chat-queue__error">${item.sendError}</div>`
@@ -78,19 +86,19 @@ export function renderChatQueue(props: ChatQueueProps) {
                       <button
                         class="btn chat-queue__steer"
                         type="button"
-                        title="Steer now"
-                        aria-label="Steer queued message"
+                        title=${t("rawUi.chat_queue_attr_47bbfd8221a7")}
+                        aria-label=${t("rawUi.chat_queue_attr_fcb68965f18a")}
                         @click=${() => props.onQueueSteer?.(item.id)}
                       >
                         ${icons.cornerDownRight}
-                        <span>Steer</span>
+                        <span>${t("rawUi.chat_queue_text_be8f13f9a4d1")}</span>
                       </button>
                     `
                   : nothing}
                 <button
                   class="btn chat-queue__remove"
                   type="button"
-                  aria-label="Remove queued message"
+                  aria-label=${t("rawUi.chat_queue_attr_fc6fdae06b1d")}
                   @click=${() => props.onQueueRemove(item.id)}
                 >
                   ${icons.x}

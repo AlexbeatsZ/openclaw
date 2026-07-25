@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "../../i18n/index.ts";
 import {
   parseSlashCommand,
   refreshSlashCommands,
@@ -9,6 +10,10 @@ import {
 
 afterEach(() => {
   resetSlashCommandsForTest();
+});
+
+beforeEach(async () => {
+  await i18n.setLocale("en");
 });
 
 function isRecord(value: unknown): value is Record<string, unknown> {

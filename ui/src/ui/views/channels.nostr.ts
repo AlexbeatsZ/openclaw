@@ -179,7 +179,10 @@ export function renderNostrCard(params: {
                     </div>`
                   : nothing}
                 ${nip05
-                  ? html`<div><span class="label">NIP-05</span><span>${nip05}</span></div>`
+                  ? html`<div>
+                      <span class="label">${t("rawUi.channels_nostr_text_3afa5637bc46")}</span
+                      ><span>${nip05}</span>
+                    </div>`
                   : nothing}
               </div>
             `
@@ -194,8 +197,8 @@ export function renderNostrCard(params: {
 
   return html`
     <div class="card">
-      <div class="card-title">Nostr</div>
-      <div class="card-sub">Decentralized DMs via Nostr relays (NIP-04).</div>
+      <div class="card-title">${t("rawUi.channels_nostr_text_96e5de515bb4")}</div>
+      <div class="card-sub">${t("rawUi.channels_nostr_text_157bcd6a2095")}</div>
       ${accountCountLabel}
       ${hasMultipleAccounts
         ? html`

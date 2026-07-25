@@ -1,5 +1,6 @@
 // Control UI chat module implements status indicators behavior.
 import { html, nothing } from "lit";
+import { t } from "../../i18n/index.ts";
 import type { CompactionStatus, FallbackStatus } from "../app-tool-stream.ts";
 import { icons } from "../icons.ts";
 import { CHAT_RUN_STATUS_TOAST_DURATION_MS, type ChatRunUiStatus } from "./run-lifecycle.ts";
@@ -41,8 +42,8 @@ export function renderChatRunStatusIndicator(status: ComposerRunStatus | null | 
       class="agent-chat__run-status agent-chat__run-status--${status.phase}"
       role="status"
       aria-live="polite"
-      aria-label=${`Run status: ${label}`}
-      title=${`Run status: ${label}`}
+      aria-label=${t("rawUi.status_indicators_dynamic_runStatus", { status: label })}
+      title=${t("rawUi.status_indicators_dynamic_runStatus", { status: label })}
     >
       ${icon}<span class="agent-chat__run-status-label">${label}</span>
     </span>
@@ -60,7 +61,7 @@ export function renderCompactionIndicator(status: CompactionStatus | null | unde
         role="status"
         aria-live="polite"
       >
-        ${icons.loader} Compacting context...
+        ${icons.loader} ${t("rawUi.status_indicators_fragment_3a03870cfd61")}
       </div>
     `;
   }
@@ -73,7 +74,7 @@ export function renderCompactionIndicator(status: CompactionStatus | null | unde
           role="status"
           aria-live="polite"
         >
-          ${icons.check} Context compacted
+          ${icons.check} ${t("rawUi.status_indicators_fragment_b054af44a036")}
         </div>
       `;
     }

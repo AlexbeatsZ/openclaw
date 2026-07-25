@@ -1,3 +1,4 @@
+import { t } from "../../i18n/index.ts";
 /**
  * Config presets — opinionated configuration bundles that set multiple
  * settings at once. Applied via config.patch.
@@ -28,10 +29,18 @@ export type ConfigPreset = {
 export const CONFIG_PRESETS: ConfigPreset[] = [
   {
     id: "personal",
-    label: "Personal Assistant",
-    description: "Balanced default for daily use.",
-    detail: "Good fit for chat, docs, and light edits without a large coding budget.",
-    impact: "Injects bootstrap context every turn with a moderate prompt budget.",
+    get label() {
+      return t("rawUi.config_presets_prop_92a310f5e9e3");
+    },
+    get description() {
+      return t("rawUi.config_presets_prop_bd3026ef50c5");
+    },
+    get detail() {
+      return t("rawUi.config_presets_personalDetail");
+    },
+    get impact() {
+      return t("rawUi.config_presets_personalImpact");
+    },
     icon: "✨",
     patch: {
       agents: {
@@ -45,10 +54,18 @@ export const CONFIG_PRESETS: ConfigPreset[] = [
   },
   {
     id: "codeAgent",
-    label: "Code Agent",
-    description: "Highest context budget for repo work.",
-    detail: "Best for multi-file changes, long bootstrap docs, and code-heavy sessions.",
-    impact: "Uses the largest prompt budget and reinjects context every turn.",
+    get label() {
+      return t("rawUi.config_presets_prop_0c03632d926c");
+    },
+    get description() {
+      return t("rawUi.config_presets_prop_0f60fa6a3718");
+    },
+    get detail() {
+      return t("rawUi.config_presets_codeDetail");
+    },
+    get impact() {
+      return t("rawUi.config_presets_codeImpact");
+    },
     icon: "🛠️",
     patch: {
       agents: {
@@ -62,11 +79,18 @@ export const CONFIG_PRESETS: ConfigPreset[] = [
   },
   {
     id: "teamBot",
-    label: "Team Bot",
-    description: "Lean follow-ups for shared bots.",
-    detail:
-      "Best for multi-channel workflows where continuity matters more than large bootstrap payloads.",
-    impact: "Keeps follow-up turns smaller by skipping safe continuation reinjection.",
+    get label() {
+      return t("rawUi.config_presets_prop_adfff9d620ac");
+    },
+    get description() {
+      return t("rawUi.config_presets_prop_333aad1a3c9d");
+    },
+    get detail() {
+      return t("rawUi.config_presets_teamDetail");
+    },
+    get impact() {
+      return t("rawUi.config_presets_teamImpact");
+    },
     icon: "👥",
     patch: {
       agents: {
@@ -80,10 +104,18 @@ export const CONFIG_PRESETS: ConfigPreset[] = [
   },
   {
     id: "minimal",
-    label: "Minimal",
-    description: "Smallest context budget and lowest cost.",
-    detail: "Best for quick utility turns, automations, and cost-sensitive workflows.",
-    impact: "Uses the smallest bootstrap budget and the leanest follow-up behavior.",
+    get label() {
+      return t("rawUi.config_presets_prop_cf040d5b5d33");
+    },
+    get description() {
+      return t("rawUi.config_presets_prop_cb0331d6930a");
+    },
+    get detail() {
+      return t("rawUi.config_presets_minimalDetail");
+    },
+    get impact() {
+      return t("rawUi.config_presets_minimalImpact");
+    },
     icon: "⚡",
     patch: {
       agents: {

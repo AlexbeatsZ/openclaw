@@ -46,10 +46,10 @@ function buildCatalogBadgeLabels(section: AgentToolSection, tool: AgentToolEntry
   if (source === "plugin" && pluginId) {
     badges.push(`Plugin: ${pluginId}`);
   } else if (source === "core") {
-    badges.push("Built-In");
+    badges.push(t("rawUi.agents_tools_badge_builtIn"));
   }
   if (tool.optional) {
-    badges.push("Optional");
+    badges.push(t("rawUi.agents_tools_badge_optional"));
   }
   return badges;
 }
@@ -61,7 +61,7 @@ function buildRowStatusBadges(params: {
 }) {
   const badges = buildCatalogBadgeLabels(params.section, params.tool);
   if (params.activeEntry) {
-    badges.unshift("Live Now");
+    badges.unshift(t("rawUi.agents_tools_badge_liveNow"));
   }
   return badges;
 }
@@ -72,15 +72,15 @@ function formatToolPolicyState(params: {
   denied: boolean;
 }) {
   if (params.denied) {
-    return "Disabled by agent override.";
+    return t("rawUi.agents_tools_reason_disabledOverride");
   }
   if (params.allowed && params.baseAllowed) {
-    return "Enabled by the current profile.";
+    return t("rawUi.agents_tools_reason_enabledProfile");
   }
   if (params.allowed) {
-    return "Enabled by agent override.";
+    return t("rawUi.agents_tools_reason_enabledOverride");
   }
-  return "Not included in the current profile.";
+  return t("rawUi.agents_tools_reason_notInProfile");
 }
 
 function formatToolSourceLabel(section: AgentToolSection, tool: AgentToolEntry) {
@@ -89,7 +89,7 @@ function formatToolSourceLabel(section: AgentToolSection, tool: AgentToolEntry) 
   if (source === "plugin" && pluginId) {
     return `Plugin: ${pluginId}`;
   }
-  return "Built-In";
+  return t("rawUi.agents_tools_access_builtIn");
 }
 
 function formatToolAccessSummary(params: {
@@ -98,15 +98,15 @@ function formatToolAccessSummary(params: {
   denied: boolean;
 }) {
   if (params.denied) {
-    return "Override Off";
+    return t("rawUi.agents_tools_access_overrideOff");
   }
   if (params.allowed && params.baseAllowed) {
-    return "Enabled";
+    return t("rawUi.agents_tools_access_enabled");
   }
   if (params.allowed) {
-    return "Override On";
+    return t("rawUi.agents_tools_access_overrideOn");
   }
-  return "Profile Off";
+  return t("rawUi.agents_tools_access_profileOff");
 }
 
 function formatToolRuntimeSummary(params: {
@@ -114,21 +114,17 @@ function formatToolRuntimeSummary(params: {
   runtimeSessionMatchesSelectedAgent: boolean;
 }) {
   if (params.activeEntry) {
-    return "Live Now";
+    return t("rawUi.agents_tools_runtime_liveNow");
   }
   if (params.runtimeSessionMatchesSelectedAgent) {
-    return "Not Live";
+    return t("rawUi.agents_tools_runtime_notLive");
   }
-  return "Other Agent";
+  return t("rawUi.agents_tools_runtime_otherAgent");
 }
 
 function toToolAnchorId(toolId: string) {
   const safe = normalizeToolName(toolId).replace(/[^a-z0-9_-]+/g, "-");
   return `agent-tool-${safe}`;
-}
-
-function formatCountLabel(count: number, singular: string, plural = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : plural}`;
 }
 
 function flattenEffectiveTools(groups: ToolsEffectiveResult["groups"] | null | undefined) {
@@ -362,18 +358,20 @@ export function renderAgentTools(params: {
     <section class="card">
       <div class="agent-tools-header">
         <div class="agent-tools-header__intro">
-          <div class="card-title">Tool Access</div>
+          <div class="card-title">${t("rawUi.agents_panels_tools_skills_text_dd32526ddcc0")}</div>
           <div class="card-sub">
-            Profile + per-tool overrides for this agent.
-            <span class="mono">${enabledCount}/${toolIds.length}</span> enabled.
+            ${t("rawUi.agents_panels_tools_skills_text_4b5c46c15b45")}
+            <span class="mono">${enabledCount}/${toolIds.length}</span> ${t(
+              "rawUi.agents_panels_tools_skills_text_5fea08f27351",
+            )}
           </div>
         </div>
         <div class="agent-tools-header__actions">
           <button class="btn btn--sm" ?disabled=${!editable} @click=${() => updateAll(true)}>
-            Enable All
+            ${t("rawUi.agents_panels_tools_skills_text_feb1e08b4981")}
           </button>
           <button class="btn btn--sm" ?disabled=${!editable} @click=${() => updateAll(false)}>
-            Disable All
+            ${t("rawUi.agents_panels_tools_skills_text_01a7dcb7896d")}
           </button>
           <button
             class="btn btn--sm"
@@ -387,7 +385,9 @@ export function renderAgentTools(params: {
             ?disabled=${params.configSaving || !params.configDirty}
             @click=${params.onConfigSave}
           >
-            ${params.configSaving ? "Saving…" : "Save"}
+            ${params.configSaving
+              ? t("rawUi.agents_panels_tools_skills_dynamic_2f461669a399")
+              : t("rawUi.agents_panels_tools_skills_dynamic_a38500b9c9c9")}
           </button>
         </div>
       </div>
@@ -395,35 +395,35 @@ export function renderAgentTools(params: {
       ${!params.configForm
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              Load the gateway config to adjust tool profiles.
+              ${t("rawUi.agents_panels_tools_skills_text_de56ecfbf026")}
             </div>
           `
         : nothing}
       ${hasAgentAllow
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              This agent is using an explicit allowlist in config. Tool overrides are managed in the
-              Config tab.
+              ${t("rawUi.agents_panels_tools_skills_text_bb8044430fad")}
             </div>
           `
         : nothing}
       ${hasGlobalAllow
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              Global tools.allow is set. Agent overrides cannot enable tools that are globally
-              blocked.
+              ${t("rawUi.agents_panels_tools_skills_text_a0d80c6772a5")}
             </div>
           `
         : nothing}
       ${params.toolsCatalogLoading && !params.toolsCatalogResult && !params.toolsCatalogError
         ? html`
-            <div class="callout info" style="margin-top: 12px">Loading runtime tool catalog…</div>
+            <div class="callout info" style="margin-top: 12px">
+              ${t("rawUi.agents_panels_tools_skills_text_210aedbeb282")}
+            </div>
           `
         : nothing}
       ${params.toolsCatalogError
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              Could not load runtime tool catalog. Showing built-in fallback list instead.
+              ${t("rawUi.agents_panels_tools_skills_text_830d957624d4")}
             </div>
           `
         : nothing}
@@ -431,16 +431,19 @@ export function renderAgentTools(params: {
       <div class="agent-tools-overview">
         <div class="agent-tools-overview__primary">
           <div class="agent-tools-pane">
-            <div class="label">Available Right Now</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_ff4ee882ab9c")}</div>
             <div class="card-sub">
-              What this agent can use in the current chat session.
-              <span class="mono">${params.runtimeSessionKey || "no session"}</span>
+              ${t("rawUi.agents_panels_tools_skills_text_e34bd8d8c4aa")}
+              <span class="mono"
+                >${params.runtimeSessionKey ||
+                t("rawUi.agents_panels_tools_skills_dynamic_a4c47829e21d")}</span
+              >
             </div>
             ${renderEffectiveToolNotices(params.toolsEffectiveResult)}
             ${!params.runtimeSessionMatchesSelectedAgent
               ? html`
                   <div class="callout info" style="margin-top: 12px">
-                    Switch chat to this agent to view its live runtime tools.
+                    ${t("rawUi.agents_panels_tools_skills_text_26aefb81a285")}
                   </div>
                 `
               : params.toolsEffectiveLoading &&
@@ -448,19 +451,19 @@ export function renderAgentTools(params: {
                   !params.toolsEffectiveError
                 ? html`
                     <div class="callout info" style="margin-top: 12px">
-                      Loading available tools…
+                      ${t("rawUi.agents_panels_tools_skills_text_17f88e68c0dd")}
                     </div>
                   `
                 : params.toolsEffectiveError
                   ? html`
                       <div class="callout info" style="margin-top: 12px">
-                        Could not load available tools for this session.
+                        ${t("rawUi.agents_panels_tools_skills_text_4470a8dd39b8")}
                       </div>
                     `
                   : (params.toolsEffectiveResult?.groups?.length ?? 0) === 0
                     ? html`
                         <div class="callout info" style="margin-top: 12px">
-                          No tools are available for this session right now.
+                          ${t("rawUi.agents_panels_tools_skills_text_1e1ecb31e316")}
                         </div>
                       `
                     : html`
@@ -483,10 +486,16 @@ export function renderAgentTools(params: {
                           ${hiddenEffectiveToolCount > 0
                             ? html`
                                 <span
-                                  class="agent-tools-runtime-chip agent-tools-runtime-chip--more"
-                                  title=${`${hiddenEffectiveToolCount} more live tools are available in the groups below.`}
+                                  class="agent-tools-runtime-chip agent-tools-runtime-chip--${t(
+                                    "rawUi.agents_panels_tools_skills_fragment_b8d3ff265a92",
+                                  )}"
+                                  title=${t(
+                                    "rawUi.agents_panels_tools_skills_dynamic_moreLiveTools",
+                                    { count: String(hiddenEffectiveToolCount) },
+                                  )}
                                 >
-                                  +${hiddenEffectiveToolCount} more live tools
+                                  +${hiddenEffectiveToolCount}
+                                  ${t("rawUi.agents_panels_tools_skills_fragment_b8d3ff265a92")}
                                 </span>
                               `
                             : nothing}
@@ -495,7 +504,7 @@ export function renderAgentTools(params: {
           </div>
 
           <div class="agent-tools-pane">
-            <div class="label">Quick Presets</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_d58f87e68d03")}</div>
             <div class="agent-tools-buttons">
               ${profileOptions.map(
                 (option) => html`
@@ -513,7 +522,7 @@ export function renderAgentTools(params: {
                 ?disabled=${!editable}
                 @click=${() => params.onProfileChange(params.agentId, null, false)}
               >
-                Inherit
+                ${t("rawUi.agents_panels_tools_skills_text_c5267430c8e4")}
               </button>
             </div>
           </div>
@@ -521,25 +530,29 @@ export function renderAgentTools(params: {
 
         <div class="agent-tools-facts">
           <div class="agent-tools-fact">
-            <div class="label">Profile</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_ff512356b34a")}</div>
             <div class="mono">${profile}</div>
           </div>
           <div class="agent-tools-fact">
-            <div class="label">Source</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_8a02c3ab14de")}</div>
             <div>${profileSource}</div>
           </div>
           <div class="agent-tools-fact">
-            <div class="label">Enabled</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_f5e10daac363")}</div>
             <div class="mono">${enabledCount}/${toolIds.length}</div>
           </div>
           <div class="agent-tools-fact">
-            <div class="label">Live</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_662776235072")}</div>
             <div class="mono">${liveToolCount}</div>
           </div>
           <div class="agent-tools-fact">
-            <div class="label">Status</div>
+            <div class="label">${t("rawUi.agents_panels_tools_skills_text_25e6cb814341")}</div>
             <div class="mono">
-              ${params.configSaving ? "saving…" : params.configDirty ? "unsaved" : "saved"}
+              ${params.configSaving
+                ? t("rawUi.agents_panels_tools_skills_dynamic_13d7f2ef90a9")
+                : params.configDirty
+                  ? t("rawUi.agents_panels_tools_skills_dynamic_54074d798e9f")
+                  : t("rawUi.agents_panels_tools_skills_dynamic_51a8571ce4e9")}
             </div>
           </div>
         </div>
@@ -563,10 +576,16 @@ export function renderAgentTools(params: {
                   <span class="agent-tools-group__title">
                     ${section.label}
                     ${section.source === "plugin" && section.pluginId
-                      ? html`<span class="agent-pill">Plugin: ${section.pluginId}</span>`
+                      ? html`<span class="agent-pill"
+                          >${t("rawUi.agents_panels_tools_skills_fragment_31633e89405c")}
+                          ${section.pluginId}</span
+                        >`
                       : nothing}
                   </span>
-                  <span class="agent-tools-group__preview" aria-label="Tool preview">
+                  <span
+                    class="agent-tools-group__preview"
+                    aria-label=${t("rawUi.agents_panels_tools_skills_attr_e3dbcd5a64e5")}
+                  >
                     ${previewTools.map(
                       (tool) =>
                         html`<span class="mono" translate="no" title=${tool.label}
@@ -574,15 +593,45 @@ export function renderAgentTools(params: {
                         >`,
                     )}
                     ${remainingPreviewCount > 0
-                      ? html`<span>+${remainingPreviewCount} more</span>`
+                      ? html`<span
+                          >+${remainingPreviewCount}
+                          ${t("rawUi.agents_panels_tools_skills_fragment_b8d3ff265a92")}</span
+                        >`
                       : nothing}
                   </span>
                 </span>
                 <span class="agent-tools-group__counts">
-                  <span>${formatCountLabel(section.tools.length, "Tool")}</span>
-                  <span>${formatCountLabel(enabledSectionCount, "Enabled Tool")}</span>
+                  <span
+                    >${t(
+                      section.tools.length === 1
+                        ? "rawUi.agents_tools_count_totalOne"
+                        : "rawUi.agents_tools_count_totalMany",
+                      {
+                        count: String(section.tools.length),
+                      },
+                    )}</span
+                  >
+                  <span
+                    >${t(
+                      enabledSectionCount === 1
+                        ? "rawUi.agents_tools_count_enabledOne"
+                        : "rawUi.agents_tools_count_enabledMany",
+                      {
+                        count: String(enabledSectionCount),
+                      },
+                    )}</span
+                  >
                   ${activeSectionCount > 0
-                    ? html`<span>${formatCountLabel(activeSectionCount, "Live Tool")}</span>`
+                    ? html`<span
+                        >${t(
+                          activeSectionCount === 1
+                            ? "rawUi.agents_tools_count_liveOne"
+                            : "rawUi.agents_tools_count_liveMany",
+                          {
+                            count: String(activeSectionCount),
+                          },
+                        )}</span
+                      >`
                     : nothing}
                 </span>
               </summary>
@@ -613,11 +662,15 @@ export function renderAgentTools(params: {
                         </div>
                         <dl class="agent-tool-summary__facts">
                           <div class="agent-tool-summary__fact">
-                            <dt class="label">Access</dt>
+                            <dt class="label">
+                              ${t("rawUi.agents_panels_tools_skills_text_40ebe4410c8b")}
+                            </dt>
                             <dd>${accessSummary}</dd>
                           </div>
                           <div class="agent-tool-summary__fact">
-                            <dt class="label">Session</dt>
+                            <dt class="label">
+                              ${t("rawUi.agents_panels_tools_skills_text_362651bdff73")}
+                            </dt>
                             <dd>${runtimeSummary}</dd>
                           </div>
                         </dl>
@@ -633,7 +686,7 @@ export function renderAgentTools(params: {
                             type="checkbox"
                             .checked=${resolved.allowed}
                             ?disabled=${!editable}
-                            aria-label=${`${resolved.allowed ? "Disable" : "Enable"} ${tool.label}`}
+                            aria-label=${`${resolved.allowed ? t("rawUi.agents_panels_tools_skills_dynamic_279920937791") : t("rawUi.agents_panels_tools_skills_dynamic_6c7babdf511d")} ${tool.label}`}
                             @change=${(e: Event) =>
                               updateTool(tool.id, (e.target as HTMLInputElement).checked)}
                           />
@@ -643,17 +696,23 @@ export function renderAgentTools(params: {
                       <div class="agent-tool-details">
                         <div class="agent-tool-details-strip">
                           <div class="agent-tool-detail agent-tool-detail--inline">
-                            <div class="label">Access</div>
+                            <div class="label">
+                              ${t("rawUi.agents_panels_tools_skills_text_40ebe4410c8b")}
+                            </div>
                             <div>${formatToolPolicyState(resolved)}</div>
                           </div>
                           <div class="agent-tool-detail agent-tool-detail--inline">
-                            <div class="label">Source</div>
+                            <div class="label">
+                              ${t("rawUi.agents_panels_tools_skills_text_8a02c3ab14de")}
+                            </div>
                             <div>${formatToolSourceLabel(section, tool)}</div>
                           </div>
                           ${defaultProfiles.length > 0
                             ? html`
                                 <div class="agent-tool-detail agent-tool-detail--inline">
-                                  <div class="label">Default Presets</div>
+                                  <div class="label">
+                                    ${t("rawUi.agents_panels_tools_skills_text_79ea20deadde")}
+                                  </div>
                                   <div class="agent-tool-badges">
                                     ${defaultProfiles.map(
                                       (profileId) =>
@@ -664,16 +723,23 @@ export function renderAgentTools(params: {
                               `
                             : nothing}
                           <div class="agent-tool-detail agent-tool-detail--inline">
-                            <div class="label">Current Session</div>
+                            <div class="label">
+                              ${t("rawUi.agents_panels_tools_skills_text_8ecf135749ba")}
+                            </div>
                             <div>
                               ${activeEntry
-                                ? `Available now via ${renderEffectiveToolBadge(activeEntry)}.`
+                                ? html`${t(
+                                    "rawUi.agents_panels_tools_skills_dynamic_availableNowVia",
+                                  )}
+                                  ${renderEffectiveToolBadge(activeEntry)}.`
                                 : params.runtimeSessionMatchesSelectedAgent
-                                  ? "Not available in this chat session right now."
-                                  : "Switch chat to this agent to inspect live availability."}
+                                  ? t("rawUi.agents_panels_tools_skills_dynamic_3a313a53a280")
+                                  : t("rawUi.agents_panels_tools_skills_dynamic_0f8051b2f288")}
                             </div>
                           </div>
-                          <a class="agent-tool-jump" href="#${anchorId}"> Link to This Tool </a>
+                          <a class="agent-tool-jump" href="#${anchorId}">
+                            ${t("rawUi.agents_panels_tools_skills_text_46a151f85a0c")}
+                          </a>
                         </div>
                       </div>
                     </details>
@@ -732,9 +798,9 @@ export function renderAgentSkills(params: {
     <section class="card">
       <div class="row" style="justify-content: space-between; flex-wrap: wrap;">
         <div style="min-width: 0;">
-          <div class="card-title">Skills</div>
+          <div class="card-title">${t("rawUi.agents_panels_tools_skills_text_bdebed6fe78f")}</div>
           <div class="card-sub">
-            Per-agent skill allowlist and workspace skills.
+            ${t("rawUi.agents_panels_tools_skills_fragment_b1836255e098")}
             ${totalCount > 0
               ? html`<span class="mono">${enabledCount}/${totalCount}</span>`
               : nothing}
@@ -750,22 +816,22 @@ export function renderAgentSkills(params: {
               ?disabled=${!editable}
               @click=${() => params.onClear(params.agentId)}
             >
-              Enable All
+              ${t("rawUi.agents_panels_tools_skills_text_feb1e08b4981")}
             </button>
             <button
               class="btn btn--sm"
               ?disabled=${!editable}
               @click=${() => params.onDisableAll(params.agentId)}
             >
-              Disable All
+              ${t("rawUi.agents_panels_tools_skills_text_01a7dcb7896d")}
             </button>
             <button
               class="btn btn--sm"
               ?disabled=${!editable || !usingAllowlist}
               @click=${() => params.onClear(params.agentId)}
-              title="Remove per-agent allowlist and use all skills"
+              title=${t("rawUi.agents_panels_tools_skills_attr_ac0f15fb7735")}
             >
-              Reset
+              ${t("rawUi.agents_panels_tools_skills_text_eab47f5079fc")}
             </button>
           </div>
           <button
@@ -783,7 +849,9 @@ export function renderAgentSkills(params: {
             ?disabled=${params.configSaving || !params.configDirty}
             @click=${params.onConfigSave}
           >
-            ${params.configSaving ? "Saving…" : "Save"}
+            ${params.configSaving
+              ? t("rawUi.agents_panels_tools_skills_dynamic_2f461669a399")
+              : t("rawUi.agents_panels_tools_skills_dynamic_a38500b9c9c9")}
           </button>
         </div>
       </div>
@@ -791,25 +859,25 @@ export function renderAgentSkills(params: {
       ${!params.configForm
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              Load the gateway config to set per-agent skills.
+              ${t("rawUi.agents_panels_tools_skills_text_23499cc125c9")}
             </div>
           `
         : nothing}
       ${usingAllowlist
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              This agent uses a custom skill allowlist.
+              ${t("rawUi.agents_panels_tools_skills_text_daf2dc1d8030")}
             </div>
           `
         : html`
             <div class="callout info" style="margin-top: 12px">
-              All skills are enabled. Disabling any skill will create a per-agent allowlist.
+              ${t("rawUi.agents_panels_tools_skills_text_c56a7e51f997")}
             </div>
           `}
       ${!reportReady && !params.loading
         ? html`
             <div class="callout info" style="margin-top: 12px">
-              Load skills for this agent to view workspace-specific entries.
+              ${t("rawUi.agents_panels_tools_skills_text_66778443055d")}
             </div>
           `
         : nothing}
@@ -819,20 +887,26 @@ export function renderAgentSkills(params: {
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field" style="flex: 1;">
-          <span>Filter</span>
+          <span>${t("rawUi.agents_panels_tools_skills_text_27daceb8f466")}</span>
           <input
             .value=${params.filter}
             @input=${(e: Event) => params.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Search skills"
+            placeholder=${t("rawUi.agents_panels_tools_skills_attr_2054d8a7b1d6")}
             autocomplete="off"
             name="agent-skills-filter"
           />
         </label>
-        <div class="muted">${filtered.length} shown</div>
+        <div class="muted">
+          ${filtered.length} ${t("rawUi.agents_panels_tools_skills_fragment_8d63d867da8a")}
+        </div>
       </div>
 
       ${filtered.length === 0
-        ? html` <div class="muted" style="margin-top: 16px">No skills found.</div> `
+        ? html`
+            <div class="muted" style="margin-top: 16px">
+              ${t("rawUi.agents_panels_tools_skills_text_bf6f7f2a1860")}
+            </div>
+          `
         : html`
             <div class="agent-skills-groups" style="margin-top: 16px;">
               ${groups.map((group) =>
@@ -902,10 +976,14 @@ function renderAgentSkillRow(
         <div class="list-sub">${skill.description}</div>
         ${renderSkillStatusChips({ skill })}
         ${missing.length > 0
-          ? html`<div class="muted" style="margin-top: 6px;">Missing: ${missing.join(", ")}</div>`
+          ? html`<div class="muted" style="margin-top: 6px;">
+              ${t("rawUi.agents_panels_tools_skills_fragment_897a1b26addb")} ${missing.join(", ")}
+            </div>`
           : nothing}
         ${reasons.length > 0
-          ? html`<div class="muted" style="margin-top: 6px;">Reason: ${reasons.join(", ")}</div>`
+          ? html`<div class="muted" style="margin-top: 6px;">
+              ${t("rawUi.agents_panels_tools_skills_fragment_9c281c9a4f0b")} ${reasons.join(", ")}
+            </div>`
           : nothing}
       </div>
       <div class="list-meta">

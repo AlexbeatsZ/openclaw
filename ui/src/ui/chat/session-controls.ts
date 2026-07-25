@@ -785,7 +785,7 @@ export function renderChatQuotaPill(state: AppViewState) {
       class="chat-controls__quota chat-controls__quota--${severity}"
       href=${pathForTab("usage", state.basePath)}
       title=${title}
-      aria-label=${`Provider usage: ${title}`}
+      aria-label=${t("rawUi.session_controls_dynamic_providerUsage", { title })}
       data-chat-provider-usage="true"
       @click=${(event: MouseEvent) => {
         if (
@@ -975,10 +975,10 @@ function resolveChatFastModeSelectState(
       state.chatStream !== null ||
       !state.client,
     options: [
-      { value: "", label: "Default" },
-      { value: "on", label: "Fast" },
-      { value: "off", label: "Standard" },
-      { value: "auto", label: "Auto" },
+      { value: "", label: t("rawUi.session_controls_prop_5ba8b34cd562") },
+      { value: "on", label: t("rawUi.session_controls_prop_c9723f9f7c66") },
+      { value: "off", label: t("rawUi.session_controls_prop_6f58042bef22") },
+      { value: "auto", label: t("rawUi.session_controls_prop_b47a5a9fe417") },
     ],
     supported,
   };
@@ -1173,7 +1173,9 @@ function renderChatModelReasoningSelect(params: {
         class="chat-controls__inline-select-menu chat-controls__inline-select-menu--combined"
         aria-label=${t("chat.selectors.model")}
       >
-        <div class="chat-controls__inline-select-section-label">Model</div>
+        <div class="chat-controls__inline-select-section-label">
+          ${t("rawUi.session_controls_text_7f614e31960c")}
+        </div>
         <div class="chat-controls__combined-model-list">
           ${repeat(
             modelOptions,
@@ -1222,7 +1224,9 @@ function renderChatModelReasoningSelect(params: {
           role="listbox"
           aria-label=${t("chat.selectors.thinkingLevel")}
         >
-          <div class="chat-controls__inline-select-section-label">Reasoning</div>
+          <div class="chat-controls__inline-select-section-label">
+            ${t("rawUi.session_controls_text_508cf5fe7cc3")}
+          </div>
           <div class="chat-controls__reasoning-options">
             ${repeat(
               thinkingOptions,
@@ -1264,7 +1268,9 @@ function renderChatModelReasoningSelect(params: {
           </div>
           ${fastMode.supported
             ? html`
-                <div class="chat-controls__inline-select-section-label">Speed</div>
+                <div class="chat-controls__inline-select-section-label">
+                  ${t("rawUi.session_controls_text_ca0a1692242e")}
+                </div>
                 <div class="chat-controls__reasoning-options" role="listbox">
                   ${repeat(
                     fastMode.options,

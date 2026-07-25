@@ -1,5 +1,6 @@
-// Control UI view renders config form screen content.
 import { html, nothing, type TemplateResult } from "lit";
+// Control UI view renders config form screen content.
+import { t } from "../../i18n/index.ts";
 import { formatUnknownText } from "../format.ts";
 import { icons as sharedIcons } from "../icons.ts";
 import {
@@ -197,14 +198,14 @@ function renderSensitiveToggleButton(params: {
       style="width:28px;height:28px;padding:0;"
       title=${state.canReveal
         ? state.isRevealed
-          ? "Hide value"
-          : "Reveal value"
-        : "Disable stream mode to reveal value"}
+          ? t("rawUi.config_form_node_dynamic_7c7892c9248e")
+          : t("rawUi.config_form_node_dynamic_e5fce6926434")
+        : t("rawUi.config_form_node_dynamic_217458b667a4")}
       aria-label=${state.canReveal
         ? state.isRevealed
-          ? "Hide value"
-          : "Reveal value"
-        : "Disable stream mode to reveal value"}
+          ? t("rawUi.config_form_node_dynamic_7c7892c9248e")
+          : t("rawUi.config_form_node_dynamic_e5fce6926434")
+        : t("rawUi.config_form_node_dynamic_217458b667a4")}
       aria-pressed=${state.isRevealed}
       ?disabled=${params.disabled || !state.canReveal}
       @click=${() => params.onToggleSensitivePath?.(params.path)}
@@ -454,7 +455,7 @@ export function renderNode(params: {
   if (unsupported.has(key)) {
     return html`<div class="cfg-field cfg-field--error">
       <div class="cfg-field__label">${label}</div>
-      <div class="cfg-field__error">Unsupported schema node. Use Raw mode.</div>
+      <div class="cfg-field__error">${t("rawUi.config_form_node_text_45564b0d77cb")}</div>
     </div>`;
   }
   if (
@@ -645,7 +646,10 @@ export function renderNode(params: {
   return html`
     <div class="cfg-field cfg-field--error">
       <div class="cfg-field__label">${label}</div>
-      <div class="cfg-field__error">Unsupported type: ${type}. Use Raw mode.</div>
+      <div class="cfg-field__error">
+        ${t("rawUi.config_form_node_fragment_7831c543118d")}
+        ${type}${t("rawUi.config_form_node_fragment_b4c3fb59e4ba")}
+      </div>
     </div>
   `;
 }
@@ -754,7 +758,7 @@ function renderTextInput(params: {
               <button
                 type="button"
                 class="cfg-input__reset"
-                title="Reset to default"
+                title=${t("rawUi.config_form_node_attr_5e57eb2c4152")}
                 ?disabled=${disabled || effectiveRedacted}
                 @click=${() => onPatch(path, schema.default)}
               >
@@ -853,7 +857,9 @@ function renderSelect(params: {
           onPatch(path, val === unset ? undefined : options[Number(val)]);
         }}
       >
-        <option value=${unset} ?selected=${currentIndex < 0}>Select...</option>
+        <option value=${unset} ?selected=${currentIndex < 0}>
+          ${t("rawUi.config_form_node_text_8a08ee9ab0ed")}
+        </option>
         ${options.map(
           (opt, idx) =>
             html` <option value=${String(idx)} ?selected=${idx === currentIndex}>
@@ -897,7 +903,9 @@ function renderJsonTextarea(params: {
       <div class="cfg-input-wrap">
         <textarea
           class="cfg-textarea${sensitiveState.isRedacted ? " cfg-textarea--redacted" : ""}"
-          placeholder=${sensitiveState.isRedacted ? REDACTED_PLACEHOLDER : "JSON value"}
+          placeholder=${sensitiveState.isRedacted
+            ? REDACTED_PLACEHOLDER
+            : t("rawUi.config_form_node_dynamic_625014801790")}
           rows="3"
           .value=${displayValue}
           ?disabled=${disabled}
@@ -1097,7 +1105,7 @@ function renderArray(params: {
     return html`
       <div class="cfg-field cfg-field--error">
         <div class="cfg-field__label">${label}</div>
-        <div class="cfg-field__error">Unsupported array schema. Use Raw mode.</div>
+        <div class="cfg-field__error">${t("rawUi.config_form_node_text_7ed3c86f4e60")}</div>
       </div>
     `;
   }
@@ -1111,7 +1119,10 @@ function renderArray(params: {
           ${showLabel ? html`<span class="cfg-array__label">${label}</span>` : nothing}
           ${renderTags(tags)}
         </div>
-        <span class="cfg-array__count">${arr.length} item${arr.length !== 1 ? "s" : ""}</span>
+        <span class="cfg-array__count"
+          >${arr.length}
+          ${t("rawUi.config_form_node_fragment_1c0fb6efea05")}${arr.length !== 1 ? "s" : ""}</span
+        >
         <button
           type="button"
           class="cfg-array__add"
@@ -1122,23 +1133,34 @@ function renderArray(params: {
           }}
         >
           <span class="cfg-array__add-icon">${icons.plus}</span>
-          Add
+          ${t("rawUi.config_form_node_text_36963f96e4b7")}
         </button>
       </div>
       ${help ? html`<div class="cfg-array__help">${help}</div>` : nothing}
       ${arr.length === 0
-        ? html` <div class="cfg-array__empty">No items yet. Click "Add" to create one.</div> `
+        ? html`
+            <div class="cfg-array__empty">${t("rawUi.config_form_node_text_d12651b7329e")}</div>
+          `
         : html`
-            <div class="cfg-array__items">
+            <div class="cfg-array__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}s">
               ${arr.map(
                 (item, idx) => html`
-                  <div class="cfg-array__item">
-                    <div class="cfg-array__item-header">
-                      <span class="cfg-array__item-index">#${idx + 1}</span>
+                  <div class="cfg-array__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}">
+                    <div
+                      class="cfg-array__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}-header"
+                    >
+                      <span
+                        class="cfg-array__${t(
+                          "rawUi.config_form_node_fragment_1c0fb6efea05",
+                        )}-index"
+                        >#${idx + 1}</span
+                      >
                       <button
                         type="button"
-                        class="cfg-array__item-remove"
-                        title="Remove item"
+                        class="cfg-array__${t(
+                          "rawUi.config_form_node_fragment_1c0fb6efea05",
+                        )}-remove"
+                        title=${t("rawUi.config_form_node_attr_fe5f090d85c4")}
                         ?disabled=${disabled}
                         @click=${() => {
                           const next = [...arr];
@@ -1149,7 +1171,11 @@ function renderArray(params: {
                         ${icons.trash}
                       </button>
                     </div>
-                    <div class="cfg-array__item-content">
+                    <div
+                      class="cfg-array__${t(
+                        "rawUi.config_form_node_fragment_1c0fb6efea05",
+                      )}-content"
+                    >
                       ${renderNode({
                         schema: itemsSchema,
                         value: item,
@@ -1223,7 +1249,7 @@ function renderMapField(params: {
   return html`
     <div class="cfg-map">
       <div class="cfg-map__header">
-        <span class="cfg-map__label">Custom entries</span>
+        <span class="cfg-map__label">${t("rawUi.config_form_node_text_4e2f963c45d8")}</span>
         <button
           type="button"
           class="cfg-map__add"
@@ -1241,14 +1267,14 @@ function renderMapField(params: {
           }}
         >
           <span class="cfg-map__add-icon">${icons.plus}</span>
-          Add Entry
+          ${t("rawUi.config_form_node_text_8cfe3e3095d8")}
         </button>
       </div>
 
       ${visibleEntries.length === 0
-        ? html` <div class="cfg-map__empty">No custom entries.</div> `
+        ? html` <div class="cfg-map__empty">${t("rawUi.config_form_node_text_70a3a0ded3fd")}</div> `
         : html`
-            <div class="cfg-map__items">
+            <div class="cfg-map__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}s">
               ${visibleEntries.map(([key, entryValue]) => {
                 const valuePath = [...path, key];
                 const fallback = jsonValue(entryValue);
@@ -1260,13 +1286,17 @@ function renderMapField(params: {
                   isSensitivePathRevealed,
                 });
                 return html`
-                  <div class="cfg-map__item">
-                    <div class="cfg-map__item-header">
-                      <div class="cfg-map__item-key">
+                  <div class="cfg-map__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}">
+                    <div
+                      class="cfg-map__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}-header"
+                    >
+                      <div
+                        class="cfg-map__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}-key"
+                      >
                         <input
                           type="text"
                           class="cfg-input cfg-input--sm"
-                          placeholder="Key"
+                          placeholder=${t("rawUi.config_form_node_attr_d4515508b39c")}
                           .value=${key}
                           ?disabled=${disabled}
                           @change=${(e: Event) => {
@@ -1286,8 +1316,8 @@ function renderMapField(params: {
                       </div>
                       <button
                         type="button"
-                        class="cfg-map__item-remove"
-                        title="Remove entry"
+                        class="cfg-map__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}-remove"
+                        title=${t("rawUi.config_form_node_attr_093b8ff2d268")}
                         ?disabled=${disabled}
                         @click=${() => {
                           const next = { ...value };
@@ -1298,7 +1328,9 @@ function renderMapField(params: {
                         ${icons.trash}
                       </button>
                     </div>
-                    <div class="cfg-map__item-value">
+                    <div
+                      class="cfg-map__${t("rawUi.config_form_node_fragment_1c0fb6efea05")}-value"
+                    >
                       ${anySchema
                         ? html`
                             <div class="cfg-input-wrap">
@@ -1308,7 +1340,7 @@ function renderMapField(params: {
                                   : ""}"
                                 placeholder=${sensitiveState.isRedacted
                                   ? REDACTED_PLACEHOLDER
-                                  : "JSON value"}
+                                  : t("rawUi.config_form_node_dynamic_625014801790")}
                                 rows="2"
                                 .value=${sensitiveState.isRedacted ? "" : fallback}
                                 ?disabled=${disabled}

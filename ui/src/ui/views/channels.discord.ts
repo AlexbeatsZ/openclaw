@@ -20,8 +20,8 @@ export function renderDiscordCard(params: {
   const configured = resolveChannelConfigured("discord", props);
 
   return renderSingleAccountChannelCard({
-    title: "Discord",
-    subtitle: "Bot status and channel configuration.",
+    title: t("rawUi.channels_discord_prop_09f9b6ccce08"),
+    subtitle: t("rawUi.channels_discord_prop_ec8737526472"),
     accountCountLabel,
     statusRows: [
       { label: t("common.configured"), value: formatNullableBoolean(configured) },

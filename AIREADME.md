@@ -250,6 +250,15 @@ Important source anchors:
 - Commit `074283fe2a1207c72a6a211413b3cde57c9d7876` was pushed and deployed. The server completed the private QA build in 292.5 seconds, emitted `index-WOWhasPM.js` plus `index-Bw1sGivB.css`, passed explicit JS/CSS checks for `chat-command-deck`, and restarted cleanly.
 - The exact user-reported `/chat?session=agent%3Amain%3Adashboard%3Ad6b7230d-a5f7-42b2-b18b-674fc4712116` route was opened in the authenticated Chrome session after deployment. DOM and screenshot verification showed the 76px active-workspace deck, connected/message telemetry, command actions, rounded shell, grid transcript, updated bubbles, and elevated composer. Gateway health was live, HTTP was 200, Agy and QA Lab dist were present, and QQBot reconnected with HTTP 200 plus an active WebSocket.
 
+## Complete Simplified Chinese localization
+
+- The Control UI now routes the visible copy in the shell, chat, agents, channels, settings/config forms, cron, Dreaming, MCP, nodes, sessions, Skill Workshop, Skills, usage, workboard, dialogs, tool cards, and status/empty-state helpers through the existing i18n system.
+- Source English copy lives in `ui/src/i18n/locales/en-raw-ui.ts`; the official generator emits every locale and maintains translation-memory metadata. Simplified Chinese text was translated and placeholder-validated with Agy `gemini-3.6-flash-high`.
+- Top-level label maps use getters so a locale change updates already-imported modules instead of freezing English during module evaluation.
+- The raw-copy audit now ignores only the two intentional slash-command icon/category enum values `book` and `tools`. On Windows the generator invokes the local Oxfmt Node entrypoint directly, avoiding pnpm's non-TTY module-purge prompt and the resulting `write EOF`.
+- Final i18n report: 2604/2604 Simplified Chinese keys filled, zero Chinese fallbacks, and zero entries in the official hardcoded-copy baseline.
+- Focused localization and affected-view tests pass (286/286 plus 138/138); the i18n generator regression suite passes (5 passed, 2 skipped), and the production Vite build succeeds. The broader UI gate still has the pre-existing Vite alias test plus the two `packages/net-policy/src/ip.ts` enum errors; Playwright's downloaded Chromium is absent on this Windows checkout.
+
 # Task Board
 
 - [x] Investigate OpenClaw system prompt structure and write study notes to `docs/research/openclaw-system-prompt.md`.
@@ -310,3 +319,9 @@ Important source anchors:
 - [x] Add chat-route regression coverage and complete a production Control UI build.
 - [x] Commit and push the full chat/shell redesign.
 - [x] Deploy the full chat/shell redesign and visually verify the user's `/chat` URL.
+- [x] Audit and migrate visible Control UI copy to the i18n system.
+- [x] Translate all Simplified Chinese locale entries with Agy Gemini 3.6 Flash High.
+- [x] Fix dynamic top-level translations, single/plural rendering, and Chinese-locale test assumptions.
+- [x] Fix the Windows i18n formatter invocation and slash-command enum false positives.
+- [x] Verify zero zh-CN fallbacks, focused tests, generator tests, formatting, and production UI build.
+- [ ] Commit, push, deploy, and visually verify the fully localized `/chat` route.

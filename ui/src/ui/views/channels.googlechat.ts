@@ -20,8 +20,8 @@ export function renderGoogleChatCard(params: {
   const configured = resolveChannelConfigured("googlechat", props);
 
   return renderSingleAccountChannelCard({
-    title: "Google Chat",
-    subtitle: "Chat API webhook status and channel configuration.",
+    title: t("rawUi.channels_googlechat_prop_38093a484524"),
+    subtitle: t("rawUi.channels_googlechat_prop_74cc64721f6c"),
     accountCountLabel,
     statusRows: [
       { label: t("common.configured"), value: formatNullableBoolean(configured) },

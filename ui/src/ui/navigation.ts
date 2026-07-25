@@ -4,14 +4,28 @@ import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
-  { label: "chat", tabs: ["chat"] },
   {
-    label: "control",
+    get label() {
+      return t("rawUi.navigation_prop_728e95062444");
+    },
+    tabs: ["chat"],
+  },
+  {
+    get label() {
+      return t("rawUi.navigation_prop_06edbbecc160");
+    },
     tabs: ["overview", "activity", "workboard", "instances", "sessions", "usage", "cron"],
   },
-  { label: "agent", tabs: ["agents", "skills", "skillWorkshop", "nodes", "dreams"] },
   {
-    label: "settings",
+    get label() {
+      return t("rawUi.navigation_prop_380d7f276b55");
+    },
+    tabs: ["agents", "skills", "skillWorkshop", "nodes", "dreams"],
+  },
+  {
+    get label() {
+      return t("rawUi.navigation_prop_4ca8724cc770");
+    },
     tabs: ["config"],
   },
 ] as const;

@@ -123,7 +123,7 @@ export function renderOverview(props: OverviewProps) {
             ? html`<span class="mono">openclaw devices approve ${pairingState.requestId}</span
                 ><br />`
             : nothing}
-          <span class="mono">openclaw devices list</span>
+          <span class="mono">${t("rawUi.overview_text_c948a1e06102")}</span>
         </div>
         <div style="margin-top: 6px; font-size: 12px;">${t("overview.pairing.mobileHint")}</div>
         <div style="margin-top: 6px">
@@ -156,8 +156,12 @@ export function renderOverview(props: OverviewProps) {
         <div class="muted" style="margin-top: 8px">
           ${t("overview.auth.required")}
           <div style="margin-top: 6px">
-            <span class="mono">openclaw dashboard --no-open</span> → tokenized URL<br />
-            <span class="mono">openclaw doctor --generate-gateway-token</span> → set token
+            <span class="mono">${t("rawUi.overview_text_7e387d1129c3")}</span> ${t(
+              "rawUi.overview_text_9b67fbabb5db",
+            )}<br />
+            <span class="mono">${t("rawUi.overview_text_cf7c5e73d561")}</span> ${t(
+              "rawUi.overview_text_df28bd8c0a8a",
+            )}
           </div>
           <div style="margin-top: 6px">
             <a
@@ -242,10 +246,12 @@ export function renderOverview(props: OverviewProps) {
     }
     return html`
       <div class="muted" style="margin-top: 8px">
-        Auth token must be passed as a URL fragment:
-        <span class="mono">#token=&lt;token&gt;</span>. Query parameters (<span class="mono"
-          >?token=</span
-        >) may appear in server logs.
+        ${t("rawUi.overview_text_808952b109d0")}
+        <span class="mono">${t("rawUi.overview_text_6e49d42bac5a")}</span>${t(
+          "rawUi.overview_text_36d5ac2b4737",
+        )}<span class="mono">${t("rawUi.overview_text_e62090fc5a60")}</span>${t(
+          "rawUi.overview_text_32de41cee619",
+        )}
       </div>
     `;
   })();
@@ -276,7 +282,7 @@ export function renderOverview(props: OverviewProps) {
                   ),
                 });
               }}
-              placeholder="ws://100.x.y.z:18789"
+              placeholder=${t("rawUi.overview_attr_49cf3c3bd240")}
             />
           </label>
           ${isTrustedProxy
@@ -294,7 +300,7 @@ export function renderOverview(props: OverviewProps) {
                         const v = (e.target as HTMLInputElement).value;
                         props.onSettingsChange({ ...props.settings, token: v });
                       }}
-                      placeholder="OPENCLAW_GATEWAY_TOKEN"
+                      placeholder=${t("rawUi.overview_attr_14c644cd7d96")}
                     />
                     <button
                       type="button"
@@ -394,7 +400,7 @@ export function renderOverview(props: OverviewProps) {
                   <li>${t("overview.connection.step3")}</li>
                   <li>
                     ${t("overview.connection.step4")}<code
-                      >openclaw doctor --generate-gateway-token</code
+                      >${t("rawUi.overview_text_cf7c5e73d561")}</code
                     >
                   </li>
                 </ol>

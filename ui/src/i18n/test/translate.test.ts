@@ -2,6 +2,7 @@
 import { importFreshModule } from "openclaw/plugin-sdk/test-fixtures";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStorageMock } from "../../test-helpers/storage.ts";
+import { TAB_GROUPS } from "../../ui/navigation.ts";
 import * as translate from "../lib/translate.ts";
 import { ar } from "../locales/ar.ts";
 import { de } from "../locales/de.ts";
@@ -125,6 +126,17 @@ describe("i18n", () => {
     });
     expect(fresh.i18n.getLocale()).toBe("zh-CN");
     expect(fresh.t("common.health")).toBe("健康状况");
+  });
+
+  it("keeps module-level UI metadata reactive when the locale changes", async () => {
+    await translate.i18n.setLocale("en");
+    expect(TAB_GROUPS[0].label).toBe("chat");
+
+    await translate.i18n.setLocale("zh-CN");
+    expect(TAB_GROUPS[0].label).toBe("聊天");
+
+    await translate.i18n.setLocale("en");
+    expect(TAB_GROUPS[0].label).toBe("chat");
   });
 
   it("skips node localStorage accessors that warn without a storage file", async () => {

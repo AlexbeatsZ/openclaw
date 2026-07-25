@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "../i18n/index.ts";
 const {
   refreshChatMock,
   refreshChatAvatarMock,
@@ -89,7 +90,8 @@ import type { SessionsListResult } from "./types.ts";
 
 type SessionRow = SessionsListResult["sessions"][number];
 
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.setLocale("en");
   refreshChatMock.mockReset();
   refreshChatAvatarMock.mockReset();
   flushChatQueueAfterIdleSessionReconciliationMock.mockReset();

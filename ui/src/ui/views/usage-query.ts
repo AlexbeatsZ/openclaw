@@ -1,5 +1,6 @@
-// Control UI view renders usage query screen content.
 import { timestampMsToIsoString } from "@openclaw/normalization-core/number-coercion";
+// Control UI view renders usage query screen content.
+import { t } from "../../i18n/index.ts";
 import { normalizeLowercaseStringOrEmpty, uniqueStrings } from "../string-coerce.ts";
 import { extractQueryTerms } from "../usage-helpers.ts";
 import type { CostDailyEntry, UsageAggregates, UsageSessionEntry } from "./usageTypes.ts";
@@ -163,15 +164,60 @@ const buildQuerySuggestions = (
 
   if (!key) {
     return [
-      { label: "agent:", value: "agent:" },
-      { label: "channel:", value: "channel:" },
-      { label: "provider:", value: "provider:" },
-      { label: "model:", value: "model:" },
-      { label: "tool:", value: "tool:" },
-      { label: "has:errors", value: "has:errors" },
-      { label: "has:tools", value: "has:tools" },
-      { label: "minTokens:", value: "minTokens:" },
-      { label: "maxCost:", value: "maxCost:" },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_5f3feeafa9ca");
+        },
+        value: "agent:",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_1aa6367a79eb");
+        },
+        value: "channel:",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_45aa18b6844e");
+        },
+        value: "provider:",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_5f04c9ba3b49");
+        },
+        value: "model:",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_94d067dfb5d1");
+        },
+        value: "tool:",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_e4b1852a171f");
+        },
+        value: "has:errors",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_bc373610eefa");
+        },
+        value: "has:tools",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_44d7697b637b");
+        },
+        value: "minTokens:",
+      },
+      {
+        get label() {
+          return t("rawUi.usage_query_prop_a06fb43d4f18");
+        },
+        value: "maxCost:",
+      },
     ];
   }
 

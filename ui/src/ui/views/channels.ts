@@ -89,14 +89,14 @@ export function renderChannels(props: ChannelsProps) {
       ${showingStaleSnapshot
         ? html`
             <div class="callout info" style="margin-top: 12px;">
-              Refreshing channel status in the background; showing the last successful snapshot.
+              ${t("rawUi.channels_text_1f1d4a4ed882")}
             </div>
           `
         : nothing}
       ${props.snapshot?.partial
         ? html`
             <div class="callout warn" style="margin-top: 12px;">
-              Some channel checks did not finish before the UI budget.
+              ${t("rawUi.channels_fragment_837b64ce0cdc")}
               ${partialWarnings.length > 0 ? partialWarnings.slice(0, 3).join("; ") : ""}
             </div>
           `
@@ -106,8 +106,7 @@ export function renderChannels(props: ChannelsProps) {
         : nothing}
       <pre class="code-block" style="margin-top: 12px;">
 ${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : t("channels.health.noSnapshotYet")}
-      </pre
-      >
+      </pre>
     </section>
   `;
 }

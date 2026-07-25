@@ -532,7 +532,10 @@ export function renderSessions(props: SessionsProps) {
 
   return html`
     <section class="card">
-      <div class="row" style="justify-content: space-between; margin-bottom: 12px;">
+      <div
+        class="${t("rawUi.sessions_fragment_db14998be89e")}"
+        style="justify-content: space-between; margin-bottom: 12px;"
+      >
         <div>
           <div class="card-title">${t("sessionsView.title")}</div>
           <div class="card-sub">
@@ -566,9 +569,9 @@ export function renderSessions(props: SessionsProps) {
               <div
                 id="sessions-filter-bar"
                 class="sessions-filter-bar"
-                aria-label="Session filters"
+                aria-label=${t("rawUi.sessions_attr_6197f46c307d")}
               >
-                <div class="session-filter-primary-row">
+                <div class="session-filter-primary-${t("rawUi.sessions_fragment_db14998be89e")}">
                   <label class="session-filter-field" data-tooltip=${activeTooltip}>
                     <span class="session-filter-label">${t("sessionsView.active")}</span>
                     <input
@@ -759,7 +762,8 @@ export function renderSessions(props: SessionsProps) {
               <div class="data-table-pagination">
                 <div class="data-table-pagination__info">
                   ${page * props.pageSize + 1}-${Math.min((page + 1) * props.pageSize, totalRows)}
-                  of ${totalRows} row${totalRows === 1 ? "" : "s"}
+                  ${t("rawUi.sessions_fragment_752a34f60a13")} ${totalRows}
+                  ${t("rawUi.sessions_fragment_db14998be89e")}${totalRows === 1 ? "" : "s"}
                 </div>
                 <div class="data-table-pagination__controls">
                   <select
@@ -768,10 +772,15 @@ export function renderSessions(props: SessionsProps) {
                     @change=${(e: Event) =>
                       props.onPageSizeChange(Number((e.target as HTMLSelectElement).value))}
                   >
-                    ${PAGE_SIZES.map((s) => html`<option value=${s}>${s} per page</option>`)}
+                    ${PAGE_SIZES.map(
+                      (s) =>
+                        html`<option value=${s}>
+                          ${s} ${t("rawUi.sessions_fragment_79078ea4cedc")}
+                        </option>`,
+                    )}
                   </select>
                   <button ?disabled=${page <= 0} @click=${() => props.onPageChange(page - 1)}>
-                    Previous
+                    ${t("rawUi.sessions_text_a83ab8f7dd86")}
                   </button>
                   <button
                     ?disabled=${page >= totalPages - 1}
@@ -1073,12 +1082,19 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
     </tr>`,
     ...(isExpanded && hasCheckpoints
       ? [
-          html`<tr id=${detailsId} class="session-checkpoint-details-row">
+          html`<tr
+            id=${detailsId}
+            class="session-checkpoint-details-${t("rawUi.sessions_fragment_db14998be89e")}"
+          >
             <td colspan="14">
               <div class="session-details-panel">
                 <div class="session-details-panel__hero">
                   <div>
-                    <div class="session-details-panel__eyebrow">
+                    <div
+                      class="session-details-panel__eyeb${t(
+                        "rawUi.sessions_fragment_db14998be89e",
+                      )}"
+                    >
                       ${t("sessionsView.sessionDetails")}
                     </div>
                     <div class="session-details-panel__title">${friendlyKeyLabel ?? row.key}</div>
@@ -1110,7 +1126,11 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
                 <div class="session-details-section">
                   <div class="session-details-section__header">
                     <div>
-                      <div class="session-details-panel__eyebrow">
+                      <div
+                        class="session-details-panel__eyeb${t(
+                          "rawUi.sessions_fragment_db14998be89e",
+                        )}"
+                      >
                         ${t("sessionsView.compactionHistory")}
                       </div>
                       <div class="session-details-section__title">${checkpointLabel}</div>

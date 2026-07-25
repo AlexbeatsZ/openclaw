@@ -1,3 +1,4 @@
+import { t } from "../../i18n/index.ts";
 // Control UI chat module owns realtime Talk catalog compatibility.
 
 export type RealtimeTalkCatalogProvider = {
@@ -14,8 +15,18 @@ export type RealtimeTalkCatalogSelection = {
 };
 
 export const REALTIME_TALK_FALLBACK_PROVIDERS = [
-  { id: "openai", label: "OpenAI" },
-  { id: "google", label: "Google" },
+  {
+    id: "openai",
+    get label() {
+      return t("rawUi.realtime_talk_catalog_prop_140e972a8070");
+    },
+  },
+  {
+    id: "google",
+    get label() {
+      return t("rawUi.realtime_talk_catalog_prop_ea1c3c1e11f5");
+    },
+  },
 ] as const;
 
 const CONTROL_UI_CLIENT_TRANSPORTS = new Set(["webrtc", "gateway-relay"]);

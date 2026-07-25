@@ -898,7 +898,7 @@ function buildAttentionItems(host: SettingsAppHost) {
     items.push({
       severity: "error",
       icon: "x",
-      title: "Gateway Error",
+      title: t("rawUi.app_settings_prop_2b5f770188bb"),
       description: host.lastError,
     });
   }
@@ -909,9 +909,8 @@ function buildAttentionItems(host: SettingsAppHost) {
     items.push({
       severity: "warning",
       icon: "key",
-      title: "Missing operator.read scope",
-      description:
-        "This connection does not have the operator.read scope. Some features may be unavailable.",
+      title: t("rawUi.app_settings_prop_282ce3c65909"),
+      description: t("rawUi.app_settings_prop_b2c0b9f74b78"),
       href: "https://docs.openclaw.ai/web/dashboard",
       external: true,
     });
@@ -925,7 +924,7 @@ function buildAttentionItems(host: SettingsAppHost) {
     items.push({
       severity: "warning",
       icon: "zap",
-      title: "Skills with missing dependencies",
+      title: t("rawUi.app_settings_prop_0156626f18c2"),
       description: `${names.join(", ")}${more}`,
     });
   }

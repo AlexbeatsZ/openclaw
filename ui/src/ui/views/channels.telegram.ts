@@ -59,8 +59,8 @@ export function renderTelegramCard(params: {
   if (hasMultipleAccounts) {
     return html`
       <div class="card">
-        <div class="card-title">Telegram</div>
-        <div class="card-sub">Bot status and channel configuration.</div>
+        <div class="card-title">${t("rawUi.channels_telegram_text_b5161b70a1bd")}</div>
+        <div class="card-sub">${t("rawUi.channels_telegram_text_87bc4b33b57a")}</div>
         ${accountCountLabel}
 
         <div class="account-card-list">
@@ -86,8 +86,8 @@ export function renderTelegramCard(params: {
   }
 
   return renderSingleAccountChannelCard({
-    title: "Telegram",
-    subtitle: "Bot status and channel configuration.",
+    title: t("rawUi.channels_telegram_prop_a64149c7d290"),
+    subtitle: t("rawUi.channels_telegram_prop_0c37aacb8bc1"),
     accountCountLabel,
     statusRows: [
       { label: t("common.configured"), value: formatNullableBoolean(configured) },

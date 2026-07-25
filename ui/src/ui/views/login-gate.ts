@@ -286,7 +286,7 @@ export function renderLoginGate(state: AppViewState) {
       <div class="login-gate__card">
         <div class="login-gate__header">
           <img class="login-gate__logo" src=${faviconSrc} alt="OpenClaw" />
-          <div class="login-gate__title">OpenClaw</div>
+          <div class="login-gate__title">${t("rawUi.login_gate_text_1a1fe3b82bbb")}</div>
           <div class="login-gate__sub">${t("login.subtitle")}</div>
         </div>
         <div class="login-gate__form">
@@ -298,7 +298,7 @@ export function renderLoginGate(state: AppViewState) {
                 const v = (e.target as HTMLInputElement).value;
                 state.applySettings({ ...state.settings, gatewayUrl: v });
               }}
-              placeholder="ws://127.0.0.1:18789"
+              placeholder=${t("rawUi.login_gate_attr_30ea19e434d4")}
             />
           </label>
           <label class="field">

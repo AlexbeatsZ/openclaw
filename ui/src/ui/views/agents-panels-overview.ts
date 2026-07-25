@@ -105,29 +105,29 @@ export function renderAgentOverview(params: {
 
   return html`
     <section class="card">
-      <div class="card-title">Overview</div>
-      <div class="card-sub">Workspace paths and identity metadata.</div>
+      <div class="card-title">${t("rawUi.agents_panels_overview_text_318d96a79fd3")}</div>
+      <div class="card-sub">${t("rawUi.agents_panels_overview_text_d27b2409672b")}</div>
 
       <div class="agents-overview-grid" style="margin-top: 16px;">
         <div class="agent-kv">
-          <div class="label">Workspace</div>
+          <div class="label">${t("rawUi.agents_panels_overview_text_e4fdf7339a35")}</div>
           <div>
             <button
               type="button"
               class="workspace-link mono"
               @click=${() => onSelectPanel("files")}
-              title="Open Files tab"
+              title=${t("rawUi.agents_panels_overview_attr_25a9c38d27cc")}
             >
               ${workspace}
             </button>
           </div>
         </div>
         <div class="agent-kv">
-          <div class="label">Primary Model</div>
+          <div class="label">${t("rawUi.agents_panels_overview_text_6999ae96afe4")}</div>
           <div class="mono">${model}</div>
         </div>
         <div class="agent-kv">
-          <div class="label">Runtime</div>
+          <div class="label">${t("rawUi.agents_panels_overview_text_400d3cb80e4a")}</div>
           <div class="mono">${runtime}</div>
         </div>
         <div class="agent-kv">
@@ -135,24 +135,34 @@ export function renderAgentOverview(params: {
           <div class="mono">${thinkingDefault}</div>
         </div>
         <div class="agent-kv">
-          <div class="label">Skills Filter</div>
-          <div>${skillFilter ? `${skillCount} selected` : "all skills"}</div>
+          <div class="label">${t("rawUi.agents_panels_overview_text_6e229ecf2305")}</div>
+          <div>
+            ${skillFilter
+              ? t("rawUi.agents_panels_overview_dynamic_selectedCount", {
+                  count: String(skillCount),
+                })
+              : t("rawUi.agents_panels_overview_dynamic_e4fc14ef8082")}
+          </div>
         </div>
       </div>
 
       ${configDirty
         ? html`
             <div class="callout warn" style="margin-top: 16px">
-              You have unsaved config changes.
+              ${t("rawUi.agents_panels_overview_text_7161ec0c47a9")}
             </div>
           `
         : nothing}
 
       <div class="agent-model-select" style="margin-top: 20px;">
-        <div class="label">Model Selection</div>
+        <div class="label">${t("rawUi.agents_panels_overview_text_b78259d7927a")}</div>
         <div class="agent-model-fields">
           <label class="field">
-            <span>Primary model${isDefault ? " (default)" : ""}</span>
+            <span
+              >${t("rawUi.agents_panels_overview_fragment_a76e5c732bd1")}${isDefault
+                ? t("rawUi.agents_panels_overview_dynamic_d7532b47a20f")
+                : ""}</span
+            >
             <select
               .value=${selectedPrimary ?? ""}
               ?disabled=${disabled}
@@ -160,10 +170,18 @@ export function renderAgentOverview(params: {
                 onModelChange(agent.id, (e.target as HTMLSelectElement).value || null)}
             >
               ${isDefault
-                ? html` <option value="" ?selected=${!selectedPrimary}>Not set</option> `
+                ? html`
+                    <option value="" ?selected=${!selectedPrimary}>
+                      ${t("rawUi.agents_panels_overview_text_3fd6178df2cf")}
+                    </option>
+                  `
                 : html`
                     <option value="" ?selected=${!selectedPrimary}>
-                      ${defaultPrimary ? `Inherit default (${defaultPrimary})` : "Inherit default"}
+                      ${defaultPrimary
+                        ? t("rawUi.agents_panels_overview_dynamic_inheritDefaultModel", {
+                            model: defaultPrimary,
+                          })
+                        : t("rawUi.agents_panels_overview_dynamic_785f316683c2")}
                     </option>
                   `}
               ${buildModelOptions(
@@ -175,7 +193,7 @@ export function renderAgentOverview(params: {
             </select>
           </label>
           <div class="field">
-            <span>Fallbacks</span>
+            <span>${t("rawUi.agents_panels_overview_text_e421116f3cc3")}</span>
             <div
               class="agent-chip-input"
               @click=${(e: Event) => {
@@ -196,7 +214,7 @@ export function renderAgentOverview(params: {
                       ?disabled=${disabled}
                       @click=${() => removeChip(i)}
                     >
-                      &times;
+                      ${t("rawUi.agents_panels_overview_text_695a7f920355")}
                     </button>
                   </span>
                 `,
@@ -232,7 +250,9 @@ export function renderAgentOverview(params: {
             ?disabled=${configSaving || !configDirty}
             @click=${onConfigSave}
           >
-            ${configSaving ? "Saving…" : "Save"}
+            ${configSaving
+              ? t("rawUi.agents_panels_overview_dynamic_4283aa4c7807")
+              : t("rawUi.agents_panels_overview_dynamic_bba6c7d78cf9")}
           </button>
         </div>
       </div>

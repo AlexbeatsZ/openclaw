@@ -99,10 +99,30 @@ export type SkillsProps = {
 type StatusTabDef = { id: SkillsStatusFilter; label: string };
 
 const STATUS_TABS: StatusTabDef[] = [
-  { id: "all", label: "All" },
-  { id: "ready", label: "Ready" },
-  { id: "needs-setup", label: "Needs Setup" },
-  { id: "disabled", label: "Disabled" },
+  {
+    id: "all",
+    get label() {
+      return t("rawUi.skills_prop_ef9599f7892f");
+    },
+  },
+  {
+    id: "ready",
+    get label() {
+      return t("rawUi.skills_prop_b9b9febb46d9");
+    },
+  },
+  {
+    id: "needs-setup",
+    get label() {
+      return t("rawUi.skills_prop_0060f16d28ee");
+    },
+  },
+  {
+    id: "disabled",
+    get label() {
+      return t("rawUi.skills_prop_f5e8075e2bf4");
+    },
+  },
 ];
 
 function skillMatchesStatus(skill: SkillStatusEntry, status: SkillsStatusFilter): boolean {
@@ -144,22 +164,22 @@ function verdictForSkill(skill: SkillStatusEntry, verdicts: SkillsProps["clawhub
 
 function verdictLabel(verdict: ClawHubSkillSecurityVerdict | null | undefined): string {
   if (!verdict) {
-    return "Unavailable";
+    return t("rawUi.skills_verdict_unavailable");
   }
   const status = verdict.securityStatus?.trim() || null;
   if (verdict.ok && verdict.decision === "pass") {
-    return status === "clean" || !status ? "Clean" : status;
+    return status === "clean" || !status ? t("rawUi.skills_verdict_clean") : status;
   }
   if (status === "pending" || status === "not-run") {
-    return "Pending";
+    return t("rawUi.skills_verdict_pending");
   }
   if (status === "malicious") {
-    return "Blocked";
+    return t("rawUi.skills_verdict_blocked");
   }
   if (status === "suspicious") {
-    return "Review";
+    return t("rawUi.skills_verdict_review");
   }
-  return "Unavailable";
+  return t("rawUi.skills_verdict_unavailable");
 }
 
 function verdictChipClass(verdict: ClawHubSkillSecurityVerdict | null | undefined): string {
@@ -225,8 +245,8 @@ export function renderSkills(props: SkillsProps) {
     <section class="card">
       <div class="row" style="justify-content: space-between;">
         <div>
-          <div class="card-title">Skills</div>
-          <div class="card-sub">Installed skills and their status.</div>
+          <div class="card-title">${t("rawUi.skills_text_7eb70ddf6c52")}</div>
+          <div class="card-sub">${t("rawUi.skills_text_3b12410f0b2e")}</div>
         </div>
         <button
           class="btn"
@@ -280,20 +300,18 @@ export function renderSkills(props: SkillsProps) {
           <input
             .value=${props.filter}
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Filter installed skills"
+            placeholder=${t("rawUi.skills_attr_fc63ba7b0755")}
             autocomplete="off"
             name="skills-filter"
           />
         </label>
-        <div class="muted">${filtered.length} shown</div>
+        <div class="muted">${filtered.length} ${t("rawUi.skills_fragment_a0790915c805")}</div>
       </div>
 
       <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <div style="font-weight: 600;">ClawHub</div>
-          <div class="muted" style="font-size: 13px;">
-            Search and install skills from the registry
-          </div>
+          <div style="font-weight: 600;">${t("rawUi.skills_text_78d2127c80e2")}</div>
+          <div class="muted" style="font-size: 13px;">${t("rawUi.skills_text_1e8891db5d39")}</div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
           <label class="field" style="flex: 1; min-width: 180px;">
@@ -301,12 +319,14 @@ export function renderSkills(props: SkillsProps) {
               .value=${props.clawhubQuery}
               @input=${(e: Event) =>
                 props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
-              placeholder="Search ClawHub skills…"
+              placeholder=${t("rawUi.skills_attr_93dd3cc30fd4")}
               autocomplete="off"
               name="clawhub-search"
             />
           </label>
-          ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
+          ${props.clawhubSearchLoading
+            ? html`<span class="muted">${t("rawUi.skills_text_1fd4e26e668a")}</span>`
+            : nothing}
         </div>
         ${props.clawhubSearchError
           ? html`<div class="callout danger" style="margin-top: 8px;">
@@ -331,8 +351,8 @@ export function renderSkills(props: SkillsProps) {
         ? html`
             <div class="muted" style="margin-top: 16px">
               ${!props.connected && !props.report
-                ? "Not connected to gateway."
-                : "No skills found."}
+                ? t("rawUi.skills_dynamic_3bda6665bb97")
+                : t("rawUi.skills_dynamic_21854e61ade1")}
             </div>
           `
         : html`
@@ -369,7 +389,9 @@ function renderClawHubResults(props: SkillsProps) {
     return nothing;
   }
   if (results.length === 0) {
-    return html`<div class="muted" style="margin-top: 8px;">No skills found on ClawHub.</div>`;
+    return html`<div class="muted" style="margin-top: 8px;">
+      ${t("rawUi.skills_text_12dba2a945ec")}
+    </div>`;
   }
   return html`
     <div class="list" style="margin-top: 8px;">
@@ -395,7 +417,9 @@ function renderClawHubResults(props: SkillsProps) {
                   props.onClawHubInstall(r.slug);
                 }}
               >
-                ${props.clawhubInstallSlug === r.slug ? "Installing\u2026" : "Install"}
+                ${props.clawhubInstallSlug === r.slug
+                  ? t("rawUi.skills_dynamic_5575aa9e6116")
+                  : t("rawUi.skills_dynamic_61eb29972a42")}
               </button>
             </div>
           </div>
@@ -431,7 +455,7 @@ function renderClawHubDetailDialog(props: SkillsProps) {
               (e.currentTarget as HTMLElement).closest("dialog")?.close();
             }}
           >
-            Close
+            ${t("rawUi.skills_text_7dc81b836b6d")}
           </button>
         </div>
         <div class="md-preview-dialog__body" style="display: grid; gap: 16px;">
@@ -446,7 +470,7 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                     </div>
                     ${detail.owner?.displayName
                       ? html`<div class="muted" style="font-size: 13px;">
-                          By
+                          ${t("rawUi.skills_fragment_058d0bb3b11e")}
                           ${detail.owner.displayName}${detail.owner.handle
                             ? html` (@${detail.owner.handle})`
                             : nothing}
@@ -454,7 +478,7 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                       : nothing}
                     ${detail.latestVersion
                       ? html`<div class="muted" style="font-size: 13px;">
-                          Latest: v${detail.latestVersion.version}
+                          ${t("rawUi.skills_fragment_0fdf651f6012")}${detail.latestVersion.version}
                         </div>`
                       : nothing}
                     ${detail.latestVersion?.changelog
@@ -466,7 +490,8 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                       : nothing}
                     ${detail.metadata?.os
                       ? html`<div class="muted" style="font-size: 12px;">
-                          Platforms: ${detail.metadata.os.join(", ")}
+                          ${t("rawUi.skills_fragment_b9d39e485c5e")}
+                          ${detail.metadata.os.join(", ")}
                         </div>`
                       : nothing}
                     <button
@@ -479,11 +504,13 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                       }}
                     >
                       ${props.clawhubInstallSlug === props.clawhubDetailSlug
-                        ? "Installing\u2026"
-                        : `Install ${detail.skill.displayName}`}
+                        ? t("rawUi.skills_dynamic_5575aa9e6116")
+                        : t("rawUi.skills_dynamic_installSkill", {
+                            skill: detail.skill.displayName,
+                          })}
                     </button>
                   `
-                : html`<div class="muted">Skill not found.</div>`}
+                : html`<div class="muted">${t("rawUi.skills_text_fe57081ac9bf")}</div>`}
         </div>
       </div>
     </dialog>
@@ -512,7 +539,7 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
         ${skill.clawhub?.status === "linked"
           ? html`<span class="chip ${verdictChipClass(verdict)}">${verdictLabel(verdict)}</span>`
           : skill.clawhub?.status === "invalid"
-            ? html`<span class="chip chip-warn">ClawHub link invalid</span>`
+            ? html`<span class="chip chip-warn">${t("rawUi.skills_text_8935471dffb0")}</span>`
             : nothing}
         <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
           <input
@@ -571,7 +598,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
               (e.currentTarget as HTMLElement).closest("dialog")?.close();
             }}
           >
-            Close
+            ${t("rawUi.skills_text_7dc81b836b6d")}
           </button>
         </div>
         <div class="md-preview-dialog__body" style="display: grid; gap: 16px;">
@@ -589,14 +616,14 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                     class="agent-tab ${detailTab === "overview" ? "active" : ""}"
                     @click=${() => props.onDetailTabChange("overview")}
                   >
-                    Overview
+                    ${t("rawUi.skills_text_b750e3b382b7")}
                   </button>
                   ${skill.skillCard?.present
                     ? html`<button
                         class="agent-tab ${detailTab === "card" ? "active" : ""}"
                         @click=${() => props.onDetailTabChange("card")}
                       >
-                        Skill Card
+                        ${t("rawUi.skills_text_bb52cffcf561")}
                       </button>`
                     : nothing}
                 </div>
@@ -611,14 +638,18 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                   class="callout"
                   style="border-color: var(--warn-subtle); background: var(--warn-subtle); color: var(--warn);"
                 >
-                  <div style="font-weight: 600; margin-bottom: 4px;">Missing requirements</div>
+                  <div style="font-weight: 600; margin-bottom: 4px;">
+                    ${t("rawUi.skills_text_0183a9fa9a75")}
+                  </div>
                   <div>${missing.join(", ")}</div>
                 </div>
               `
             : nothing}
           ${reasons.length > 0
             ? html`
-                <div class="muted" style="font-size: 13px;">Reason: ${reasons.join(", ")}</div>
+                <div class="muted" style="font-size: 13px;">
+                  ${t("rawUi.skills_fragment_ff4835de0746")} ${reasons.join(", ")}
+                </div>
               `
             : nothing}
 
@@ -633,7 +664,9 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
               />
             </label>
             <span style="font-size: 13px; font-weight: 500;">
-              ${skill.disabled ? "Disabled" : "Enabled"}
+              ${skill.disabled
+                ? t("rawUi.skills_dynamic_5bfb68be11b9")
+                : t("rawUi.skills_dynamic_d409df3611f7")}
             </span>
             ${canInstall
               ? html`<button
@@ -641,7 +674,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                   ?disabled=${busy}
                   @click=${() => props.onInstall(skill.skillKey, skill.name, skill.install[0].id)}
                 >
-                  ${busy ? "Installing\u2026" : skill.install[0].label}
+                  ${busy ? t("rawUi.skills_dynamic_5575aa9e6116") : skill.install[0].label}
                 </button>`
               : nothing}
           </div>
@@ -656,7 +689,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                 <div style="display: grid; gap: 8px;">
                   <div class="field">
                     <span
-                      >API key
+                      >${t("rawUi.skills_text_f859481a374b")}
                       <span class="muted" style="font-weight: normal; font-size: 0.88em;"
                         >(${skill.primaryEnv})</span
                       ></span
@@ -672,7 +705,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                     const href = safeExternalHref(skill.homepage);
                     return href
                       ? html`<div class="muted" style="font-size: 13px;">
-                          Get your key:
+                          ${t("rawUi.skills_text_90bee241b0c0")}
                           <a href="${href}" target="_blank" rel="noopener noreferrer"
                             >${skill.homepage}</a
                           >
@@ -684,7 +717,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                     ?disabled=${busy}
                     @click=${() => props.onSaveKey(skill.skillKey)}
                   >
-                    Save key
+                    ${t("rawUi.skills_text_784755da93ab")}
                   </button>
                 </div>
               `
@@ -693,7 +726,10 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
           <div
             style="border-top: 1px solid var(--border); padding-top: 12px; display: grid; gap: 6px; font-size: 12px; color: var(--muted);"
           >
-            <div><span style="font-weight: 600;">Source:</span> ${skill.source}</div>
+            <div>
+              <span style="font-weight: 600;">${t("rawUi.skills_text_840558633677")}</span>
+              ${skill.source}
+            </div>
             <div style="font-family: var(--mono); word-break: break-all;">${skill.filePath}</div>
             ${(() => {
               const safeHref = safeExternalHref(skill.homepage);
@@ -723,7 +759,9 @@ function renderInstalledClawHubOverview(
   }
   if (link.status === "invalid") {
     return html`<div class="callout danger">
-      <div style="font-weight: 600; margin-bottom: 4px;">ClawHub link invalid</div>
+      <div style="font-weight: 600; margin-bottom: 4px;">
+        ${t("rawUi.skills_text_8935471dffb0")}
+      </div>
       <div>${link.reason}</div>
     </div>`;
   }
@@ -737,7 +775,9 @@ function renderInstalledClawHubOverview(
       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
         <span class="chip ${verdictChipClass(verdict)}">${verdictLabel(verdict)}</span>
         <span class="muted" style="font-size: 12px;">${link.slug}@${link.installedVersion}</span>
-        ${props.clawhubVerdictsLoading ? html`<span class="muted">Refreshing…</span>` : nothing}
+        ${props.clawhubVerdictsLoading
+          ? html`<span class="muted">${t("rawUi.skills_text_eab5564152fb")}</span>`
+          : nothing}
       </div>
       ${props.clawhubVerdictsError
         ? html`<div class="muted" style="font-size: 13px;">${props.clawhubVerdictsError}</div>`
@@ -747,7 +787,7 @@ function renderInstalledClawHubOverview(
       ${auditHref
         ? html`<div style="font-size: 13px;">
             <a href="${auditHref}" target="_blank" rel="noopener noreferrer"
-              >Full security report</a
+              >${t("rawUi.skills_text_3d49773bc2ad")}</a
             >
           </div>`
         : nothing}
@@ -768,8 +808,8 @@ function renderInstalledSkillCard(skill: SkillStatusEntry, props: SkillsProps) {
     }
     return html`<div class="muted" style="font-size: 13px;">
       ${props.skillCardLoadingKey === skill.skillKey
-        ? "Loading Skill Card..."
-        : "Skill Card not loaded."}
+        ? t("rawUi.skills_dynamic_a8ba2d50628f")
+        : t("rawUi.skills_dynamic_3dadb7e2ccad")}
     </div>`;
   }
   return html`

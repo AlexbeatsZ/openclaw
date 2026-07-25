@@ -5,7 +5,12 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
-import { appendBoundedProcessOutput, runProcess } from "../../scripts/control-ui-i18n.ts";
+import {
+  appendBoundedProcessOutput,
+  isKnownNonUiRawCopyProperty,
+  resolveFormatterInvocation,
+  runProcess,
+} from "../../scripts/control-ui-i18n.ts";
 import { createTempDirTracker } from "../helpers/temp-dir.js";
 
 function processIsAlive(pid: number): boolean {
@@ -46,12 +51,49 @@ async function waitForChildClose(
 }
 
 describe("control-ui-i18n process runner", () => {
+  it("ignores technical slash-command map values that share UI-like property names", () => {
+    expect(
+      isKnownNonUiRawCopyProperty({
+        name: "help",
+        path: "ui/src/ui/chat/slash-commands.ts",
+        text: "book",
+      }),
+    ).toBe(true);
+    expect(
+      isKnownNonUiRawCopyProperty({
+        name: "help",
+        path: "ui/src/ui/chat/slash-commands.ts",
+        text: "tools",
+      }),
+    ).toBe(true);
+    expect(
+      isKnownNonUiRawCopyProperty({
+        name: "help",
+        path: "ui/src/ui/views/config.ts",
+        text: "Open settings help",
+      }),
+    ).toBe(false);
+  });
+
   it("keeps a bounded process output tail", () => {
     const first = appendBoundedProcessOutput({ text: "", truncatedChars: 0 }, "abcdef", 5);
     const second = appendBoundedProcessOutput(first, "ghij", 5);
 
     expect(first).toEqual({ text: "bcdef", truncatedChars: 1 });
     expect(second).toEqual({ text: "fghij", truncatedChars: 5 });
+  });
+
+  it("formats generated locale source without invoking pnpm on Windows", async () => {
+    const formatter = resolveFormatterInvocation(
+      path.resolve("ui/src/i18n/locales/zh-CN.ts"),
+      "win32",
+    );
+    expect(formatter.command).toBe(process.execPath);
+    const result = await runProcess(formatter.command, formatter.args, {
+      input: "export const locale={label:'中文'};\n",
+      rejectOnFailure: true,
+    });
+    expect(result.stdout).toContain('label: "中文"');
   });
 
   it("bounds failure diagnostics to the newest output", async () => {

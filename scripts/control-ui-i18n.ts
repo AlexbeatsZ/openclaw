@@ -682,6 +682,18 @@ function pushRawCopyFinding(
   });
 }
 
+export function isKnownNonUiRawCopyProperty(params: {
+  name: string;
+  path: string;
+  text: string;
+}): boolean {
+  return (
+    params.path === "ui/src/ui/chat/slash-commands.ts" &&
+    params.name === "help" &&
+    (params.text === "book" || params.text === "tools")
+  );
+}
+
 async function walkControlUiSourceFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -736,12 +748,17 @@ function collectRawCopyFromSource(params: {
     if (!rawText) {
       continue;
     }
+    const name = match[1] ?? "property";
+    const text = parseDoubleQuotedString(rawText);
+    if (isKnownNonUiRawCopyProperty({ name, path: repoPath, text })) {
+      continue;
+    }
     pushRawCopyFinding(findings, {
       kind: "object-property",
       line: lineNumberForOffset(source, match.index ?? 0),
-      name: match[1] ?? "property",
+      name,
       path: repoPath,
-      text: parseDoubleQuotedString(rawText),
+      text,
     });
   }
 
@@ -1222,18 +1239,37 @@ export async function runProcess(
 }
 
 async function formatGeneratedTypeScript(filePath: string, source: string): Promise<string> {
-  const directFormatterPath = path.join(ROOT, "node_modules", ".bin", "oxfmt");
-  const formatterCommand =
-    process.platform !== "win32" && existsSync(directFormatterPath) ? directFormatterPath : "pnpm";
-  const formatterArgs =
-    formatterCommand === directFormatterPath
-      ? ["--stdin-filepath", path.relative(ROOT, filePath)]
-      : ["exec", "oxfmt", "--stdin-filepath", path.relative(ROOT, filePath)];
-  const result = await runProcess(formatterCommand, formatterArgs, {
+  const formatter = resolveFormatterInvocation(filePath);
+  const result = await runProcess(formatter.command, formatter.args, {
     input: source,
     rejectOnFailure: true,
   });
   return restoreReplacementCorruptedStringLiterals(source, result.stdout);
+}
+
+export function resolveFormatterInvocation(
+  filePath: string,
+  platform: NodeJS.Platform = process.platform,
+): { args: string[]; command: string } {
+  const relativeFilePath = path.relative(ROOT, filePath);
+  const directFormatterPath = path.join(ROOT, "node_modules", ".bin", "oxfmt");
+  if (platform !== "win32" && existsSync(directFormatterPath)) {
+    return {
+      args: ["--stdin-filepath", relativeFilePath],
+      command: directFormatterPath,
+    };
+  }
+  const formatterEntrypoint = path.join(ROOT, "node_modules", "oxfmt", "bin", "oxfmt");
+  if (existsSync(formatterEntrypoint)) {
+    return {
+      args: [formatterEntrypoint, "--stdin-filepath", relativeFilePath],
+      command: process.execPath,
+    };
+  }
+  return {
+    args: ["exec", "oxfmt", "--stdin-filepath", relativeFilePath],
+    command: "pnpm",
+  };
 }
 
 function restoreReplacementCorruptedStringLiterals(source: string, formatted: string): string {

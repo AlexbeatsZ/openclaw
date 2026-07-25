@@ -1,6 +1,7 @@
 // Control UI component implements the resizable divider element.
 import { LitElement, css, nothing } from "lit";
 import { property } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 
 /**
  * An accessible draggable divider for resizable split views.
@@ -10,7 +11,7 @@ export class ResizableDivider extends LitElement {
   @property({ type: Number }) splitRatio = 0.6;
   @property({ type: Number }) minRatio = 0.4;
   @property({ type: Number }) maxRatio = 0.7;
-  @property({ type: String }) label = "Resize split view";
+  @property({ type: String }) label = t("rawUi.resizable_divider_label");
 
   private isDragging = false;
   private startX = 0;

@@ -1,7 +1,8 @@
-// Control UI view renders skill workshop screen content.
 import { html, nothing } from "lit";
 import { keyed } from "lit/directives/keyed.js";
 import { styleMap } from "lit/directives/style-map.js";
+// Control UI view renders skill workshop screen content.
+import { t } from "../../i18n/index.ts";
 import "../components/file-preview-modal.ts";
 
 export type SkillWorkshopProposalStatus =
@@ -102,21 +103,39 @@ const STATUS_TABS: SkillWorkshopStatusFilter[] = [
 ];
 
 const STATUS_LABEL: Record<SkillWorkshopStatusFilter, string> = {
-  all: "All",
-  pending: "Pending",
-  applied: "Applied",
-  rejected: "Rejected",
-  quarantined: "Quarantined",
-  stale: "Stale",
+  get all() {
+    return t("rawUi.skill_workshop_status_all");
+  },
+  get pending() {
+    return t("rawUi.skill_workshop_status_pending");
+  },
+  get applied() {
+    return t("rawUi.skill_workshop_status_applied");
+  },
+  get rejected() {
+    return t("rawUi.skill_workshop_status_rejected");
+  },
+  get quarantined() {
+    return t("rawUi.skill_workshop_status_quarantined");
+  },
+  get stale() {
+    return t("rawUi.skill_workshop_status_stale");
+  },
 };
 
 const TODAY_PREVIEW_MAX_ITEMS = 3;
 const TODAY_PREVIEW_MAX_ITEM_CHARS = 120;
 
 const GROUP_LABEL: Record<SkillWorkshopProposal["recencyGroup"], string> = {
-  today: "Today",
-  yesterday: "Yesterday",
-  earlier: "Earlier this week",
+  get today() {
+    return t("rawUi.skill_workshop_group_today");
+  },
+  get yesterday() {
+    return t("rawUi.skill_workshop_group_yesterday");
+  },
+  get earlier() {
+    return t("rawUi.skill_workshop_group_earlier");
+  },
 };
 
 export function renderSkillWorkshop(props: SkillWorkshopProps) {
@@ -153,7 +172,9 @@ export function renderSkillWorkshop(props: SkillWorkshopProps) {
             .files=${selected.supportFiles}
             .activePath=${preview.path}
             .query=${props.filePreviewQuery}
-            .contextLabel=${`in ${selected.slug}`}
+            .contextLabel=${t("rawUi.skill_workshop_dynamic_inSkill", {
+              skill: selected.slug,
+            })}
             @file-preview-query-change=${(event: CustomEvent<string>) =>
               props.onFilePreviewQueryChange(event.detail)}
             @file-preview-select=${(event: CustomEvent<string>) =>
@@ -169,7 +190,8 @@ export function renderSkillWorkshop(props: SkillWorkshopProps) {
 function renderRevisionDialog(props: SkillWorkshopProps, proposal: SkillWorkshopProposal) {
   const busy = props.actionBusy?.key === proposal.key && props.actionBusy.action === "revise";
   const canSubmit = props.revisionDraft.trim().length > 0 && !props.actionBusy;
-  const verb = props.mode === "board" ? "Revise" : "Tweak";
+  const verb =
+    props.mode === "board" ? t("rawUi.skill_workshop_revise") : t("rawUi.skill_workshop_tweak");
 
   return html`
     <div class="sw-revision-backdrop" role="presentation" @click=${props.onRevisionCancel}>
@@ -182,27 +204,26 @@ function renderRevisionDialog(props: SkillWorkshopProps, proposal: SkillWorkshop
       >
         <div class="sw-revision-dialog__head">
           <div>
-            <div class="sw-revision-dialog__eyebrow">${verb} proposal</div>
+            <div class="sw-revision-dialog__eyebrow">
+              ${verb} ${t("rawUi.skill_workshop_fragment_549653cd0d70")}
+            </div>
             <h2 id="sw-revision-title">${proposal.slug}</h2>
           </div>
           <button
             class="sw-revision-dialog__close"
-            title="Close"
-            aria-label="Close"
+            title=${t("rawUi.skill_workshop_attr_3b2d50e30db4")}
+            aria-label=${t("rawUi.skill_workshop_attr_6845749753da")}
             ?disabled=${Boolean(props.actionBusy)}
             @click=${props.onRevisionCancel}
           >
             ×
           </button>
         </div>
-        <p class="sw-revision-dialog__copy">
-          Tell the agent what should change. The proposal stays pending and the workshop will create
-          a revised version.
-        </p>
+        <p class="sw-revision-dialog__copy">${t("rawUi.skill_workshop_text_e0c397c43846")}</p>
         <textarea
           class="sw-revision-dialog__input"
-          autofocus
-          placeholder="Example: Make this use Gmail labels instead of unread search, and add a safer dry-run step."
+          aut${t("rawUi.skill_workshop_fragment_03a106ea23f9")}ocus
+          placeholder=${t("rawUi.skill_workshop_attr_575029310d31")}
           .value=${props.revisionDraft}
           ?disabled=${Boolean(props.actionBusy)}
           @input=${(event: Event) =>
@@ -212,7 +233,7 @@ function renderRevisionDialog(props: SkillWorkshopProps, proposal: SkillWorkshop
           ? html`
               <div class="sw-revision-dialog__status" role="status">
                 <span class="sw-revision-dialog__status-dot" aria-hidden="true"></span>
-                <span>Preparing revision handoff</span>
+                <span>${t("rawUi.skill_workshop_text_766d2e1edd49")}</span>
               </div>
             `
           : nothing}
@@ -222,14 +243,16 @@ function renderRevisionDialog(props: SkillWorkshopProps, proposal: SkillWorkshop
             ?disabled=${Boolean(props.actionBusy)}
             @click=${props.onRevisionCancel}
           >
-            Cancel
+            ${t("rawUi.skill_workshop_text_5d2adcb68f3e")}
           </button>
           <button
             class="sw-btn sw-btn--primary ${busy ? "is-busy" : ""}"
             ?disabled=${!canSubmit}
             @click=${() => props.onRevisionSubmit(proposal.key)}
           >
-            ${busy ? "Sending…" : "Send revision"}
+            ${busy
+              ? t("rawUi.skill_workshop_dynamic_6de987922056")
+              : t("rawUi.skill_workshop_dynamic_dc91ffd083e3")}
           </button>
         </div>
       </section>
@@ -258,7 +281,7 @@ function renderQueueResizer(props: SkillWorkshopProps) {
     <div
       class="sw-queue-resizer"
       role="separator"
-      aria-label="Resize proposal list"
+      aria-label=${t("rawUi.skill_workshop_attr_d5e207707f9d")}
       aria-orientation="vertical"
       tabindex="0"
       @pointerdown=${(event: PointerEvent) => startQueueResize(event, props)}
@@ -339,7 +362,7 @@ function renderQueue(
     <aside class="sw-queue">
       <div class="sw-queue__search">
         <input
-          placeholder="Search proposals…"
+          placeholder=${t("rawUi.skill_workshop_attr_ffaeec9308d3")}
           .value=${props.query}
           @input=${(event: Event) =>
             props.onQueryChange((event.target as HTMLInputElement).value ?? "")}
@@ -407,14 +430,18 @@ function renderDetail(props: SkillWorkshopProps, proposal: SkillWorkshopProposal
                   class="sw-detail__meta-link"
                   @click=${() => props.onPreviewFile(proposal.key, proposal.supportFiles[0].path)}
                 >
-                  ${proposal.supportFiles.length} support files
+                  ${proposal.supportFiles.length} ${t("rawUi.skill_workshop_fragment_b025f09389b6")}
                 </button>`
-              : html`<span>0 support files</span>`}
+              : html`<span>${t("rawUi.skill_workshop_text_fc1889da1837")}</span>`}
           </div>
         </div>
         <div class="sw-detail__nav">
-          <button title="Previous" @click=${props.onPrev}>↑</button>
-          <button title="Next" @click=${props.onNext}>↓</button>
+          <button title=${t("rawUi.skill_workshop_attr_f926072291f9")} @click=${props.onPrev}>
+            ↑
+          </button>
+          <button title=${t("rawUi.skill_workshop_attr_4f3fba295828")} @click=${props.onNext}>
+            ↓
+          </button>
         </div>
       </div>
 
@@ -422,14 +449,14 @@ function renderDetail(props: SkillWorkshopProps, proposal: SkillWorkshopProposal
         <div class="sw-body-card">
           <h1>${proposal.slug}</h1>
           ${detailLoading
-            ? html`<p class="sw-muted">Loading proposal…</p>`
+            ? html`<p class="sw-muted">${t("rawUi.skill_workshop_text_d1ed852148d1")}</p>`
             : renderProposalBody(proposal.body)}
         </div>
 
         ${proposal.supportFiles.length > 0
           ? html`
               <div class="sw-section" style="margin-top: 18px;">
-                <h3 class="sw-section__label">Support files</h3>
+                <h3 class="sw-section__label">${t("rawUi.skill_workshop_text_a3ba8f753d7d")}</h3>
                 <div class="sw-files">
                   ${proposal.supportFiles.map(
                     (file) => html`
@@ -440,7 +467,10 @@ function renderDetail(props: SkillWorkshopProps, proposal: SkillWorkshopProposal
                         <span>📄</span>
                         <span class="sw-file__name">${file.path}</span>
                         <span class="sw-file__size"
-                          >${file.size} <span class="sw-file__hint">· click to preview</span></span
+                          >${file.size}
+                          <span class="sw-file__hint"
+                            >${t("rawUi.skill_workshop_text_b251b022b6be")}</span
+                          ></span
                         >
                       </button>
                     `,
@@ -477,21 +507,27 @@ function renderPendingActions(props: SkillWorkshopProps, proposal: SkillWorkshop
         ?disabled=${disabled}
         @click=${() => props.onApply(proposal.key)}
       >
-        ${busy === "apply" ? "Applying…" : "Apply"}
+        ${busy === "apply"
+          ? t("rawUi.skill_workshop_dynamic_70c742d00a58")
+          : t("rawUi.skill_workshop_dynamic_4e7ad1bab0e5")}
       </button>
       <button
         class="sw-btn ${busy === "revise" ? "is-busy" : ""}"
         ?disabled=${disabled}
         @click=${() => props.onRevise(proposal.key)}
       >
-        ${busy === "revise" ? "Opening…" : "Revise"}
+        ${busy === "revise"
+          ? t("rawUi.skill_workshop_dynamic_94610991be85")
+          : t("rawUi.skill_workshop_dynamic_ddf20da46a37")}
       </button>
       <button
         class="sw-btn sw-btn--ghost sw-btn--danger ${busy === "reject" ? "is-busy" : ""}"
         ?disabled=${disabled}
         @click=${() => props.onReject(proposal.key)}
       >
-        ${busy === "reject" ? "Rejecting…" : "Reject"}
+        ${busy === "reject"
+          ? t("rawUi.skill_workshop_dynamic_fa63e80b3b4b")
+          : t("rawUi.skill_workshop_dynamic_bb6ae7ec325e")}
       </button>
     </div>
   `;
@@ -520,8 +556,8 @@ function resolveBoardEmptyState(props: SkillWorkshopProps): {
   if (props.query.trim()) {
     return {
       icon: "search",
-      title: "No matching proposals",
-      body: "Clear the search or try a different keyword.",
+      title: t("rawUi.skill_workshop_prop_88601e953ea8"),
+      body: t("rawUi.skill_workshop_empty_search"),
     };
   }
 
@@ -529,44 +565,44 @@ function resolveBoardEmptyState(props: SkillWorkshopProps): {
     case "pending":
       return {
         icon: "clock",
-        title: "No pending proposals",
-        body: "New drafts will appear here when they need review.",
+        title: t("rawUi.skill_workshop_prop_26776b52a4ae"),
+        body: t("rawUi.skill_workshop_empty_pending"),
       };
     case "applied":
       return {
         icon: "check",
-        title: "Nothing applied yet",
-        body: "Use a pending proposal and it will appear here as a live skill.",
+        title: t("rawUi.skill_workshop_prop_4578c5850546"),
+        body: t("rawUi.skill_workshop_empty_applied"),
       };
     case "rejected":
       return {
         icon: "x",
-        title: "No rejected proposals",
-        body: "Skipped proposals will stay here for a clean review history.",
+        title: t("rawUi.skill_workshop_prop_50f7bcc9d897"),
+        body: t("rawUi.skill_workshop_empty_rejected"),
       };
     case "quarantined":
       return {
         icon: "shield",
-        title: "Nothing quarantined",
-        body: "Scanner-blocked or safety-held proposals will appear here.",
+        title: t("rawUi.skill_workshop_prop_f1890c0b926f"),
+        body: t("rawUi.skill_workshop_empty_quarantined"),
       };
     case "stale":
       return {
         icon: "refresh",
-        title: "No stale proposals",
-        body: "Proposals that can no longer apply cleanly will appear here.",
+        title: t("rawUi.skill_workshop_prop_31f0e4a787a3"),
+        body: t("rawUi.skill_workshop_empty_stale"),
       };
     case "all":
       return {
         icon: "search",
-        title: "No proposals here",
-        body: "Skill Workshop proposals will appear here when your agent drafts them.",
+        title: t("rawUi.skill_workshop_prop_09cb7c900e37"),
+        body: t("rawUi.skill_workshop_empty_all"),
       };
   }
   return {
     icon: "search",
-    title: "No proposals here",
-    body: "Skill Workshop proposals will appear here when your agent drafts them.",
+    title: t("rawUi.skill_workshop_prop_09cb7c900e37"),
+    body: t("rawUi.skill_workshop_empty_all"),
   };
 }
 
@@ -620,19 +656,22 @@ function renderEmptyStateIcon(icon: SkillWorkshopEmptyIcon) {
 }
 
 function renderWorkshopEmptyState(props: SkillWorkshopProps) {
-  const assistantName = props.assistantName.trim() || "Your agent";
+  const assistantName = props.assistantName.trim() || t("rawUi.skill_workshop_yourAgent");
   return html`
     <div class="sw-empty-state">
-      <section class="sw-empty-state__panel" aria-label="No Skill Workshop proposals">
+      <section
+        class="sw-empty-state__panel"
+        aria-label=${t("rawUi.skill_workshop_attr_9e324bd4dd12")}
+      >
         <div class="sw-empty-state__glyph" aria-hidden="true">
           <span></span>
           <span></span>
           <span></span>
         </div>
-        <p class="sw-empty-state__eyebrow">Skill Workshop</p>
-        <h2>No proposals yet</h2>
-        <p>${assistantName} hasn't drafted any skill proposals.</p>
-        <div class="sw-empty-state__footer">New proposals will appear here for review.</div>
+        <p class="sw-empty-state__eyebrow">${t("rawUi.skill_workshop_text_b09a5965c411")}</p>
+        <h2>${t("rawUi.skill_workshop_text_fb8d109fb313")}</h2>
+        <p>${assistantName} ${t("rawUi.skill_workshop_fragment_af3ad3e02632")}</p>
+        <div class="sw-empty-state__footer">${t("rawUi.skill_workshop_text_15a30b3a93a8")}</div>
       </section>
     </div>
   `;
@@ -646,10 +685,8 @@ function renderToday(
   if (!hero) {
     return html`
       <div class="sw-today sw-today--empty">
-        <p class="sw-empty__title">Nothing waiting today</p>
-        <p class="sw-empty__sub">
-          Your agent hasn't drafted anything new. Switch to Board to browse history.
-        </p>
+        <p class="sw-empty__title">${t("rawUi.skill_workshop_text_2ae7bd518e3b")}</p>
+        <p class="sw-empty__sub">${t("rawUi.skill_workshop_text_bca9bead9e95")}</p>
       </div>
     `;
   }
@@ -661,7 +698,11 @@ function renderToday(
   const total = Math.max(pending.length, 1);
   const upNext = pending.filter((p) => p.key !== hero.key).slice(0, 3);
   const applied = props.proposals.filter((p) => p.status === "applied").slice(0, 3);
-  const heroLabel = hero.isNew ? "NEW" : hero.status === "pending" ? "WAITING" : "REVIEWED";
+  const heroLabel = hero.isNew
+    ? t("rawUi.skill_workshop_hero_new")
+    : hero.status === "pending"
+      ? t("rawUi.skill_workshop_hero_waiting")
+      : t("rawUi.skill_workshop_hero_reviewed");
   const ageLabel = hero.ageLabel;
   const dateLine = formatTodayDate(Date.now());
   const isPending = hero.status === "pending";
@@ -673,14 +714,19 @@ function renderToday(
     <div class="sw-today">
       <div class="sw-today__head">
         <div class="sw-today__date">${dateLine}</div>
-        <h1 class="sw-today__h1">${pending.length} proposals waiting</h1>
+        <h1 class="sw-today__h1">
+          ${pending.length} ${t("rawUi.skill_workshop_fragment_1db7c7886948")}
+        </h1>
         ${pending.length === 0
-          ? html`<div class="sw-today__sub">Browse what's already applied.</div>`
+          ? html`<div class="sw-today__sub">${t("rawUi.skill_workshop_text_2b79590f51d5")}</div>`
           : nothing}
         ${pending.length > 0
           ? html`
               <div class="sw-today__progress">
-                <span>${heroIndex + 1} of ${total}</span>
+                <span
+                  >${heroIndex + 1} ${t("rawUi.skill_workshop_fragment_03a106ea23f9")}
+                  ${total}</span
+                >
                 <div class="sw-today__dots">
                   ${pending.map(
                     (_, i) => html`
@@ -712,17 +758,22 @@ function renderToday(
         <div class="sw-today__author">
           <span class="sw-today__avatar">v${hero.version}</span>
           <span>
-            Drafted by <strong>${assistantName}</strong> · ${ageLabel}.
+            ${t("rawUi.skill_workshop_text_880116cda779")} <strong>${assistantName}</strong> ·
+            ${ageLabel}.
             ${hero.supportFiles.length > 0
               ? html`
                   <button
                     class="sw-today__files-link"
                     @click=${() => props.onPreviewFile(hero.key, hero.supportFiles[0].path)}
                   >
-                    ${hero.supportFiles.length}
-                    ${hero.supportFiles.length === 1 ? "support file" : "support files"}
+                    ${t(
+                      hero.supportFiles.length === 1
+                        ? "rawUi.skill_workshop_dynamic_supportFileCount"
+                        : "rawUi.skill_workshop_dynamic_supportFilesCount",
+                      { count: String(hero.supportFiles.length) },
+                    )}
                   </button>
-                  come with it.
+                  ${t("rawUi.skill_workshop_fragment_900efb2887fb")}
                 `
               : nothing}
           </span>
@@ -736,24 +787,36 @@ function renderToday(
                   ?disabled=${disabled}
                   @click=${() => props.onApply(hero.key)}
                 >
-                  ${busy === "apply" ? "Applying…" : "Use it"}
-                  <span class="sw-today__big-sub">Add to your skills</span>
+                  ${busy === "apply"
+                    ? t("rawUi.skill_workshop_dynamic_70c742d00a58")
+                    : t("rawUi.skill_workshop_dynamic_e07576697a53")}
+                  <span class="sw-today__big-sub"
+                    >${t("rawUi.skill_workshop_text_c38dc372847b")}</span
+                  >
                 </button>
                 <button
                   class="sw-today__big sw-today__big--tweak ${busy === "revise" ? "is-busy" : ""}"
                   ?disabled=${disabled}
                   @click=${() => props.onRevise(hero.key)}
                 >
-                  ${busy === "revise" ? "Opening…" : "Tweak it"}
-                  <span class="sw-today__big-sub">Ask the agent to change something</span>
+                  ${busy === "revise"
+                    ? t("rawUi.skill_workshop_dynamic_94610991be85")
+                    : t("rawUi.skill_workshop_dynamic_6e5780948e6a")}
+                  <span class="sw-today__big-sub"
+                    >${t("rawUi.skill_workshop_text_eaf22c3a7b9b")}</span
+                  >
                 </button>
                 <button
                   class="sw-today__big sw-today__big--skip ${busy === "reject" ? "is-busy" : ""}"
                   ?disabled=${disabled}
                   @click=${() => props.onReject(hero.key)}
                 >
-                  ${busy === "reject" ? "Skipping…" : "Skip"}
-                  <span class="sw-today__big-sub">Not for me</span>
+                  ${busy === "reject"
+                    ? t("rawUi.skill_workshop_dynamic_4263e2034762")
+                    : t("rawUi.skill_workshop_dynamic_828e73ece56a")}
+                  <span class="sw-today__big-sub"
+                    >${t("rawUi.skill_workshop_text_a1f08042e6cc")}</span
+                  >
                 </button>
               </div>
             `
@@ -765,9 +828,12 @@ function renderToday(
         ? html`
             <section class="sw-today__section">
               <header class="sw-today__section-head">
-                <h3>Up next · ${pending.length - 1} more waiting</h3>
+                <h3>
+                  ${t("rawUi.skill_workshop_fragment_486b7934ad1a")} ${pending.length - 1}
+                  ${t("rawUi.skill_workshop_fragment_184ed85aa987")}
+                </h3>
                 <button class="sw-today__link" @click=${() => props.onModeChange("board")}>
-                  See all proposals →
+                  ${t("rawUi.skill_workshop_text_9aa9d4e57665")}
                 </button>
               </header>
               <div class="sw-today__upnext">
@@ -788,12 +854,15 @@ function renderToday(
         ? html`
             <section class="sw-today__section">
               <header class="sw-today__section-head">
-                <h3>Your collection · ${props.counts.applied} in use</h3>
+                <h3>
+                  ${t("rawUi.skill_workshop_fragment_fa43b7e0b8a9")} ${props.counts.applied}
+                  ${t("rawUi.skill_workshop_fragment_87bbe25fe7bc")}
+                </h3>
                 <button
                   class="sw-today__link sw-today__link--muted"
                   @click=${() => props.onModeChange("board")}
                 >
-                  Manage →
+                  ${t("rawUi.skill_workshop_text_bd8464bddbea")}
                 </button>
               </header>
               <div class="sw-today__applied">
@@ -859,7 +928,7 @@ function extractTodayProposalPreview(body: string): TodayProposalPreview | null 
   const workflowItems = workflow ? extractTopLevelListItems(workflow.lines) : [];
   if (workflowItems.length > 0) {
     return {
-      heading: "How the agent will use it",
+      heading: t("rawUi.skill_workshop_preview_how"),
       items: workflowItems.slice(0, TODAY_PREVIEW_MAX_ITEMS),
     };
   }
@@ -874,7 +943,7 @@ function extractTodayProposalPreview(body: string): TodayProposalPreview | null 
   const applicabilityItems = applicability ? extractTopLevelListItems(applicability.lines) : [];
   if (applicabilityItems.length > 0) {
     return {
-      heading: "When the agent should use it",
+      heading: t("rawUi.skill_workshop_preview_when"),
       items: applicabilityItems.slice(0, TODAY_PREVIEW_MAX_ITEMS),
     };
   }
@@ -1100,34 +1169,36 @@ function groupByRecency(
 
 function queueEmptyText(props: SkillWorkshopProps): string {
   if (props.error) {
-    return "Could not load proposals.";
+    return t("rawUi.skill_workshop_queue_loadFailed");
   }
   if (props.loading) {
-    return "Loading proposals…";
+    return t("rawUi.skill_workshop_queue_loading");
   }
   if (props.statusFilter !== "all") {
-    return `No ${STATUS_LABEL[props.statusFilter].toLowerCase()} proposals.`;
+    return t("rawUi.skill_workshop_queue_noStatus", {
+      status: STATUS_LABEL[props.statusFilter].toLowerCase(),
+    });
   }
-  return "No proposals match the current filter.";
+  return t("rawUi.skill_workshop_queue_noMatch");
 }
 
 function formatRelative(ms: number): string {
   const diff = Math.max(0, Date.now() - ms);
   const sec = Math.floor(diff / 1000);
   if (sec < 60) {
-    return `${sec}s ago`;
+    return t("rawUi.skill_workshop_relative_seconds", { count: String(sec) });
   }
   const min = Math.floor(sec / 60);
   if (min < 60) {
-    return `${min} minutes ago`;
+    return t("rawUi.skill_workshop_relative_minutes", { count: String(min) });
   }
   const hr = Math.floor(min / 60);
   if (hr < 24) {
-    return `${hr}h ago`;
+    return t("rawUi.skill_workshop_relative_hours", { count: String(hr) });
   }
   const day = Math.floor(hr / 24);
   if (day < 7) {
-    return `${day}d ago`;
+    return t("rawUi.skill_workshop_relative_days", { count: String(day) });
   }
   return new Date(ms).toLocaleDateString();
 }

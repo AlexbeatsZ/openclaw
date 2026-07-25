@@ -146,5 +146,7 @@ export function renderChannelAccountCount(
   if (count < 2) {
     return nothing;
   }
-  return html`<div class="account-count">Accounts (${count})</div>`;
+  return html`<div class="account-count">
+    ${t("rawUi.channels_shared_fragment_7d704a1fe80d")}${count})
+  </div>`;
 }

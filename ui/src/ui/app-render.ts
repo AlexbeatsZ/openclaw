@@ -297,7 +297,7 @@ function renderSkillWorkshopHeaderControls(state: AppViewState) {
       <div
         class="sw-mode-switch"
         role="tablist"
-        aria-label="Workshop view"
+        aria-label=${t("rawUi.app_render_attr_998e06467d21")}
         data-mode=${state.skillWorkshopMode}
       >
         <button
@@ -305,7 +305,7 @@ function renderSkillWorkshopHeaderControls(state: AppViewState) {
           class="sw-mode-switch__opt ${state.skillWorkshopMode === "board" ? "is-active" : ""}"
           role="tab"
           aria-selected=${state.skillWorkshopMode === "board" ? "true" : "false"}
-          title="Board view"
+          title=${t("rawUi.app_render_attr_74a8b12b8485")}
           @click=${() => setSkillWorkshopMode(state, "board")}
         >
           <svg viewBox="0 0 24 24" class="sw-mode-switch__icon" aria-hidden="true">
@@ -313,14 +313,14 @@ function renderSkillWorkshopHeaderControls(state: AppViewState) {
             <rect x="14" y="4" width="7" height="9" rx="1.5" />
             <rect x="14" y="15" width="7" height="5" rx="1.5" />
           </svg>
-          <span>Board</span>
+          <span>${t("rawUi.app_render_text_90be80f9c253")}</span>
         </button>
         <button
           type="button"
           class="sw-mode-switch__opt ${state.skillWorkshopMode === "today" ? "is-active" : ""}"
           role="tab"
           aria-selected=${state.skillWorkshopMode === "today" ? "true" : "false"}
-          title="Today view"
+          title=${t("rawUi.app_render_attr_cdead290388a")}
           @click=${() => setSkillWorkshopMode(state, "today")}
         >
           <svg viewBox="0 0 24 24" class="sw-mode-switch__icon" aria-hidden="true">
@@ -329,7 +329,7 @@ function renderSkillWorkshopHeaderControls(state: AppViewState) {
               d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"
             />
           </svg>
-          <span>Today</span>
+          <span>${t("rawUi.app_render_text_cfe67f62f8b5")}</span>
         </button>
         <span class="sw-mode-switch__indicator" aria-hidden="true"></span>
       </div>
@@ -1087,12 +1087,42 @@ function buildAssistantAvatarRoute(basePathValue: string | null | undefined, age
 // ── Quick Settings data extraction helpers ──
 
 const KNOWN_CHANNEL_IDS = [
-  { id: "telegram", label: "Telegram" },
-  { id: "discord", label: "Discord" },
-  { id: "slack", label: "Slack" },
-  { id: "whatsapp", label: "WhatsApp" },
-  { id: "signal", label: "Signal" },
-  { id: "imessage", label: "iMessage" },
+  {
+    id: "telegram",
+    get label() {
+      return t("rawUi.app_render_prop_14bbb158f7d1");
+    },
+  },
+  {
+    id: "discord",
+    get label() {
+      return t("rawUi.app_render_prop_8aa87e068589");
+    },
+  },
+  {
+    id: "slack",
+    get label() {
+      return t("rawUi.app_render_prop_0180738e60d2");
+    },
+  },
+  {
+    id: "whatsapp",
+    get label() {
+      return t("rawUi.app_render_prop_694ddfdf18f5");
+    },
+  },
+  {
+    id: "signal",
+    get label() {
+      return t("rawUi.app_render_prop_2d9608535cf0");
+    },
+  },
+  {
+    id: "imessage",
+    get label() {
+      return t("rawUi.app_render_prop_50bd7456a346");
+    },
+  },
 ] as const;
 
 function formatQuickSettingsLabel(id: string): string {
@@ -2563,7 +2593,7 @@ export function renderApp(state: AppViewState) {
               aria-label=${t("chat.openCommandPalette")}
             >
               <span class="topbar-search__label">${t("common.search")}</span>
-              <kbd class="topbar-search__kbd">⌘K</kbd>
+              <kbd class="topbar-search__kbd">${t("rawUi.app_render_text_de6dd175f545")}</kbd>
             </button>
             <div class="topbar-status">${renderTopbarThemeModeToggle(state)}</div>
           </div>
@@ -2584,7 +2614,9 @@ export function renderApp(state: AppViewState) {
                       />
                       <span class="sidebar-brand__copy">
                         <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
-                        <span class="sidebar-brand__title">OpenClaw</span>
+                        <span class="sidebar-brand__title"
+                          >${t("rawUi.app_render_text_af74750a56b3")}</span
+                        >
                       </span>
                     `}
               </div>

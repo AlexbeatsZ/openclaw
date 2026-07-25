@@ -226,25 +226,105 @@ const SLASH_MENU_ACTIVE_ANNOUNCEMENT_ID = "chat-slash-active-announcement";
 type TalkSelectOption = { label: string; value: string };
 
 const TALK_VOICE_OPTIONS: TalkSelectOption[] = [
-  { label: "Default", value: "" },
-  { label: "Alloy", value: "alloy" },
-  { label: "Ash", value: "ash" },
-  { label: "Ballad", value: "ballad" },
-  { label: "Coral", value: "coral" },
-  { label: "Echo", value: "echo" },
-  { label: "Sage", value: "sage" },
-  { label: "Shimmer", value: "shimmer" },
-  { label: "Verse", value: "verse" },
-  { label: "Marin", value: "marin" },
-  { label: "Cedar", value: "cedar" },
+  {
+    get label() {
+      return t("rawUi.chat_prop_6368a3fd8c2e");
+    },
+    value: "",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_8f0bf3213edf");
+    },
+    value: "alloy",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_1bd846c9ec92");
+    },
+    value: "ash",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_bc54586810b4");
+    },
+    value: "ballad",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_be611d175844");
+    },
+    value: "coral",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_5a6eab46dfee");
+    },
+    value: "echo",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_72a0d18fffb9");
+    },
+    value: "sage",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_c5a0d69b32e8");
+    },
+    value: "shimmer",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_111341364cce");
+    },
+    value: "verse",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_e1357b0e15a8");
+    },
+    value: "marin",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_321349106e9a");
+    },
+    value: "cedar",
+  },
 ];
 const TALK_SENSITIVITY_OPTIONS: TalkSelectOption[] = [
-  { label: "Default", value: "" },
-  { label: "Low", value: "0.65" },
-  { label: "Medium", value: "0.5" },
-  { label: "High", value: "0.35" },
+  {
+    get label() {
+      return t("rawUi.chat_prop_6368a3fd8c2e");
+    },
+    value: "",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_e08c8037ebeb");
+    },
+    value: "0.65",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_fe4e77d8514e");
+    },
+    value: "0.5",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_de1cf72acb4a");
+    },
+    value: "0.35",
+  },
 ];
-const TALK_PROVIDER_AUTO_OPTION: TalkSelectOption = { label: "Auto", value: "" };
+const TALK_PROVIDER_AUTO_OPTION: TalkSelectOption = {
+  get label() {
+    return t("rawUi.chat_prop_d933d7faf435");
+  },
+  value: "",
+};
 const TALK_PROVIDER_FALLBACK_OPTIONS: TalkSelectOption[] = [
   TALK_PROVIDER_AUTO_OPTION,
   ...REALTIME_TALK_FALLBACK_PROVIDERS.map((provider) => ({
@@ -253,17 +333,62 @@ const TALK_PROVIDER_FALLBACK_OPTIONS: TalkSelectOption[] = [
   })),
 ];
 const TALK_TRANSPORT_OPTIONS: TalkSelectOption[] = [
-  { label: "Auto", value: "" },
-  { label: "WebRTC", value: "webrtc" },
-  { label: "Gateway relay", value: "gateway-relay" },
-  { label: "Provider WebSocket", value: "provider-websocket" },
+  {
+    get label() {
+      return t("rawUi.chat_prop_d933d7faf435");
+    },
+    value: "",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_e41dde79923e");
+    },
+    value: "webrtc",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_766709ed4c19");
+    },
+    value: "gateway-relay",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_ecd286914a95");
+    },
+    value: "provider-websocket",
+  },
 ];
 const TALK_REASONING_OPTIONS: TalkSelectOption[] = [
-  { label: "Default", value: "" },
-  { label: "Minimal", value: "minimal" },
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
+  {
+    get label() {
+      return t("rawUi.chat_prop_6368a3fd8c2e");
+    },
+    value: "",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_fe8e7fa3de7e");
+    },
+    value: "minimal",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_e08c8037ebeb");
+    },
+    value: "low",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_fe4e77d8514e");
+    },
+    value: "medium",
+  },
+  {
+    get label() {
+      return t("rawUi.chat_prop_de1cf72acb4a");
+    },
+    value: "high",
+  },
 ];
 const INITIAL_CHAT_HISTORY_RENDER_WINDOW = 30;
 const CHAT_HISTORY_RENDER_WINDOW_BATCH = 30;
@@ -346,7 +471,7 @@ function renderRealtimeTalkOptions(props: ChatProps) {
     : undefined;
   const transportOptions: TalkSelectOption[] = selectedProviderTransports
     ? [
-        { label: "Auto", value: "" },
+        { label: t("rawUi.chat_prop_d933d7faf435"), value: "" },
         ...TALK_TRANSPORT_OPTIONS.filter(
           (opt) => opt.value !== "" && selectedProviderTransports.includes(opt.value),
         ),
@@ -365,7 +490,7 @@ function renderRealtimeTalkOptions(props: ChatProps) {
       ? options.vadThreshold
       : "__custom";
   const sensitivityOptions = isCustomSensitivity
-    ? [...TALK_SENSITIVITY_OPTIONS, { label: "Custom", value: "__custom" }]
+    ? [...TALK_SENSITIVITY_OPTIONS, { label: t("rawUi.chat_prop_ba05ffbb8994"), value: "__custom" }]
     : TALK_SENSITIVITY_OPTIONS;
   const sensitivityLabel =
     sensitivityOptions.find((entry) => entry.value === sensitivityValue)?.label ?? "Custom";
@@ -375,36 +500,39 @@ function renderRealtimeTalkOptions(props: ChatProps) {
     }
   };
   return html`
-    <div class="agent-chat__talk-options" aria-label="Talk options">
-      <div class="agent-chat__talk-options-primary">
+    <div
+      class="agent-chat__talk-${t("rawUi.chat_fragment_8d14fc5bb013")}"
+      aria-label=${t("rawUi.chat_attr_e884c654b385")}
+    >
+      <div class="agent-chat__talk-${t("rawUi.chat_fragment_8d14fc5bb013")}-primary">
         ${renderNativeTalkSelect({
-          label: "Voice",
+          label: t("rawUi.chat_prop_8503a4b24731"),
           value: options.voice,
           options: TALK_VOICE_OPTIONS,
           onSelect: (voice) => onChange({ voice }),
         })}
         <label class="agent-chat__talk-field">
-          <span>Model</span>
+          <span>${t("rawUi.chat_text_8979da999ab1")}</span>
           <input
             .value=${options.model}
             @input=${update("model")}
-            placeholder="Auto"
+            placeholder=${t("rawUi.chat_attr_91b352b3178c")}
             spellcheck="false"
           />
         </label>
         ${renderNativeTalkSelect({
-          label: "Sensitivity",
+          label: t("rawUi.chat_prop_e8b624dac31c"),
           value: sensitivityValue,
           options: sensitivityOptions,
           selectedLabel: sensitivityLabel,
           onSelect: updateSensitivity,
         })}
       </div>
-      <details class="agent-chat__talk-options-advanced">
-        <summary>Advanced</summary>
-        <div class="agent-chat__talk-options-grid">
+      <details class="agent-chat__talk-${t("rawUi.chat_fragment_8d14fc5bb013")}-advanced">
+        <summary>${t("rawUi.chat_text_005270a4f46a")}</summary>
+        <div class="agent-chat__talk-${t("rawUi.chat_fragment_8d14fc5bb013")}-grid">
           ${renderNativeTalkSelect({
-            label: "Provider",
+            label: t("rawUi.chat_prop_97e9bcbf9be3"),
             value: options.provider,
             options: providerOptions,
             onSelect: (provider) => {
@@ -421,19 +549,19 @@ function renderRealtimeTalkOptions(props: ChatProps) {
             },
           })}
           ${renderNativeTalkSelect({
-            label: "Transport",
+            label: t("rawUi.chat_prop_a79c55f15ac9"),
             value: options.transport,
             options: transportOptions,
             onSelect: (transport) => onChange({ transport }),
           })}
           ${renderNativeTalkSelect({
-            label: "Reasoning",
+            label: t("rawUi.chat_prop_1b809c7a0861"),
             value: options.reasoningEffort,
             options: TALK_REASONING_OPTIONS,
             onSelect: (reasoningEffort) => onChange({ reasoningEffort }),
           })}
           <label class="agent-chat__talk-field">
-            <span>Exact VAD</span>
+            <span>${t("rawUi.chat_text_d00d379f2575")}</span>
             <input
               type="number"
               min="0"
@@ -445,7 +573,7 @@ function renderRealtimeTalkOptions(props: ChatProps) {
             />
           </label>
           <label class="agent-chat__talk-field">
-            <span>Pause before send</span>
+            <span>${t("rawUi.chat_text_9a65f2c82cba")}</span>
             <input
               type="number"
               min="1"
@@ -456,7 +584,7 @@ function renderRealtimeTalkOptions(props: ChatProps) {
             />
           </label>
           <label class="agent-chat__talk-field">
-            <span>Lead-in</span>
+            <span>${t("rawUi.chat_text_41e29478acd6")}</span>
             <input
               type="number"
               min="0"
@@ -1061,24 +1189,27 @@ function renderAttachmentPreview(props: ChatProps): TemplateResult | typeof noth
             ${isImageAttachment(att) && getChatAttachmentPreviewUrl(att)
               ? html`<img src=${getChatAttachmentPreviewUrl(att)!} alt="Attachment preview" />`
               : html`
-                  <div class="chat-attachment-file" title=${att.fileName ?? "Attached file"}>
+                  <div
+                    class="chat-attachment-file"
+                    title=${att.fileName ?? t("rawUi.chat_dynamic_1411612b9332")}
+                  >
                     <span class="chat-attachment-file__icon">${icons.paperclip}</span>
                     <span class="chat-attachment-file__name"
-                      >${att.fileName ?? "Attached file"}</span
+                      >${att.fileName ?? t("rawUi.chat_dynamic_1411612b9332")}</span
                     >
                   </div>
                 `}
             <button
               class="chat-attachment-remove"
               type="button"
-              aria-label="Remove attachment"
+              aria-label=${t("rawUi.chat_attr_87e81ccd5e47")}
               @click=${() => {
                 const next = (props.attachments ?? []).filter((a) => a.id !== att.id);
                 releaseChatAttachmentPayload(att.id);
                 props.onAttachmentsChange?.(next);
               }}
             >
-              &times;
+              ${t("rawUi.chat_text_b34d157ff140")}
             </button>
           </div>
         `,
@@ -1807,8 +1938,8 @@ function renderSearchBar(requestUpdate: () => void): TemplateResult | typeof not
       ${icons.search}
       <input
         type="text"
-        placeholder="Search messages..."
-        aria-label="Search messages"
+        placeholder=${t("rawUi.chat_attr_d41f527bca48")}
+        aria-label=${t("rawUi.chat_attr_840b61dd1444")}
         .value=${vs.searchQuery}
         @input=${(e: Event) => {
           vs.searchQuery = (e.target as HTMLInputElement).value;
@@ -1817,7 +1948,7 @@ function renderSearchBar(requestUpdate: () => void): TemplateResult | typeof not
       />
       <button
         class="btn btn--ghost"
-        aria-label="Close search"
+        aria-label=${t("rawUi.chat_attr_a14fa8ba750a")}
         @click=${() => {
           vs.searchOpen = false;
           vs.searchQuery = "";
@@ -1854,30 +1985,30 @@ function renderPinnedSection(
     return nothing;
   }
   return html`
-    <div class="agent-chat__pinned">
+    <div class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}">
       <button
-        class="agent-chat__pinned-toggle"
+        class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-toggle"
         aria-expanded=${vs.pinnedExpanded}
         @click=${() => {
           vs.pinnedExpanded = !vs.pinnedExpanded;
           requestUpdate();
         }}
       >
-        ${icons.bookmark} ${entries.length} pinned
+        ${icons.bookmark} ${entries.length} ${t("rawUi.chat_fragment_b4ee5f1a5589")}
         <span class="collapse-chevron ${vs.pinnedExpanded ? "" : "collapse-chevron--collapsed"}"
           >${icons.chevronDown}</span
         >
       </button>
       ${vs.pinnedExpanded
         ? html`
-            <div class="agent-chat__pinned-list">
+            <div class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-list">
               ${entries.map(
                 ({ index, text, role }) => html`
-                  <div class="agent-chat__pinned-item">
-                    <span class="agent-chat__pinned-role"
+                  <div class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-item">
+                    <span class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-role"
                       >${role === "user" ? userRoleLabel : "Assistant"}</span
                     >
-                    <span class="agent-chat__pinned-text"
+                    <span class="agent-chat__${t("rawUi.chat_fragment_b4ee5f1a5589")}-text"
                       >${text.slice(0, 100)}${text.length > 100 ? "..." : ""}</span
                     >
                     <button
@@ -1886,7 +2017,7 @@ function renderPinnedSection(
                         pinned.unpin(index);
                         requestUpdate();
                       }}
-                      title="Unpin"
+                      title=${t("rawUi.chat_attr_3a420a36a421")}
                     >
                       ${icons.x}
                     </button>
@@ -1916,7 +2047,7 @@ function renderSlashMenu(
         id=${SLASH_MENU_LISTBOX_ID}
         class="slash-menu"
         role="listbox"
-        aria-label="Command arguments"
+        aria-label=${t("rawUi.chat_attr_e5d18df3ab9f")}
       >
         <div class="slash-menu-group">
           <div class="slash-menu-group__label">
@@ -1945,7 +2076,10 @@ function renderSlashMenu(
           )}
         </div>
         <div class="slash-menu-footer">
-          <kbd>↑↓</kbd> navigate <kbd>Tab</kbd> fill <kbd>Enter</kbd> run <kbd>Esc</kbd> close
+          <kbd>↑↓</kbd> ${t("rawUi.chat_text_f6feb8368579")}
+          <kbd>${t("rawUi.chat_text_cd7888cf33fb")}</kbd> ${t("rawUi.chat_text_02187cd364c1")}
+          <kbd>${t("rawUi.chat_text_ed6de7a6548c")}</kbd> ${t("rawUi.chat_text_03455b1c2f4c")}
+          <kbd>${t("rawUi.chat_text_530747e00d9c")}</kbd> ${t("rawUi.chat_text_70a3d5324db2")}
         </div>
       </div>
     `;
@@ -1996,9 +2130,13 @@ function renderSlashMenu(
               ${cmd.args ? html`<span class="slash-menu-args">${cmd.args}</span>` : nothing}
               <span class="slash-menu-desc">${cmd.description}</span>
               ${cmd.argOptions?.length
-                ? html`<span class="slash-menu-badge">${cmd.argOptions.length} options</span>`
+                ? html`<span class="slash-menu-badge"
+                    >${cmd.argOptions.length} ${t("rawUi.chat_fragment_8d14fc5bb013")}</span
+                  >`
                 : cmd.executeLocal && !cmd.args
-                  ? html` <span class="slash-menu-badge">instant</span> `
+                  ? html`
+                      <span class="slash-menu-badge">${t("rawUi.chat_text_a501216320d1")}</span>
+                    `
                   : nothing}
             </div>
           `,
@@ -2010,7 +2148,12 @@ function renderSlashMenu(
   const hiddenCount = vs.slashMenuExpanded ? 0 : getHiddenCommandCount();
 
   return html`
-    <div id=${SLASH_MENU_LISTBOX_ID} class="slash-menu" role="listbox" aria-label="Slash commands">
+    <div
+      id=${SLASH_MENU_LISTBOX_ID}
+      class="slash-menu"
+      role="listbox"
+      aria-label=${t("rawUi.chat_attr_d7e076c8121b")}
+    >
       ${sections}
       ${hiddenCount > 0
         ? html`<button
@@ -2022,11 +2165,15 @@ function renderSlashMenu(
               updateSlashMenu(draft, requestUpdate, props);
             }}
           >
-            Show ${hiddenCount} more command${hiddenCount !== 1 ? "s" : ""}
+            ${t("rawUi.chat_fragment_d8d66442540d")} ${hiddenCount}
+            ${t("rawUi.chat_fragment_f85856154327")}${hiddenCount !== 1 ? "s" : ""}
           </button>`
         : nothing}
       <div class="slash-menu-footer">
-        <kbd>↑↓</kbd> navigate <kbd>Tab</kbd> fill <kbd>Enter</kbd> select <kbd>Esc</kbd> close
+        <kbd>↑↓</kbd> ${t("rawUi.chat_text_f6feb8368579")}
+        <kbd>${t("rawUi.chat_text_cd7888cf33fb")}</kbd> ${t("rawUi.chat_text_02187cd364c1")}
+        <kbd>${t("rawUi.chat_text_ed6de7a6548c")}</kbd> ${t("rawUi.chat_text_bf8f71d8ef94")}
+        <kbd>${t("rawUi.chat_text_530747e00d9c")}</kbd> ${t("rawUi.chat_text_70a3d5324db2")}
       </div>
     </div>
   `;
@@ -2140,7 +2287,7 @@ export function renderChat(props: ChatProps) {
       <div class="chat-thread-inner">
         ${showLoadingSkeleton
           ? html`
-              <div class="chat-loading-skeleton" aria-label="Loading chat">
+              <div class="chat-loading-skeleton" aria-label=${t("rawUi.chat_attr_983fdd309b38")}>
                 <div class="chat-line assistant">
                   <div class="chat-msg">
                     <div class="chat-bubble">
@@ -2179,7 +2326,7 @@ export function renderChat(props: ChatProps) {
           : nothing}
         ${isEmpty && !vs.searchOpen ? renderWelcomeState(props) : nothing}
         ${isEmpty && vs.searchOpen
-          ? html` <div class="agent-chat__empty">No matching messages</div> `
+          ? html` <div class="agent-chat__empty">${t("rawUi.chat_text_7fbb4b97fa96")}</div> `
           : nothing}
         ${guard(
           [
@@ -2531,7 +2678,7 @@ export function renderChat(props: ChatProps) {
     ${props.showNewMessages
       ? html`
           <button class="chat-new-messages" type="button" @click=${props.onScrollToBottom}>
-            ${icons.arrowDown} New messages
+            ${icons.arrowDown} ${t("rawUi.chat_fragment_433eccbb242f")}
           </button>
         `
       : nothing}
@@ -2574,10 +2721,10 @@ export function renderChat(props: ChatProps) {
                   ? props.realtimeTalkTranscript
                   : null) ??
                 (props.realtimeTalkStatus === "thinking"
-                  ? "Asking OpenClaw..."
+                  ? t("rawUi.chat_dynamic_2591e6ce8d12")
                   : props.realtimeTalkStatus === "connecting"
-                    ? "Connecting Talk..."
-                    : "Talk live")}
+                    ? t("rawUi.chat_dynamic_60b08ba0e814")
+                    : t("rawUi.chat_dynamic_81339c981bba"))}
               </span>
               ${props.realtimeTalkStatus === "error" && props.onDismissRealtimeTalkError
                 ? html`
@@ -2678,13 +2825,15 @@ export function renderChat(props: ChatProps) {
                     ? "agent-chat__input-btn--talk"
                     : ""}"
                   @click=${props.onToggleRealtimeTalkOptions}
-                  title="Talk settings"
-                  aria-label="Talk settings"
+                  title=${t("rawUi.chat_attr_2bd9ed8710dc")}
+                  aria-label=${t("rawUi.chat_attr_9bf5c59f84e7")}
                   aria-expanded=${props.realtimeTalkOptionsOpen ? "true" : "false"}
                   ?disabled=${!props.connected || props.realtimeTalkActive}
                 >
                   ${icons.settings}
-                  <span class="agent-chat__control-label">Talk settings</span>
+                  <span class="agent-chat__control-label"
+                    >${t("rawUi.chat_text_2519523c57d6")}</span
+                  >
                 </button>
               `
             : nothing}
@@ -2731,8 +2880,8 @@ export function renderChat(props: ChatProps) {
                         class="callout__dismiss"
                         type="button"
                         @click=${props.onDismissError}
-                        aria-label="Dismiss error"
-                        title="Dismiss error"
+                        aria-label=${t("rawUi.chat_attr_8e38cd4a788e")}
+                        title=${t("rawUi.chat_attr_863de94c1926")}
                       >
                         ${icons.x}
                       </button>
@@ -2749,8 +2898,8 @@ export function renderChat(props: ChatProps) {
                 class="chat-focus-exit"
                 type="button"
                 @click=${props.onToggleFocusMode}
-                aria-label="Exit focus mode"
-                title="Exit focus mode"
+                aria-label=${t("rawUi.chat_attr_89a3bd31b403")}
+                title=${t("rawUi.chat_attr_8f3dcee2ce40")}
               >
                 ${icons.x}
               </button>
@@ -2785,7 +2934,7 @@ export function renderChat(props: ChatProps) {
                 </span>
               </span>
             </div>
-            <div class="chat-command-deck__telemetry" aria-label="Conversation status">
+            <div class="chat-command-deck__telemetry" aria-label=${t("rawUi.chat_attr_227ed540e07f")}>
               <span
                 class="chat-command-deck__status ${
                   props.connected
@@ -2838,8 +2987,12 @@ export function renderChat(props: ChatProps) {
                       <button
                         class="chat-command-deck__action"
                         type="button"
-                        title=${props.focusMode ? "Exit focus mode" : "Focus mode"}
-                        aria-label=${props.focusMode ? "Exit focus mode" : "Focus mode"}
+                        title=${props.focusMode
+                          ? t("rawUi.chat_dynamic_571439f18ef1")
+                          : t("rawUi.chat_dynamic_c5512dd8b3eb")}
+                        aria-label=${props.focusMode
+                          ? t("rawUi.chat_dynamic_571439f18ef1")
+                          : t("rawUi.chat_dynamic_c5512dd8b3eb")}
                         @click=${props.onToggleFocusMode}
                       >
                         ${props.focusMode ? icons.minimize : icons.maximize}

@@ -110,36 +110,56 @@ const WORKBOARD_TEMPLATES: Array<{
 }> = [
   {
     id: "bugfix",
-    title: "Fix: ",
-    notes: "Symptom:\nCause:\nAcceptance:\nProof:",
+    get title() {
+      return `${t("rawUi.workboard_prop_a798a4e0e8e3")} `;
+    },
+    get notes() {
+      return t("rawUi.workboard_template_bugfixNotes");
+    },
     labels: "fix, test",
     priority: "high",
   },
   {
     id: "docs",
-    title: "Docs: ",
-    notes: "Page:\nChange:\nSource proof:",
+    get title() {
+      return `${t("rawUi.workboard_prop_f8d5f04a792a")} `;
+    },
+    get notes() {
+      return t("rawUi.workboard_template_docsNotes");
+    },
     labels: "docs",
     priority: "normal",
   },
   {
     id: "release",
-    title: "Release: ",
-    notes: "Scope:\nVerification:\nCloseout:",
+    get title() {
+      return `${t("rawUi.workboard_prop_f5f1f4cf132a")} `;
+    },
+    get notes() {
+      return t("rawUi.workboard_template_releaseNotes");
+    },
     labels: "release",
     priority: "urgent",
   },
   {
     id: "pr_review",
-    title: "Review PR ",
-    notes: "Surface:\nRisks:\nProof:",
+    get title() {
+      return `${t("rawUi.workboard_prop_2a3ad63ad41f")} `;
+    },
+    get notes() {
+      return t("rawUi.workboard_template_reviewNotes");
+    },
     labels: "review",
     priority: "normal",
   },
   {
     id: "plugin",
-    title: "Plugin: ",
-    notes: "Boundary:\nConfig/docs:\nTests:",
+    get title() {
+      return `${t("rawUi.workboard_prop_daf0e9c8c35e")} `;
+    },
+    get notes() {
+      return t("rawUi.workboard_template_pluginNotes");
+    },
     labels: "plugin",
     priority: "normal",
   },

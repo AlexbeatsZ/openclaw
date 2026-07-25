@@ -138,30 +138,95 @@ export type QuickSettingsProps = {
 
 type ThemeOption = { id: ThemeName; label: string };
 const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
-  { id: "claw", label: "Claw" },
-  { id: "knot", label: "Knot" },
-  { id: "dash", label: "Dash" },
+  {
+    id: "claw",
+    get label() {
+      return t("rawUi.config_quick_prop_6b276eb523a9");
+    },
+  },
+  {
+    id: "knot",
+    get label() {
+      return t("rawUi.config_quick_prop_69b7f867a05d");
+    },
+  },
+  {
+    id: "dash",
+    get label() {
+      return t("rawUi.config_quick_prop_f9c0d7e3fb50");
+    },
+  },
 ];
 
 const BORDER_RADIUS_STOPS: Array<{ value: BorderRadiusStop; label: string }> = [
-  { value: 0, label: "None" },
-  { value: 25, label: "Slight" },
-  { value: 50, label: "Default" },
-  { value: 75, label: "Round" },
-  { value: 100, label: "Full" },
+  {
+    value: 0,
+    get label() {
+      return t("rawUi.config_quick_prop_b3faa25fa2da");
+    },
+  },
+  {
+    value: 25,
+    get label() {
+      return t("rawUi.config_quick_prop_ab379e2d1070");
+    },
+  },
+  {
+    value: 50,
+    get label() {
+      return t("rawUi.config_quick_prop_7e240053c717");
+    },
+  },
+  {
+    value: 75,
+    get label() {
+      return t("rawUi.config_quick_prop_9fce89aa034c");
+    },
+  },
+  {
+    value: 100,
+    get label() {
+      return t("rawUi.config_quick_prop_51666282855c");
+    },
+  },
 ];
 
 const TEXT_SCALE_OPTIONS: Array<{ value: TextScaleStop; label: string }> = [
-  { value: 90, label: "S" },
-  { value: 100, label: "M" },
-  { value: 110, label: "L" },
-  { value: 125, label: "XL" },
-  { value: 140, label: "XXL" },
+  {
+    value: 90,
+    get label() {
+      return t("rawUi.config_quick_prop_122aed6a9524");
+    },
+  },
+  {
+    value: 100,
+    get label() {
+      return t("rawUi.config_quick_prop_e9d674cbeda5");
+    },
+  },
+  {
+    value: 110,
+    get label() {
+      return t("rawUi.config_quick_prop_94e7f4358e33");
+    },
+  },
+  {
+    value: 125,
+    get label() {
+      return t("rawUi.config_quick_prop_d94fcfdd3641");
+    },
+  },
+  {
+    value: 140,
+    get label() {
+      return t("rawUi.config_quick_prop_a61b9366999f");
+    },
+  },
 ];
 
 const THINKING_LEVELS = ["off", "low", "medium", "high"];
 const TOOL_PROFILES = ["minimal", "coding", "messaging", "full"];
-const LOCAL_USER_LABEL = "You";
+const localUserLabel = () => t("rawUi.config_quick_userLabel");
 // Keep raw uploads comfortably below the 2 MB persisted data URL limit after
 // base64 expansion and a small MIME/header prefix are added.
 const MAX_LOCAL_USER_AVATAR_FILE_BYTES = 1_500_000;
@@ -181,15 +246,15 @@ function renderLocalUserAvatarPreview(avatar: string | null | undefined) {
   const avatarUrl = resolveLocalUserAvatarUrl(identity);
   const avatarText = resolveLocalUserAvatarText(identity);
   if (avatarUrl) {
-    return html`<img class="qs-user-avatar" src=${avatarUrl} alt=${LOCAL_USER_LABEL} />`;
+    return html`<img class="qs-user-avatar" src=${avatarUrl} alt=${localUserLabel()} />`;
   }
   if (avatarText) {
-    return html`<div class="qs-user-avatar qs-user-avatar--text" aria-label=${LOCAL_USER_LABEL}>
+    return html`<div class="qs-user-avatar qs-user-avatar--text" aria-label=${localUserLabel()}>
       ${avatarText}
     </div>`;
   }
   return html`
-    <div class="qs-user-avatar qs-user-avatar--default" aria-label=${LOCAL_USER_LABEL}>
+    <div class="qs-user-avatar qs-user-avatar--default" aria-label=${localUserLabel()}>
       ${renderDefaultUserAvatar()}
     </div>
   `;
@@ -238,25 +303,26 @@ function formatAssistantAvatarIssue(
     return null;
   }
   if (status === "remote") {
-    return "Remote URLs are blocked by Control UI image policy";
+    return t("rawUi.config_quick_avatar_remoteBlocked");
   }
   if (reason === "missing") {
-    return "File not found";
+    return t("rawUi.config_quick_avatar_fileNotFound");
   }
   if (reason === "unsupported_extension") {
-    return "Unsupported image type";
+    return t("rawUi.config_quick_avatar_unsupportedType");
   }
   if (reason === "outside_workspace") {
-    return "Outside workspace";
+    return t("rawUi.config_quick_avatar_outsideWorkspace");
   }
   if (reason === "too_large") {
-    return "Image is too large";
+    return t("rawUi.config_quick_avatar_tooLarge");
   }
-  return reason ? "Cannot render avatar" : null;
+  return reason ? t("rawUi.config_quick_avatar_cannotRender") : null;
 }
 
 function renderAssistantAvatarPreview(props: QuickSettingsProps) {
-  const assistantName = normalizeOptionalString(props.assistantName) ?? "Assistant";
+  const assistantName =
+    normalizeOptionalString(props.assistantName) ?? t("rawUi.config_quick_assistant");
   const assistantAvatarOverride = normalizeOptionalString(props.assistantAvatarOverride);
   const assistantAvatarUrl = resolveAssistantPreviewAvatarUrl(props);
   if (assistantAvatarUrl) {
@@ -371,13 +437,15 @@ function formatCharBudget(value: number): string {
 }
 
 function formatContextInjectionLabel(mode: ProfileSettings["contextInjection"]): string {
-  return mode === "always" ? "Every turn" : "Skip safe follow-ups";
+  return mode === "always"
+    ? t("rawUi.config_quick_context_everyTurn")
+    : t("rawUi.config_quick_context_skipSafeFollowUps");
 }
 
 function describeContextInjection(mode: ProfileSettings["contextInjection"]): string {
   return mode === "always"
-    ? "Reinject workspace bootstrap context on every turn."
-    : "Skip bootstrap reinjection after a completed safe follow-up.";
+    ? t("rawUi.config_quick_context_everyTurnDescription")
+    : t("rawUi.config_quick_context_skipSafeFollowUpsDescription");
 }
 
 function renderProfileStat(params: {
@@ -394,7 +462,9 @@ function renderProfileStat(params: {
         <span class="qs-profile-stat__value">${params.value}</span>
       </div>
       <div class="qs-profile-stat__sub">
-        ${changed ? `Was ${params.previousValue}` : "Matches current default"}
+        ${changed
+          ? t("rawUi.config_quick_dynamic_wasValue", { value: params.previousValue })
+          : t("rawUi.config_quick_dynamic_bb7a1dd5a269")}
       </div>
       <div class="qs-profile-stat__note muted">${params.note}</div>
     </div>
@@ -423,17 +493,17 @@ function renderModelCard(props: QuickSettingsProps) {
   const fastMode = formatFastModeValue(props.fastMode);
   return html`
     <div class="qs-card qs-card--model">
-      ${renderCardHeader(icons.brain, "Model & Thinking")}
+      ${renderCardHeader(icons.brain, t("rawUi.config_quick_card_modelThinking"))}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Model</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_69901bde6896")}</span>
           <button class="qs-row__value qs-row__value--action" @click=${props.onModelChange}>
             <code>${props.currentModel || "default"}</code>
             <span class="qs-row__chevron">${icons.chevronRight}</span>
           </button>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Thinking</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_132022dfb63b")}</span>
           <div class="qs-segmented">
             ${THINKING_LEVELS.map(
               (level) => html`
@@ -450,13 +520,13 @@ function renderModelCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Fast mode</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_328e238bfe35")}</span>
           <div class="qs-segmented">
             ${(
               [
-                ["auto", "Auto"],
-                ["on", "Fast"],
-                ["off", "Standard"],
+                ["auto", t("rawUi.config_quick_fastMode_auto")],
+                ["on", t("rawUi.config_quick_fastMode_fast")],
+                ["off", t("rawUi.config_quick_fastMode_standard")],
               ] as const
             ).map(
               ([value, label]) => html`
@@ -482,15 +552,17 @@ function renderChannelsCard(props: QuickSettingsProps) {
   const connectedCount = props.channels.filter((c) => c.connected).length;
   const badge =
     connectedCount > 0
-      ? html`<span class="qs-badge qs-badge--ok">${connectedCount} connected</span>`
+      ? html`<span class="qs-badge qs-badge--ok"
+          >${connectedCount} ${t("rawUi.config_quick_fragment_6624d772b456")}</span
+        >`
       : undefined;
 
   return html`
     <div class="qs-card qs-card--channels">
-      ${renderCardHeader(icons.send, "Channels", badge)}
+      ${renderCardHeader(icons.send, t("rawUi.config_quick_card_channels"), badge)}
       <div class="qs-card__body">
         ${props.channels.length === 0
-          ? html`<div class="qs-empty muted">No channels configured</div>`
+          ? html`<div class="qs-empty muted">${t("rawUi.config_quick_text_93754f425ae9")}</div>`
           : props.channels.map(
               (ch) => html`
                 <div class="qs-row">
@@ -500,12 +572,14 @@ function renderChannelsCard(props: QuickSettingsProps) {
                   </span>
                   <span class="qs-row__value">
                     ${ch.connected
-                      ? html`<span class="muted">${ch.detail ?? "Connected"}</span>`
+                      ? html`<span class="muted"
+                          >${ch.detail ?? t("rawUi.config_quick_dynamic_0b636d662c60")}</span
+                        >`
                       : html`<button
                           class="qs-link-btn"
                           @click=${() => props.onChannelConfigure?.(ch.id)}
                         >
-                          Connect →
+                          ${t("rawUi.config_quick_text_c076a451cf65")}
                         </button>`}
                   </span>
                 </div>
@@ -521,32 +595,46 @@ function renderAutomationsCard(props: QuickSettingsProps) {
 
   return html`
     <div class="qs-card qs-card--automations">
-      ${renderCardHeader(icons.zap, "Automations")}
+      ${renderCardHeader(icons.zap, t("rawUi.config_quick_card_automations"))}
       <div class="qs-card__body">
         <div class="qs-row">
           <span class="qs-row__label">
-            ${cronJobCount} scheduled task${cronJobCount !== 1 ? "s" : ""}
+            ${cronJobCount}
+            ${t("rawUi.config_quick_fragment_05d9eb88ab7c")}${cronJobCount !== 1 ? "s" : ""}
           </span>
-          <button class="qs-link-btn" @click=${props.onManageCron}>Manage →</button>
+          <button class="qs-link-btn" @click=${props.onManageCron}>
+            ${t("rawUi.config_quick_text_8de628d757e2")}
+          </button>
         </div>
         <div class="qs-row">
           <span class="qs-row__label">
-            ${directDeliveryJobCount} program-delivery
-            task${directDeliveryJobCount !== 1 ? "s" : ""}
+            ${directDeliveryJobCount}
+            ${t("rawUi.config_quick_fragment_7ce04413e849")}${directDeliveryJobCount !== 1
+              ? "s"
+              : ""}
           </span>
-          <button class="qs-link-btn" @click=${props.onManageCron}>Configure →</button>
+          <button class="qs-link-btn" @click=${props.onManageCron}>
+            ${t("rawUi.config_quick_text_dafc1706ffbd")}
+          </button>
         </div>
         <div class="qs-row">
           <span class="qs-row__label">
-            ${skillCount} skill${skillCount !== 1 ? "s" : ""} installed
+            ${skillCount}
+            ${t("rawUi.config_quick_fragment_452fa1120835")}${skillCount !== 1 ? "s" : ""}
+            ${t("rawUi.config_quick_fragment_0a925b77b464")}
           </span>
-          <button class="qs-link-btn" @click=${props.onBrowseSkills}>Browse →</button>
+          <button class="qs-link-btn" @click=${props.onBrowseSkills}>
+            ${t("rawUi.config_quick_text_0846800efe36")}
+          </button>
         </div>
         <div class="qs-row">
           <span class="qs-row__label">
-            ${mcpServerCount} MCP server${mcpServerCount !== 1 ? "s" : ""}
+            ${mcpServerCount}
+            ${t("rawUi.config_quick_fragment_5d7137dcd0da")}${mcpServerCount !== 1 ? "s" : ""}
           </span>
-          <button class="qs-link-btn" @click=${props.onConfigureMcp}>Configure →</button>
+          <button class="qs-link-btn" @click=${props.onConfigureMcp}>
+            ${t("rawUi.config_quick_text_dafc1706ffbd")}
+          </button>
         </div>
       </div>
     </div>
@@ -598,20 +686,25 @@ function renderPowerFeaturesCard(props: QuickSettingsProps) {
     <div class="qs-card qs-card--power">
       ${renderCardHeader(
         icons.spark,
-        "Power Features",
-        html`<span class="qs-badge qs-badge--accent">Custom fork</span>`,
+        t("rawUi.config_quick_card_powerFeatures"),
+        html`<span class="qs-badge qs-badge--accent"
+          >${t("rawUi.config_quick_text_24f206374ac2")}</span
+        >`,
       )}
       <div class="qs-card__body">
         <div class="qs-feature-row">
           <div class="qs-feature-row__icon">${icons.terminal}</div>
           <div class="qs-feature-row__copy">
-            <strong>Agy CLI provider</strong>
-            <span>Dynamic Flash/Pro discovery · ${agyMode} system prompt</span>
+            <strong>${t("rawUi.config_quick_text_eaf0170f31aa")}</strong>
+            <span
+              >${t("rawUi.config_quick_fragment_3ec1c4eaa0f9")} ${agyMode}
+              ${t("rawUi.config_quick_fragment_fc08b1e1b16a")}</span
+            >
           </div>
           <div class="qs-feature-row__actions">
             <select
               class="qs-feature-select"
-              aria-label="Agy system prompt mode"
+              aria-label=${t("rawUi.config_quick_attr_1df92fc9fdf9")}
               .value=${normalizedAgyMode}
               @change=${(event: Event) => {
                 const value = (event.currentTarget as HTMLSelectElement).value;
@@ -620,50 +713,60 @@ function renderPowerFeaturesCard(props: QuickSettingsProps) {
                 }
               }}
             >
-              <option value="filtered">Filtered prompt</option>
-              <option value="full">Full prompt</option>
-              <option value="none">No system prompt</option>
+              <option value="filtered">${t("rawUi.config_quick_text_26ccffc851c0")}</option>
+              <option value="full">${t("rawUi.config_quick_text_88a7c0d81dcc")}</option>
+              <option value="none">${t("rawUi.config_quick_text_367aa8f1509f")}</option>
             </select>
             <span class="qs-badge ${agyEnabled ? "qs-badge--ok" : "qs-badge--warn"}">
-              ${agyEnabled ? "Available" : "Disabled"}
+              ${agyEnabled
+                ? t("rawUi.config_quick_available")
+                : t("rawUi.config_quick_dynamic_a8c294854644")}
             </span>
-            <button class="qs-link-btn" @click=${props.onConfigureAgy}>Details →</button>
+            <button class="qs-link-btn" @click=${props.onConfigureAgy}>
+              ${t("rawUi.config_quick_text_fa7d9a1446c5")}
+            </button>
           </div>
         </div>
         <div class="qs-feature-row">
           <div class="qs-feature-row__icon">${icons.send}</div>
           <div class="qs-feature-row__copy">
-            <strong>Program delivery</strong>
-            <span>Main-session cron output goes directly to an explicit channel and recipient</span>
+            <strong>${t("rawUi.config_quick_text_bef0cfa7c245")}</strong>
+            <span>${t("rawUi.config_quick_text_2ef55b756b06")}</span>
           </div>
           <div class="qs-feature-row__actions">
             <span class="qs-badge ${directCount > 0 ? "qs-badge--ok" : ""}">
-              ${directCount} active
+              ${directCount} ${t("rawUi.config_quick_fragment_0b805ed866c4")}
             </span>
-            <button class="qs-link-btn" @click=${props.onManageCron}>Manage →</button>
+            <button class="qs-link-btn" @click=${props.onManageCron}>
+              ${t("rawUi.config_quick_text_8de628d757e2")}
+            </button>
           </div>
         </div>
         <div class="qs-feature-row">
           <div class="qs-feature-row__icon">${icons.bug}</div>
           <div class="qs-feature-row__copy">
-            <strong>QA Lab</strong>
-            <span>Private debugger UI, scenario runner, captures, and evidence gallery</span>
+            <strong>${t("rawUi.config_quick_text_77422a7f1888")}</strong>
+            <span>${t("rawUi.config_quick_text_eee1e5bb63e0")}</span>
           </div>
           <div class="qs-feature-row__actions">
             <label class="qs-toggle qs-toggle--compact">
               <input
                 type="checkbox"
                 .checked=${qaLabEnabled}
-                aria-label="Enable QA Lab"
+                aria-label=${t("rawUi.config_quick_attr_3674ba843e7d")}
                 @change=${(event: Event) =>
                   props.onQaLabEnabledChange?.((event.currentTarget as HTMLInputElement).checked)}
               />
               <span class="qs-toggle__track"></span>
             </label>
             <span class="qs-badge ${qaLabEnabled ? "qs-badge--ok" : ""}">
-              ${qaLabEnabled ? "Enabled" : "Optional"}
+              ${qaLabEnabled
+                ? t("rawUi.config_quick_dynamic_de8a93bad0f9")
+                : t("rawUi.config_quick_optional")}
             </span>
-            <button class="qs-link-btn" @click=${props.onConfigureQaLab}>Details →</button>
+            <button class="qs-link-btn" @click=${props.onConfigureQaLab}>
+              ${t("rawUi.config_quick_text_fa7d9a1446c5")}
+            </button>
           </div>
         </div>
       </div>
@@ -677,31 +780,32 @@ function renderConfigurationCoverageCard(props: QuickSettingsProps) {
     <div class="qs-card qs-card--coverage">
       ${renderCardHeader(
         icons.fileCode,
-        "Complete Configuration",
+        t("rawUi.config_quick_card_completeConfiguration"),
         props.configDirty
-          ? html`<span class="qs-badge qs-badge--warn">Unsaved changes</span>`
-          : html`<span class="qs-badge qs-badge--ok">In sync</span>`,
+          ? html`<span class="qs-badge qs-badge--warn"
+              >${t("rawUi.config_quick_text_290761725737")}</span
+            >`
+          : html`<span class="qs-badge qs-badge--ok"
+              >${t("rawUi.config_quick_text_c66dbbca4925")}</span
+            >`,
       )}
       <div class="qs-coverage">
         <div class="qs-coverage__metric">
-          <strong>${sectionCount || "All"}</strong>
-          <span>${sectionCount === 1 ? "schema section" : "schema sections"}</span>
+          <strong>${sectionCount || t("rawUi.config_quick_all")}</strong>
+          <span>${t("rawUi.config_quick_schemaSections")}</span>
         </div>
-        <p>
-          Every OpenClaw setting stays editable. Guided fields come from the live gateway schema;
-          plugin options are merged automatically; raw JSON remains the universal escape hatch.
-        </p>
-        <div class="qs-coverage__layers" aria-label="Configuration coverage">
-          <span>${icons.check} Guided form</span>
-          <span>${icons.check} Plugin settings</span>
+        <p>${t("rawUi.config_quick_text_a3918619eec0")}</p>
+        <div class="qs-coverage__layers" aria-label=${t("rawUi.config_quick_attr_3377d4d35b36")}>
+          <span>${icons.check} ${t("rawUi.config_quick_fragment_d7d7367261ab")}</span>
+          <span>${icons.check} ${t("rawUi.config_quick_fragment_5d517c426a78")}</span>
           <span>${icons.check} Raw JSON</span>
         </div>
         <div class="qs-coverage__actions">
           <button class="btn btn--primary btn--sm" @click=${props.onAdvancedSettings}>
-            Browse all settings
+            ${t("rawUi.config_quick_text_b4603711ec4d")}
           </button>
           <button class="btn btn--sm" @click=${props.onRawSettings}>
-            ${icons.fileCode} Edit raw JSON
+            ${icons.fileCode} ${t("rawUi.config_quick_fragment_22b90d12cf3b")}
           </button>
         </div>
       </div>
@@ -720,12 +824,14 @@ function renderSecurityCard(props: QuickSettingsProps) {
     <div class="qs-card qs-card--security">
       ${renderCardHeader(
         icons.eye,
-        "Security",
-        html`<button class="qs-link-btn" @click=${props.onSecurityConfigure}>Configure →</button>`,
+        t("rawUi.config_quick_card_security"),
+        html`<button class="qs-link-btn" @click=${props.onSecurityConfigure}>
+          ${t("rawUi.config_quick_text_dafc1706ffbd")}
+        </button>`,
       )}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Gateway auth</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_37646a1ec487")}</span>
           <span class="qs-row__value">
             <span class="qs-badge ${gatewayAuth !== "none" ? "qs-badge--ok" : "qs-badge--warn"}"
               >${gatewayAuth}</span
@@ -733,7 +839,7 @@ function renderSecurityCard(props: QuickSettingsProps) {
           </span>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Exec policy</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_b2a022b0cd57")}</span>
           <span class="qs-row__value"><span class="qs-badge">${execPolicy}</span></span>
         </div>
         <div class="qs-row">
@@ -746,7 +852,11 @@ function renderSecurityCard(props: QuickSettingsProps) {
                 props.onBrowserEnabledToggle?.((event.currentTarget as HTMLInputElement).checked)}
             />
             <span class="qs-toggle__track"></span>
-            <span class="qs-toggle__hint muted">${browserEnabled ? "Enabled" : "Disabled"}</span>
+            <span class="qs-toggle__hint muted"
+              >${browserEnabled
+                ? t("rawUi.config_quick_dynamic_de8a93bad0f9")
+                : t("rawUi.config_quick_dynamic_a8c294854644")}</span
+            >
           </label>
         </div>
         <div class="qs-row qs-row--tool-profile">
@@ -768,10 +878,12 @@ function renderSecurityCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Device auth</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_516828a67e26")}</span>
           <span class="qs-row__value">
             <span class="qs-badge ${deviceAuth ? "qs-badge--ok" : "qs-badge--warn"}"
-              >${deviceAuth ? "Enabled" : "Disabled"}</span
+              >${deviceAuth
+                ? t("rawUi.config_quick_dynamic_de8a93bad0f9")
+                : t("rawUi.config_quick_dynamic_a8c294854644")}</span
             >
           </span>
         </div>
@@ -782,18 +894,18 @@ function renderSecurityCard(props: QuickSettingsProps) {
 
 function renderAppearanceCard(props: QuickSettingsProps) {
   const importedThemeName = props.hasCustomTheme
-    ? (props.customThemeLabel ?? "Imported theme")
-    : "Import";
+    ? (props.customThemeLabel ?? t("rawUi.config_quick_importedTheme"))
+    : t("rawUi.config_quick_import");
   const themeOptions: ThemeOption[] = [
     ...BUILTIN_THEME_OPTIONS,
     { id: "custom", label: importedThemeName },
   ];
   return html`
     <div class="qs-card qs-card--appearance">
-      ${renderCardHeader(icons.spark, "Appearance")}
+      ${renderCardHeader(icons.spark, t("rawUi.config_quick_card_appearance"))}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Theme</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_695509dea6d5")}</span>
           <div class="qs-segmented">
             ${themeOptions.map(
               (opt) => html`
@@ -820,7 +932,7 @@ function renderAppearanceCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Mode</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_04e57dc7a5f2")}</span>
           <div class="qs-segmented">
             ${(["light", "dark", "system"] as ThemeMode[]).map(
               (mode) => html`
@@ -843,7 +955,7 @@ function renderAppearanceCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Roundness</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_c80e095a3bae")}</span>
           <div class="qs-segmented">
             ${BORDER_RADIUS_STOPS.map(
               (stop) => html`
@@ -861,7 +973,7 @@ function renderAppearanceCard(props: QuickSettingsProps) {
           </div>
         </div>
         <div class="qs-row">
-          <span class="qs-row__label">Text size</span>
+          <span class="qs-row__label">${t("rawUi.config_quick_text_2c696afa7ca1")}</span>
           <div class="qs-segmented">
             ${TEXT_SCALE_OPTIONS.map(
               (stop) => html`
@@ -890,7 +1002,8 @@ function renderPersonalCard(props: QuickSettingsProps) {
     avatar: props.userAvatar ?? null,
   });
   const avatarText = resolveLocalUserAvatarText(identity) ?? "";
-  const assistantName = normalizeOptionalString(props.assistantName) ?? "Assistant";
+  const assistantName =
+    normalizeOptionalString(props.assistantName) ?? t("rawUi.config_quick_assistant");
   const assistantAvatarUrl = resolveAssistantPreviewAvatarUrl(props);
   const assistantAvatarRendered = Boolean(
     assistantAvatarUrl ||
@@ -906,35 +1019,39 @@ function renderPersonalCard(props: QuickSettingsProps) {
     assistantAvatarRendered,
     Boolean(assistantAvatarOverride),
   );
-  const assistantAvatarSourceLabel = assistantAvatarOverride ? "UI override" : "IDENTITY.md";
+  const assistantAvatarSourceLabel = assistantAvatarOverride
+    ? t("rawUi.config_quick_avatar_uiOverride")
+    : "IDENTITY.md";
   const canOverrideAssistantAvatar = Boolean(props.onAssistantAvatarOverrideChange);
   const assistantAvatarSubtitle = assistantAvatarOverride
-    ? "Override from settings"
+    ? t("rawUi.config_quick_avatar_overrideFromSettings")
     : assistantAvatarIssue
-      ? "Fallback avatar"
+      ? t("rawUi.config_quick_avatar_fallbackAvatar")
       : assistantAvatarRendered
-        ? "From IDENTITY.md"
-        : "Fallback logo";
+        ? t("rawUi.config_quick_avatar_fromIdentity")
+        : t("rawUi.config_quick_avatar_fallbackLogo");
   return html`
     <div class="qs-card qs-card--personal">
-      ${renderCardHeader(icons.image, "Personal")}
+      ${renderCardHeader(icons.image, t("rawUi.config_quick_card_personal"))}
       <div class="qs-card__body">
         <div class="qs-identity-grid">
-          <section class="qs-identity-card" aria-label="Your local chat identity">
+          <section class="qs-identity-card" aria-label=${t("rawUi.config_quick_attr_5ec87147f684")}>
             ${renderLocalUserAvatarPreview(props.userAvatar)}
             <div class="qs-identity-card__copy">
-              <div class="qs-identity-card__eyebrow">User</div>
-              <div class="qs-identity-card__title">${LOCAL_USER_LABEL}</div>
-              <div class="qs-identity-card__sub">Avatar is browser-local</div>
+              <div class="qs-identity-card__eyebrow">
+                ${t("rawUi.config_quick_text_a22494d44acf")}
+              </div>
+              <div class="qs-identity-card__title">${localUserLabel()}</div>
+              <div class="qs-identity-card__sub">${t("rawUi.config_quick_text_0463fd853a76")}</div>
               <div class="qs-identity-card__repair">
                 <label class="qs-field">
-                  <span class="qs-row__label">Avatar text / emoji</span>
+                  <span class="qs-row__label">${t("rawUi.config_quick_text_d767e7ab036a")}</span>
                   <input
                     class="qs-field__input"
                     type="text"
                     maxlength="16"
                     .value=${avatarText}
-                    placeholder="JD or 🦞"
+                    placeholder=${t("rawUi.config_quick_attr_3ec4eeba7577")}
                     @input=${(e: Event) => {
                       const value = (e.target as HTMLInputElement).value;
                       props.onUserAvatarChange?.(value.trim() ? value : null);
@@ -943,7 +1060,7 @@ function renderPersonalCard(props: QuickSettingsProps) {
                 </label>
                 <div class="qs-identity-card__actions">
                   <label class="btn btn--sm">
-                    Choose image
+                    ${t("rawUi.config_quick_text_571c7528c350")}
                     <input
                       type="file"
                       accept="image/*"
@@ -959,20 +1076,22 @@ function renderPersonalCard(props: QuickSettingsProps) {
                       props.onUserAvatarChange?.(null);
                     }}
                   >
-                    Clear avatar
+                    ${t("rawUi.config_quick_text_5049f35660b3")}
                   </button>
                 </div>
-                <div class="muted">Stored in this browser only.</div>
+                <div class="muted">${t("rawUi.config_quick_text_6e7f5952d4b1")}</div>
               </div>
             </div>
           </section>
           <section
             class="qs-identity-card qs-identity-card--assistant"
-            aria-label="Assistant identity"
+            aria-label=${t("rawUi.config_quick_attr_29ea12980431")}
           >
             ${renderAssistantAvatarPreview(props)}
             <div class="qs-identity-card__copy">
-              <div class="qs-identity-card__eyebrow">Assistant</div>
+              <div class="qs-identity-card__eyebrow">
+                ${t("rawUi.config_quick_text_7e50a4f30a53")}
+              </div>
               <div class="qs-identity-card__title">${assistantName}</div>
               <div class="qs-identity-card__sub">${assistantAvatarSubtitle}</div>
               ${assistantAvatarSource
@@ -995,10 +1114,10 @@ function renderPersonalCard(props: QuickSettingsProps) {
                       <div class="qs-identity-card__actions">
                         <label class="btn btn--sm">
                           ${props.assistantAvatarUploadBusy
-                            ? "Saving..."
+                            ? t("rawUi.config_quick_dynamic_e486ea385a13")
                             : assistantAvatarOverride
-                              ? "Replace image"
-                              : "Choose image"}
+                              ? t("rawUi.config_quick_dynamic_ddc99c38bede")
+                              : t("rawUi.config_quick_dynamic_a8de669edf12")}
                           <input
                             type="file"
                             accept="image/*"
@@ -1017,14 +1136,12 @@ function renderPersonalCard(props: QuickSettingsProps) {
                                   void props.onAssistantAvatarClearOverride?.();
                                 }}
                               >
-                                Clear override
+                                ${t("rawUi.config_quick_text_ab881f5a927a")}
                               </button>
                             `
                           : nothing}
                       </div>
-                      <div class="muted">
-                        Stores a Control UI override. Clear it to return to IDENTITY.md.
-                      </div>
+                      <div class="muted">${t("rawUi.config_quick_text_00e853e81b89")}</div>
                     </div>
                   `
                 : nothing}
@@ -1063,12 +1180,10 @@ function renderPresetsCard(props: QuickSettingsProps) {
           <span class="qs-status-dot"></span>
           <div class="qs-profile-state__text">
             <span class="qs-profile-state__title"
-              >${selectedPreset?.label ?? "Custom"} is selected but not saved yet.</span
+              >${selectedPreset?.label ?? t("rawUi.config_quick_dynamic_ce2f41cdcc94")}
+              ${t("rawUi.config_quick_fragment_356fa73bee88")}</span
             >
-            <span class="qs-profile-state__copy"
-              >Save Profile writes it as the default. Apply Now writes it and reloads the current
-              session.</span
-            >
+            <span class="qs-profile-state__copy">${t("rawUi.config_quick_text_0db2ff9b4771")}</span>
           </div>
         </div>
       `
@@ -1078,10 +1193,10 @@ function renderPresetsCard(props: QuickSettingsProps) {
             <span class="qs-status-dot qs-status-dot--ok"></span>
             <div class="qs-profile-state__text">
               <span class="qs-profile-state__title"
-                >${savedPreset.label} is your current default.</span
+                >${savedPreset.label} ${t("rawUi.config_quick_fragment_b2ed4ec8d21b")}</span
               >
               <span class="qs-profile-state__copy"
-                >Profiles only change bootstrap size and follow-up reinjection behavior.</span
+                >${t("rawUi.config_quick_text_48688fc526ca")}</span
               >
             </div>
           </div>
@@ -1090,41 +1205,42 @@ function renderPresetsCard(props: QuickSettingsProps) {
           <div class="qs-profile-state" aria-live="polite">
             <span class="qs-status-dot"></span>
             <div class="qs-profile-state__text">
-              <span class="qs-profile-state__title">Custom bootstrap settings are active.</span>
+              <span class="qs-profile-state__title"
+                >${t("rawUi.config_quick_text_2149bdba7907")}</span
+              >
               <span class="qs-profile-state__copy"
-                >Choose a built-in profile to replace the current custom values.</span
+                >${t("rawUi.config_quick_text_5943fc7b8386")}</span
               >
             </div>
           </div>
         `;
-  const panelTitle = selectedPreset?.label ?? "Custom Configuration";
+  const panelTitle = selectedPreset?.label ?? t("rawUi.config_quick_customConfiguration");
   const panelDescription =
-    selectedPreset?.detail ?? "This config does not currently match one of the built-in profiles.";
-  const panelImpact =
-    selectedPreset?.impact ??
-    "Pick a profile to stage a focused change to bootstrap size and follow-up behavior.";
+    selectedPreset?.detail ?? t("rawUi.config_quick_customConfigurationDescription");
+  const panelImpact = selectedPreset?.impact ?? t("rawUi.config_quick_customConfigurationImpact");
   const commitCopy = hasPendingProfileChange
-    ? "Save Profile writes this as the default. Apply Now writes it and reloads the current session."
-    : "Other staged config edits are pending. Saving here will commit all staged config changes.";
+    ? t("rawUi.config_quick_commitProfileCopy")
+    : t("rawUi.config_quick_commitAllCopy");
 
   return html`
     <div class="qs-card qs-card--span-all">
       ${renderCardHeader(
         icons.zap,
-        "Context Profile",
+        t("rawUi.config_quick_card_contextProfile"),
         hasPendingProfileChange
-          ? html`<span class="qs-badge qs-badge--warn">Pending</span>`
+          ? html`<span class="qs-badge qs-badge--warn"
+              >${t("rawUi.config_quick_text_feda0ef66860")}</span
+            >`
           : savedPreset
-            ? html`<span class="qs-badge qs-badge--ok">Saved</span>`
-            : html`<span class="qs-badge">Custom</span>`,
+            ? html`<span class="qs-badge qs-badge--ok"
+                >${t("rawUi.config_quick_text_3c0af9de4dd1")}</span
+              >`
+            : html`<span class="qs-badge">${t("rawUi.config_quick_text_b1660112569b")}</span>`,
       )}
       <div class="qs-card__body qs-profiles">
         <div class="qs-profiles__copy">
-          <div class="qs-profiles__eyebrow">Bootstrap Context</div>
-          <p class="qs-profiles__intro">
-            Choose how much workspace context OpenClaw injects into each run. These profiles do not
-            change your model, tools, channels, or theme.
-          </p>
+          <div class="qs-profiles__eyebrow">${t("rawUi.config_quick_text_83f592fd146c")}</div>
+          <p class="qs-profiles__intro">${t("rawUi.config_quick_text_b1306631ca95")}</p>
           ${stateBanner}
           <div class="qs-presets-grid">
             ${CONFIG_PRESETS.map((preset) => {
@@ -1151,21 +1267,25 @@ function renderPresetsCard(props: QuickSettingsProps) {
                     </div>
                     <div class="qs-preset__badges">
                       ${preset.id === savedPresetId
-                        ? html`<span class="qs-badge qs-badge--ok">Current</span>`
+                        ? html`<span class="qs-badge qs-badge--ok"
+                            >${t("rawUi.config_quick_text_7810566609c0")}</span
+                          >`
                         : nothing}
                       ${hasPendingProfileChange && preset.id === selectedPresetId
-                        ? html`<span class="qs-badge qs-badge--warn">Selected</span>`
+                        ? html`<span class="qs-badge qs-badge--warn"
+                            >${t("rawUi.config_quick_text_a1f41d3ba3b6")}</span
+                          >`
                         : nothing}
                     </div>
                   </div>
                   <div class="qs-preset__meta">
                     <span
-                      >${formatCharBudget(Number(presetDefaults.bootstrapMaxChars ?? 0))} per
-                      file</span
+                      >${formatCharBudget(Number(presetDefaults.bootstrapMaxChars ?? 0))}
+                      ${t("rawUi.config_quick_fragment_6e969b0f8b92")}</span
                     >
                     <span
                       >${formatCharBudget(Number(presetDefaults.bootstrapTotalMaxChars ?? 0))}
-                      total</span
+                      ${t("rawUi.config_quick_fragment_d5cc6fd33178")}</span
                     >
                     <span>${formatContextInjectionLabel(presetContext)}</span>
                   </div>
@@ -1177,7 +1297,9 @@ function renderPresetsCard(props: QuickSettingsProps) {
 
         <div class="qs-profile-panel">
           <div class="qs-profile-panel__eyebrow">
-            ${selectedPreset ? "Selected Profile" : "Current Values"}
+            ${selectedPreset
+              ? t("rawUi.config_quick_dynamic_509d13b8233a")
+              : t("rawUi.config_quick_dynamic_f1918f485455")}
           </div>
           <h4 class="qs-profile-panel__title">${panelTitle}</h4>
           <p class="qs-profile-panel__copy">${panelDescription}</p>
@@ -1185,19 +1307,19 @@ function renderPresetsCard(props: QuickSettingsProps) {
 
           <div class="qs-profile-panel__stats">
             ${renderProfileStat({
-              label: "Bootstrap Per File",
+              label: t("rawUi.config_quick_prop_6906916e5fe0"),
               value: formatCharBudget(draftSettings.bootstrapMaxChars),
               previousValue: formatCharBudget(savedSettings.bootstrapMaxChars),
-              note: "Maximum context injected from any single bootstrap file.",
+              note: t("rawUi.config_quick_context_maxPerFile"),
             })}
             ${renderProfileStat({
-              label: "Bootstrap Total",
+              label: t("rawUi.config_quick_prop_d9433c9a4580"),
               value: formatCharBudget(draftSettings.bootstrapTotalMaxChars),
               previousValue: formatCharBudget(savedSettings.bootstrapTotalMaxChars),
-              note: "Total combined context allowed across all bootstrap files.",
+              note: t("rawUi.config_quick_context_maxTotal"),
             })}
             ${renderProfileStat({
-              label: "Follow-up Turns",
+              label: t("rawUi.config_quick_prop_d69a7255e6d2"),
               value: formatContextInjectionLabel(draftSettings.contextInjection),
               previousValue: formatContextInjectionLabel(savedSettings.contextInjection),
               note: describeContextInjection(draftSettings.contextInjection),
@@ -1214,7 +1336,7 @@ function renderPresetsCard(props: QuickSettingsProps) {
                       ?disabled=${props.configSaving === true || props.configApplying === true}
                       @click=${props.onResetConfig}
                     >
-                      Discard
+                      ${t("rawUi.config_quick_text_07e5976869bf")}
                     </button>
                     <button
                       class="btn btn--sm primary"
@@ -1222,17 +1344,19 @@ function renderPresetsCard(props: QuickSettingsProps) {
                       @click=${props.onSaveConfig}
                     >
                       ${props.configSaving === true
-                        ? "Saving…"
+                        ? t("rawUi.config_quick_saving")
                         : hasPendingProfileChange
-                          ? "Save Profile"
-                          : "Save Changes"}
+                          ? t("rawUi.config_quick_dynamic_2c7cb063fcc3")
+                          : t("rawUi.config_quick_dynamic_3273523a0fb8")}
                     </button>
                     <button
                       class="btn btn--sm"
                       ?disabled=${!canCommit}
                       @click=${props.onApplyConfig}
                     >
-                      ${props.configApplying === true ? "Applying…" : "Apply Now"}
+                      ${props.configApplying === true
+                        ? t("rawUi.config_quick_applying")
+                        : t("rawUi.config_quick_dynamic_a22d618d9be3")}
                     </button>
                   </div>
                 </div>
@@ -1240,8 +1364,8 @@ function renderPresetsCard(props: QuickSettingsProps) {
             : html`
                 <div class="qs-profile-panel__footer muted" aria-live="polite">
                   ${savedPreset
-                    ? "Saved and ready. Choose another profile to stage a change."
-                    : "Current values are custom. Choose a profile to stage a change."}
+                    ? t("rawUi.config_quick_dynamic_e889614a96a9")
+                    : t("rawUi.config_quick_dynamic_e277a4fd196a")}
                 </div>
               `}
         </div>
@@ -1255,7 +1379,11 @@ function renderConnectionFooter(props: QuickSettingsProps) {
     <div class="qs-footer">
       <div class="qs-footer__row">
         <span class="qs-status-dot ${props.connected ? "qs-status-dot--ok" : ""}"></span>
-        <span class="muted">${props.connected ? "Connected" : "Offline"}</span>
+        <span class="muted"
+          >${props.connected
+            ? t("rawUi.config_quick_dynamic_0b636d662c60")
+            : t("rawUi.config_quick_dynamic_4a6fc8988c33")}</span
+        >
         ${props.assistantName ? html`<span class="muted">· ${props.assistantName}</span>` : nothing}
         ${props.version ? html`<span class="muted">· v${props.version}</span>` : nothing}
       </div>
@@ -1270,18 +1398,16 @@ export function renderQuickSettings(props: QuickSettingsProps) {
     <div class="qs-container">
       <div class="qs-header">
         <div class="qs-header__copy">
-          <span class="qs-header__eyebrow">CONTROL CENTER</span>
-          <h2 class="qs-header__title">System settings</h2>
-          <p class="qs-header__subtitle">
-            Models, channels, automations, custom features, and every OpenClaw configuration key.
-          </p>
+          <span class="qs-header__eyebrow">${t("rawUi.config_quick_text_0d895109e078")}</span>
+          <h2 class="qs-header__title">${t("rawUi.config_quick_text_7fb2bbfadf99")}</h2>
+          <p class="qs-header__subtitle">${t("rawUi.config_quick_text_3b1bc1aa23ff")}</p>
         </div>
         <div class="qs-header__actions">
           <button class="btn btn--sm" @click=${props.onRawSettings}>
             ${icons.fileCode} Raw JSON
           </button>
           <button class="btn btn--primary btn--sm" @click=${props.onAdvancedSettings}>
-            All settings ${icons.chevronRight}
+            ${t("rawUi.config_quick_fragment_7750b475beef")} ${icons.chevronRight}
           </button>
         </div>
       </div>

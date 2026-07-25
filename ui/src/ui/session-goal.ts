@@ -1,4 +1,5 @@
 // Control UI module implements session goal behavior.
+import { t } from "../i18n/index.ts";
 import type { SessionGoal } from "./types.ts";
 
 export function formatGoalTokenCount(value: number): string {
@@ -33,17 +34,17 @@ export function formatGoalUsage(goal: SessionGoal): string | null {
 export function formatGoalStatusLabel(status: SessionGoal["status"]): string {
   switch (status) {
     case "active":
-      return "Pursuing goal";
+      return t("rawUi.session_goal_active");
     case "paused":
-      return "Goal paused";
+      return t("rawUi.session_goal_paused");
     case "blocked":
-      return "Goal blocked";
+      return t("rawUi.session_goal_blocked");
     case "usage_limited":
-      return "Goal hit usage limits";
+      return t("rawUi.session_goal_limitReached");
     case "budget_limited":
-      return "Goal unmet";
+      return t("rawUi.session_goal_unmet");
     case "complete":
-      return "Goal achieved";
+      return t("rawUi.session_goal_achieved");
   }
   const unreachable: never = status;
   return unreachable;

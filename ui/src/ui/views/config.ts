@@ -25,19 +25,39 @@ import {
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
 
 const BORDER_RADIUS_LABELS: Record<BorderRadiusStop, string> = {
-  0: "None",
-  25: "Slight",
-  50: "Default",
-  75: "Round",
-  100: "Full",
+  get 0() {
+    return t("rawUi.config_radius_none");
+  },
+  get 25() {
+    return t("rawUi.config_radius_slight");
+  },
+  get 50() {
+    return t("rawUi.config_radius_default");
+  },
+  get 75() {
+    return t("rawUi.config_radius_round");
+  },
+  get 100() {
+    return t("rawUi.config_radius_full");
+  },
 };
 
 const TEXT_SCALE_LABELS: Record<TextScaleStop, string> = {
-  90: "Small",
-  100: "Default",
-  110: "Large",
-  125: "XL",
-  140: "XXL",
+  get 90() {
+    return t("rawUi.config_textScale_small");
+  },
+  get 100() {
+    return t("rawUi.config_textScale_default");
+  },
+  get 110() {
+    return t("rawUi.config_textScale_large");
+  },
+  get 125() {
+    return t("rawUi.config_textScale_xl");
+  },
+  get 140() {
+    return t("rawUi.config_textScale_xxl");
+  },
 };
 
 export type WebPushUiState = {
@@ -411,76 +431,276 @@ type SectionCategory = {
 const SECTION_CATEGORIES: SectionCategory[] = [
   {
     id: "core",
-    label: "Core",
+    get label() {
+      return t("rawUi.config_prop_e2f703fb9fc0");
+    },
     sections: [
-      { key: "env", label: "Environment" },
-      { key: "auth", label: "Authentication" },
-      { key: "update", label: "Updates" },
-      { key: "meta", label: "Meta" },
-      { key: "logging", label: "Logging" },
-      { key: "diagnostics", label: "Diagnostics" },
-      { key: "cli", label: "Cli" },
-      { key: "secrets", label: "Secrets" },
+      {
+        key: "env",
+        get label() {
+          return t("rawUi.config_prop_2f46573930ec");
+        },
+      },
+      {
+        key: "auth",
+        get label() {
+          return t("rawUi.config_prop_b00d839d2b1a");
+        },
+      },
+      {
+        key: "update",
+        get label() {
+          return t("rawUi.config_prop_f9b482913e11");
+        },
+      },
+      {
+        key: "meta",
+        get label() {
+          return t("rawUi.config_prop_8087674edebc");
+        },
+      },
+      {
+        key: "logging",
+        get label() {
+          return t("rawUi.config_prop_1b232fb0e6da");
+        },
+      },
+      {
+        key: "diagnostics",
+        get label() {
+          return t("rawUi.config_prop_b737ebfffd32");
+        },
+      },
+      {
+        key: "cli",
+        get label() {
+          return t("rawUi.config_prop_588d13776d39");
+        },
+      },
+      {
+        key: "secrets",
+        get label() {
+          return t("rawUi.config_prop_f528668a270c");
+        },
+      },
     ],
   },
   {
     id: "ai",
-    label: "AI & Agents",
+    get label() {
+      return t("rawUi.config_prop_e727b8b0c39a");
+    },
     sections: [
-      { key: "agents", label: "Agents" },
-      { key: "models", label: "Models" },
-      { key: "skills", label: "Skills" },
-      { key: "tools", label: "Tools" },
-      { key: "memory", label: "Memory" },
-      { key: "session", label: "Session" },
+      {
+        key: "agents",
+        get label() {
+          return t("rawUi.config_prop_9f436a0f4b3a");
+        },
+      },
+      {
+        key: "models",
+        get label() {
+          return t("rawUi.config_prop_e21082a5da20");
+        },
+      },
+      {
+        key: "skills",
+        get label() {
+          return t("rawUi.config_prop_8aa05d8fa26b");
+        },
+      },
+      {
+        key: "tools",
+        get label() {
+          return t("rawUi.config_prop_859e488191d5");
+        },
+      },
+      {
+        key: "memory",
+        get label() {
+          return t("rawUi.config_prop_d619afa66a8d");
+        },
+      },
+      {
+        key: "session",
+        get label() {
+          return t("rawUi.config_prop_388afd56a6ad");
+        },
+      },
     ],
   },
   {
     id: "communication",
-    label: "Communication",
+    get label() {
+      return t("rawUi.config_prop_fe3a27b51899");
+    },
     sections: [
-      { key: "channels", label: "Channels" },
-      { key: "messages", label: "Messages" },
-      { key: "broadcast", label: "Broadcast" },
-      { key: "__notifications__", label: "Notifications" },
-      { key: "talk", label: "Talk" },
-      { key: "audio", label: "Audio" },
+      {
+        key: "channels",
+        get label() {
+          return t("rawUi.config_prop_a1ac6e04c1b4");
+        },
+      },
+      {
+        key: "messages",
+        get label() {
+          return t("rawUi.config_prop_cd8c8718112e");
+        },
+      },
+      {
+        key: "broadcast",
+        get label() {
+          return t("rawUi.config_prop_6815801eacc8");
+        },
+      },
+      {
+        key: "__notifications__",
+        get label() {
+          return t("rawUi.config_prop_49cdd44933c6");
+        },
+      },
+      {
+        key: "talk",
+        get label() {
+          return t("rawUi.config_prop_ba9b88f984bb");
+        },
+      },
+      {
+        key: "audio",
+        get label() {
+          return t("rawUi.config_prop_fcbd3e4975aa");
+        },
+      },
     ],
   },
   {
     id: "automation",
-    label: "Automation",
+    get label() {
+      return t("rawUi.config_prop_43bbb24b9fbc");
+    },
     sections: [
-      { key: "commands", label: "Commands" },
-      { key: "hooks", label: "Hooks" },
-      { key: "bindings", label: "Bindings" },
-      { key: "cron", label: "Cron" },
-      { key: "approvals", label: "Approvals" },
-      { key: "plugins", label: "Plugins" },
+      {
+        key: "commands",
+        get label() {
+          return t("rawUi.config_prop_f319e79779d9");
+        },
+      },
+      {
+        key: "hooks",
+        get label() {
+          return t("rawUi.config_prop_11c3612d078b");
+        },
+      },
+      {
+        key: "bindings",
+        get label() {
+          return t("rawUi.config_prop_f0e516d8ab7a");
+        },
+      },
+      {
+        key: "cron",
+        get label() {
+          return t("rawUi.config_prop_0bdb0c4842ea");
+        },
+      },
+      {
+        key: "approvals",
+        get label() {
+          return t("rawUi.config_prop_50090928668c");
+        },
+      },
+      {
+        key: "plugins",
+        get label() {
+          return t("rawUi.config_prop_33c04f801116");
+        },
+      },
     ],
   },
   {
     id: "infrastructure",
-    label: "Infrastructure",
+    get label() {
+      return t("rawUi.config_prop_496ce6f62db4");
+    },
     sections: [
-      { key: "gateway", label: "Gateway" },
-      { key: "web", label: "Web" },
-      { key: "browser", label: "Browser" },
-      { key: "nodeHost", label: "NodeHost" },
-      { key: "canvasHost", label: "CanvasHost" },
-      { key: "discovery", label: "Discovery" },
-      { key: "media", label: "Media" },
-      { key: "acp", label: "Acp" },
-      { key: "mcp", label: "Mcp" },
+      {
+        key: "gateway",
+        get label() {
+          return t("rawUi.config_prop_4b3b3a136f62");
+        },
+      },
+      {
+        key: "web",
+        get label() {
+          return t("rawUi.config_prop_598de2c5fd4d");
+        },
+      },
+      {
+        key: "browser",
+        get label() {
+          return t("rawUi.config_prop_8986d10297c2");
+        },
+      },
+      {
+        key: "nodeHost",
+        get label() {
+          return t("rawUi.config_prop_e3c29a67ff1f");
+        },
+      },
+      {
+        key: "canvasHost",
+        get label() {
+          return t("rawUi.config_prop_5b7c990e8d65");
+        },
+      },
+      {
+        key: "discovery",
+        get label() {
+          return t("rawUi.config_prop_810a60c46739");
+        },
+      },
+      {
+        key: "media",
+        get label() {
+          return t("rawUi.config_prop_53c1bab8944f");
+        },
+      },
+      {
+        key: "acp",
+        get label() {
+          return t("rawUi.config_prop_d32123120138");
+        },
+      },
+      {
+        key: "mcp",
+        get label() {
+          return t("rawUi.config_prop_4883cf1743c1");
+        },
+      },
     ],
   },
   {
     id: "appearance",
     label: t("tabs.appearance"),
     sections: [
-      { key: "__appearance__", label: "Theme" },
-      { key: "ui", label: "UI" },
-      { key: "wizard", label: "Setup Wizard" },
+      {
+        key: "__appearance__",
+        get label() {
+          return t("rawUi.config_prop_2849fc5121ca");
+        },
+      },
+      {
+        key: "ui",
+        get label() {
+          return t("rawUi.config_prop_c4e508c5aae0");
+        },
+      },
+      {
+        key: "wizard",
+        get label() {
+          return t("rawUi.config_prop_7371e73a8c60");
+        },
+      },
     ],
   },
 ];
@@ -787,13 +1007,42 @@ type ThemeOption = {
   icon: TemplateResult;
 };
 const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
-  { id: "claw", label: "Claw", description: "Chroma family", icon: icons.zap },
-  { id: "knot", label: "Knot", description: "Black & red", icon: icons.link },
-  { id: "dash", label: "Dash", description: "Chocolate blueprint", icon: icons.barChart },
+  {
+    id: "claw",
+    get label() {
+      return t("rawUi.config_prop_e57b8ba8299e");
+    },
+    get description() {
+      return t("rawUi.config_prop_fbc669a5720a");
+    },
+    icon: icons.zap,
+  },
+  {
+    id: "knot",
+    get label() {
+      return t("rawUi.config_prop_ed7f79c2485e");
+    },
+    get description() {
+      return t("rawUi.config_prop_d5294dfcea78");
+    },
+    icon: icons.link,
+  },
+  {
+    id: "dash",
+    get label() {
+      return t("rawUi.config_prop_2422292782b6");
+    },
+    get description() {
+      return t("rawUi.config_prop_ff8b6aab8a21");
+    },
+    icon: icons.barChart,
+  },
 ];
 
 function importedThemeName(props: Pick<ConfigProps, "hasCustomTheme" | "customThemeLabel">) {
-  return props.hasCustomTheme && props.customThemeLabel ? props.customThemeLabel : "Imported theme";
+  return props.hasCustomTheme && props.customThemeLabel
+    ? props.customThemeLabel
+    : t("rawUi.config_quick_importedTheme");
 }
 
 function focusCustomThemeImportInput() {
@@ -825,11 +1074,11 @@ function renderNotificationsSection(props: ConfigProps) {
           <div class="settings-notifications__header">
             <span class="settings-notifications__icon">${getSectionIcon("__notifications__")}</span>
             <div class="settings-notifications__copy">
-              <h3 class="settings-notifications__title">Push notifications</h3>
-              <p class="settings-notifications__hint">Not available in this browser.</p>
+              <h3 class="settings-notifications__title">${t("rawUi.config_text_061718a963f2")}</h3>
+              <p class="settings-notifications__hint">${t("rawUi.config_text_a5338d386abe")}</p>
             </div>
             <span class="settings-notifications__badge settings-notifications__badge--muted">
-              Unavailable
+              ${t("rawUi.config_text_1e7284febf81")}
             </span>
           </div>
         </section>
@@ -839,20 +1088,22 @@ function renderNotificationsSection(props: ConfigProps) {
 
   const permissionLabel =
     push.permission === "granted"
-      ? "Granted"
+      ? t("rawUi.config_notifications_granted")
       : push.permission === "denied"
-        ? "Denied"
+        ? t("rawUi.config_notifications_denied")
         : push.permission === "default"
-          ? "Not requested"
-          : "Unsupported";
-  const subscriptionLabel = push.subscribed ? "Subscribed" : "Not subscribed";
+          ? t("rawUi.config_notifications_notRequested")
+          : t("rawUi.config_notifications_unsupported");
+  const subscriptionLabel = push.subscribed
+    ? t("rawUi.config_notifications_subscribed")
+    : t("rawUi.config_notifications_notSubscribed");
   const badgeLabel = !push.supported
-    ? "Unsupported"
+    ? t("rawUi.config_notifications_unsupported")
     : push.permission === "denied"
-      ? "Blocked"
+      ? t("rawUi.config_notifications_blocked")
       : push.subscribed
-        ? "Subscribed"
-        : "Ready";
+        ? t("rawUi.config_notifications_subscribed")
+        : t("rawUi.config_notifications_ready");
   const badgeTone = !push.supported
     ? "settings-notifications__badge--muted"
     : push.permission === "denied"
@@ -867,10 +1118,8 @@ function renderNotificationsSection(props: ConfigProps) {
         <div class="settings-notifications__header">
           <span class="settings-notifications__icon">${getSectionIcon("__notifications__")}</span>
           <div class="settings-notifications__copy">
-            <h3 class="settings-notifications__title">Push notifications</h3>
-            <p class="settings-notifications__hint">
-              Receive browser push notifications from your gateway.
-            </p>
+            <h3 class="settings-notifications__title">${t("rawUi.config_text_061718a963f2")}</h3>
+            <p class="settings-notifications__hint">${t("rawUi.config_text_f90fe12f4008")}</p>
           </div>
           <span class="settings-notifications__badge ${badgeTone}">${badgeLabel}</span>
         </div>
@@ -878,17 +1127,23 @@ function renderNotificationsSection(props: ConfigProps) {
         <div class="settings-notifications__body">
           <div class="settings-notifications__details">
             <div class="settings-notifications__detail">
-              <span class="settings-notifications__label">Browser support</span>
+              <span class="settings-notifications__label"
+                >${t("rawUi.config_text_750a89eb7469")}</span
+              >
               <span class="settings-notifications__value">
-                ${push.supported ? "Available" : "Not supported"}
+                ${push.supported ? "Available" : t("rawUi.config_dynamic_62da77834173")}
               </span>
             </div>
             <div class="settings-notifications__detail">
-              <span class="settings-notifications__label">Permission</span>
+              <span class="settings-notifications__label"
+                >${t("rawUi.config_text_2a2332b84566")}</span
+              >
               <span class="settings-notifications__value">${permissionLabel}</span>
             </div>
             <div class="settings-notifications__detail">
-              <span class="settings-notifications__label">Status</span>
+              <span class="settings-notifications__label"
+                >${t("rawUi.config_text_f36e61d38988")}</span
+              >
               <span class="settings-notifications__value settings-notifications__value--status">
                 <span
                   class="settings-notifications__dot ${push.subscribed
@@ -909,14 +1164,14 @@ function renderNotificationsSection(props: ConfigProps) {
                       ?disabled=${push.loading || !props.connected}
                       @click=${() => props.onWebPushUnsubscribe?.()}
                     >
-                      ${icons.x} Unsubscribe
+                      ${icons.x} ${t("rawUi.config_fragment_49a9bfefb716")}
                     </button>
                     <button
                       class="btn primary"
                       ?disabled=${push.loading || !props.connected}
                       @click=${() => props.onWebPushTest?.()}
                     >
-                      ${icons.send} Send test
+                      ${icons.send} ${t("rawUi.config_fragment_ae5c3d6700c1")}
                     </button>
                   `
                 : html`
@@ -926,14 +1181,15 @@ function renderNotificationsSection(props: ConfigProps) {
                       @click=${() => props.onWebPushSubscribe?.()}
                     >
                       ${push.loading ? icons.loader : getSectionIcon("__notifications__")}
-                      ${push.loading ? "Subscribing..." : "Enable notifications"}
+                      ${push.loading
+                        ? t("rawUi.config_dynamic_ebb5e0f419ba")
+                        : t("rawUi.config_dynamic_332c9efce65f")}
                     </button>
                   `
               : push.permission === "denied"
                 ? html`
                     <div class="settings-notifications__callout">
-                      Notifications are blocked. Update your browser site permissions to allow
-                      notifications.
+                      ${t("rawUi.config_text_5bc52288a000")}
                     </div>
                   `
                 : nothing}
@@ -959,18 +1215,18 @@ function renderAppearanceSection(props: ConfigProps) {
     ...BUILTIN_THEME_OPTIONS,
     {
       id: "custom",
-      label: props.hasCustomTheme ? importedName : "Import",
+      label: props.hasCustomTheme ? importedName : t("rawUi.config_quick_import"),
       description: props.hasCustomTheme
         ? `Imported from tweakcn: ${importedName}`
-        : "Import a tweakcn theme into this browser-local slot",
+        : t("rawUi.config_importThemeDescription"),
       icon: icons.spark,
     },
   ];
   return html`
     <div class="settings-appearance">
       <div class="settings-appearance__section">
-        <h3 class="settings-appearance__heading">Theme</h3>
-        <p class="settings-appearance__hint">Choose a theme family.</p>
+        <h3 class="settings-appearance__heading">${t("rawUi.config_text_666c919f4c73")}</h3>
+        <p class="settings-appearance__hint">${t("rawUi.config_text_cc8d8503110a")}</p>
         <div class="settings-theme-grid">
           ${themeOptions.map(
             (opt) => html`
@@ -1007,12 +1263,10 @@ function renderAppearanceSection(props: ConfigProps) {
           ? html`
               <div class="settings-theme-import">
                 <div class="settings-theme-import__copy">
-                  <div class="settings-theme-import__title">Import from tweakcn</div>
-                  <p class="settings-theme-import__hint">
-                    Open tweakcn.com, choose or create a theme, click Share, then paste the copied
-                    theme link here. Share links, editor URLs, registry URLs, theme IDs, and default
-                    theme names like amethyst-haze are accepted.
-                  </p>
+                  <div class="settings-theme-import__title">
+                    ${t("rawUi.config_text_0a4696d1bf9f")}
+                  </div>
+                  <p class="settings-theme-import__hint">${t("rawUi.config_text_2782fb45879c")}</p>
                 </div>
                 <a
                   class="settings-theme-import__external"
@@ -1020,16 +1274,18 @@ function renderAppearanceSection(props: ConfigProps) {
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  Browse tweakcn themes ${icons.externalLink}
+                  ${t("rawUi.config_fragment_698b2bf8211b")} ${icons.externalLink}
                 </a>
                 <label class="settings-theme-import__field">
-                  <span class="settings-theme-import__label">Theme link or ID</span>
+                  <span class="settings-theme-import__label"
+                    >${t("rawUi.config_text_9e9e11688aea")}</span
+                  >
                   <input
                     class="settings-theme-import__input"
                     data-custom-theme-import-input
                     type="text"
                     spellcheck="false"
-                    placeholder="https://tweakcn.com/editor/theme?theme=... or amethyst-haze"
+                    placeholder=${t("rawUi.config_attr_5a1d1d22d24e")}
                     .value=${props.customThemeImportUrl}
                     @input=${(e: Event) =>
                       props.onCustomThemeImportUrlChange(
@@ -1047,13 +1303,13 @@ function renderAppearanceSection(props: ConfigProps) {
                     ${props.customThemeImportBusy
                       ? "Importing…"
                       : props.hasCustomTheme
-                        ? `Replace ${importedName}`
-                        : "Import theme"}
+                        ? t("rawUi.config_dynamic_replaceTheme", { name: importedName })
+                        : t("rawUi.config_dynamic_ddd4a8e53f9d")}
                   </button>
                   ${props.hasCustomTheme
                     ? html`
                         <button class="btn btn--sm danger" @click=${props.onClearCustomTheme}>
-                          Clear ${importedName}
+                          ${t("rawUi.config_fragment_aa38d98ccb7a")} ${importedName}
                         </button>
                       `
                     : nothing}
@@ -1061,7 +1317,9 @@ function renderAppearanceSection(props: ConfigProps) {
                 ${props.hasCustomTheme
                   ? html`
                       <div class="settings-theme-import__meta">
-                        <span class="settings-theme-import__meta-label">Loaded</span>
+                        <span class="settings-theme-import__meta-label"
+                          >${t("rawUi.config_text_a3799d002f07")}</span
+                        >
                         <span class="settings-theme-import__meta-value"
                           >${importedName} · ${props.customThemeSourceUrl ?? "tweakcn"}</span
                         >
@@ -1082,15 +1340,17 @@ function renderAppearanceSection(props: ConfigProps) {
             `
           : html`
               <p class="settings-theme-import__inline-hint">
-                Click <strong>Import</strong> to add one browser-local tweakcn theme. In tweakcn,
-                use Share and paste the copied link here.
+                ${t("rawUi.config_text_7973ed5dbbc6")}
+                <strong>${t("rawUi.config_text_f9ad5a3236b5")}</strong> ${t(
+                  "rawUi.config_text_814eb1c2c71d",
+                )}
               </p>
             `}
       </div>
 
       <div class="settings-appearance__section">
-        <h3 class="settings-appearance__heading">Roundness</h3>
-        <p class="settings-appearance__hint">Adjust corner radius across the UI.</p>
+        <h3 class="settings-appearance__heading">${t("rawUi.config_text_f1d862c4c5d7")}</h3>
+        <p class="settings-appearance__hint">${t("rawUi.config_text_2b6c4b706010")}</p>
         <div class="settings-roundness">
           <div class="settings-roundness__options">
             ${BORDER_RADIUS_STOPS.map(
@@ -1113,7 +1373,7 @@ function renderAppearanceSection(props: ConfigProps) {
       </div>
 
       <div class="settings-appearance__section">
-        <h3 class="settings-appearance__heading">Text size</h3>
+        <h3 class="settings-appearance__heading">${t("rawUi.config_text_8a1132c1ec18")}</h3>
         <div class="settings-text-scale">
           <div class="settings-text-scale__options">
             ${TEXT_SCALE_STOPS.map(
@@ -1133,14 +1393,14 @@ function renderAppearanceSection(props: ConfigProps) {
       </div>
 
       <div class="settings-appearance__section">
-        <h3 class="settings-appearance__heading">Connection</h3>
+        <h3 class="settings-appearance__heading">${t("rawUi.config_text_845b7a0dbbd1")}</h3>
         <div class="settings-info-grid">
           <div class="settings-info-row">
-            <span class="settings-info-row__label">Gateway</span>
+            <span class="settings-info-row__label">${t("rawUi.config_text_f9707ca5b7d7")}</span>
             <span class="settings-info-row__value mono">${props.gatewayUrl || "-"}</span>
           </div>
           <div class="settings-info-row">
-            <span class="settings-info-row__label">Status</span>
+            <span class="settings-info-row__label">${t("rawUi.config_text_f36e61d38988")}</span>
             <span class="settings-info-row__value">
               <span
                 class="settings-status-dot ${props.connected ? "settings-status-dot--ok" : ""}"
@@ -1151,7 +1411,9 @@ function renderAppearanceSection(props: ConfigProps) {
           ${props.assistantName
             ? html`
                 <div class="settings-info-row">
-                  <span class="settings-info-row__label">Assistant</span>
+                  <span class="settings-info-row__label"
+                    >${t("rawUi.config_text_600e167f204d")}</span
+                  >
                   <span class="settings-info-row__value">${props.assistantName}</span>
                 </div>
               `
@@ -1296,7 +1558,9 @@ export function renderConfig(props: ConfigProps) {
     .map((k) => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1) }));
 
   const otherCategory: SectionCategory | null =
-    extraSections.length > 0 ? { id: "other", label: "Other", sections: extraSections } : null;
+    extraSections.length > 0
+      ? { id: "other", label: t("rawUi.config_prop_cddeb8f60693"), sections: extraSections }
+      : null;
 
   const isVirtualSection =
     includeVirtualSections &&
@@ -1344,7 +1608,7 @@ export function renderConfig(props: ConfigProps) {
                 >
                   <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
-                Quick Settings
+                ${t("rawUi.config_text_84879a451df9")}
               </button>
             `
           : nothing}
@@ -1466,20 +1730,20 @@ export function renderConfig(props: ConfigProps) {
                     <button
                       class="config-mode-toggle__btn ${formMode === "form" ? "active" : ""}"
                       ?disabled=${props.schemaLoading || !props.schema}
-                      title=${formUnsafe ? "Form view can't safely edit some fields" : ""}
+                      title=${formUnsafe ? t("rawUi.config_dynamic_ef75e0295bd3") : ""}
                       @click=${() => props.onFormModeChange("form")}
                     >
-                      Form
+                      ${t("rawUi.config_text_f39c4bae9af7")}
                     </button>
                     <button
                       class="config-mode-toggle__btn ${formMode === "raw" ? "active" : ""}"
                       ?disabled=${!rawAvailable}
                       title=${rawAvailable
-                        ? "Edit raw JSON/JSON5 config"
-                        : "Raw mode unavailable for this snapshot"}
+                        ? t("rawUi.config_dynamic_05f97f4a7ff7")
+                        : t("rawUi.config_dynamic_d9f183ef13cd")}
                       @click=${() => props.onFormModeChange("raw")}
                     >
-                      Raw
+                      ${t("rawUi.config_text_a9a650ab01a1")}
                     </button>
                   </div>
                 `
@@ -1488,17 +1752,26 @@ export function renderConfig(props: ConfigProps) {
               ? html`
                   <span class="config-changes-badge"
                     >${formMode === "raw"
-                      ? "Unsaved changes"
-                      : `${diff.length} unsaved change${diff.length !== 1 ? "s" : ""}`}</span
+                      ? t("rawUi.config_dynamic_1c74fbc88e5b")
+                      : t(
+                          diff.length === 1
+                            ? "rawUi.config_dynamic_unsavedChange"
+                            : "rawUi.config_dynamic_unsavedChanges",
+                          {
+                            count: String(diff.length),
+                          },
+                        )}</span
                   >
                 `
-              : html` <span class="config-status muted">No changes</span> `}
+              : html`
+                  <span class="config-status muted">${t("rawUi.config_text_c522c483c0d7")}</span>
+                `}
           </div>
           <div class="config-actions__right">
             ${!rawAvailable
               ? html`
                   <span class="config-status muted config-actions__notice"
-                    >Raw mode disabled (snapshot cannot safely round-trip raw text).</span
+                    >${t("rawUi.config_text_0bae42bbe85f")}</span
                   >
                 `
               : nothing}
@@ -1507,10 +1780,12 @@ export function renderConfig(props: ConfigProps) {
                 ? html`
                     <button
                       class="btn btn--sm"
-                      title=${props.configPath ? `Open ${props.configPath}` : "Open config file"}
+                      title=${props.configPath
+                        ? t("rawUi.config_dynamic_openPath", { path: props.configPath })
+                        : t("rawUi.config_dynamic_bd9aa8fddd36")}
                       @click=${props.onOpenFile}
                     >
-                      ${icons.fileText} Open
+                      ${icons.fileText} ${t("rawUi.config_fragment_28fd4bd90787")}
                     </button>
                   `
                 : nothing}
@@ -1518,7 +1793,7 @@ export function renderConfig(props: ConfigProps) {
                 ${props.loading ? t("common.loading") : t("common.reload")}
               </button>
               <button class="btn btn--sm" ?disabled=${!hasChanges} @click=${props.onReset}>
-                Clear
+                ${t("rawUi.config_text_20eb9e251bc9")}
               </button>
               <button
                 class="btn btn--sm primary"
@@ -1569,8 +1844,8 @@ export function renderConfig(props: ConfigProps) {
                           <input
                             type="text"
                             class="config-search__input"
-                            placeholder="Search settings..."
-                            aria-label="Search settings"
+                            placeholder=${t("rawUi.config_attr_8cd6e665d032")}
+                            aria-label=${t("rawUi.config_attr_074687cfea8b")}
                             .value=${props.searchQuery}
                             @input=${(e: Event) =>
                               props.onSearchChange((e.target as HTMLInputElement).value)}
@@ -1579,7 +1854,7 @@ export function renderConfig(props: ConfigProps) {
                             ? html`
                                 <button
                                   class="config-search__clear"
-                                  aria-label="Clear search"
+                                  aria-label=${t("rawUi.config_attr_3587dacb3c30")}
                                   @click=${() => props.onSearchChange("")}
                                 >
                                   ×
@@ -1638,7 +1913,7 @@ export function renderConfig(props: ConfigProps) {
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
                 <span class="config-validity-warning__text"
-                  >Your configuration is invalid. Some settings may not work as expected.</span
+                  >${t("rawUi.config_text_3d43ffef077e")}</span
                 >
                 <button
                   class="btn btn--sm"
@@ -1647,7 +1922,7 @@ export function renderConfig(props: ConfigProps) {
                     requestUpdate();
                   }}
                 >
-                  Don't remind again
+                  ${t("rawUi.config_text_bb001c814045")}
                 </button>
               </div>
             `
@@ -1658,7 +1933,10 @@ export function renderConfig(props: ConfigProps) {
           ? html`
               <details class="config-diff">
                 <summary class="config-diff__summary">
-                  <span>View ${diff.length} pending change${diff.length !== 1 ? "s" : ""}</span>
+                  <span
+                    >${t("rawUi.config_fragment_4142959a9c7e")} ${diff.length}
+                    ${t("rawUi.config_fragment_addd6315c6ea")}${diff.length !== 1 ? "s" : ""}</span
+                  >
                   <svg
                     class="config-diff__chevron"
                     viewBox="0 0 24 24"
@@ -1708,7 +1986,7 @@ export function renderConfig(props: ConfigProps) {
                 }}
               >
                 <summary class="config-diff__summary">
-                  <span>View pending changes</span>
+                  <span>${t("rawUi.config_text_7eb93890fbcd")}</span>
                   <svg
                     class="config-diff__chevron"
                     viewBox="0 0 24 24"
@@ -1750,9 +2028,7 @@ export function renderConfig(props: ConfigProps) {
                         `,
                       )
                     : html`
-                        <div class="config-diff__item">
-                          Changes detected (JSON diff not available)
-                        </div>
+                        <div class="config-diff__item">${t("rawUi.config_text_4781538a2619")}</div>
                       `}
                 </div>
               </details>
@@ -1778,7 +2054,9 @@ export function renderConfig(props: ConfigProps) {
                         class="config-env-peek-btn ${envSensitiveVisible
                           ? "config-env-peek-btn--active"
                           : ""}"
-                        title=${envSensitiveVisible ? "Hide env values" : "Reveal env values"}
+                        title=${envSensitiveVisible
+                          ? t("rawUi.config_dynamic_f6e38404d4b4")
+                          : t("rawUi.config_dynamic_3877227902b2")}
                         @click=${() => {
                           cvs.envRevealed = !cvs.envRevealed;
                           requestUpdate();
@@ -1797,7 +2075,7 @@ export function renderConfig(props: ConfigProps) {
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                           <circle cx="12" cy="12" r="3"></circle>
                         </svg>
-                        Peek
+                        ${t("rawUi.config_text_46118aa8559f")}
                       </button>
                     `
                   : nothing}
@@ -1821,7 +2099,7 @@ export function renderConfig(props: ConfigProps) {
                       ? html`
                           <div class="config-loading">
                             <div class="config-loading__spinner"></div>
-                            <span>Loading schema…</span>
+                            <span>${t("rawUi.config_text_2d233baa51c6")}</span>
                           </div>
                         `
                       : renderConfigForm({
@@ -1855,26 +2133,28 @@ export function renderConfig(props: ConfigProps) {
                       ${formUnsafe
                         ? html`
                             <div class="callout info" style="margin-bottom: 12px">
-                              Your config contains fields the form editor can't safely represent.
-                              Use Raw mode to edit those entries.
+                              ${t("rawUi.config_text_0c6ecf6d0cc3")}
                             </div>
                           `
                         : nothing}
                       <div class="field config-raw-field">
                         <span style="display:flex;align-items:center;gap:8px;">
-                          Raw config (JSON/JSON5)
+                          ${t("rawUi.config_fragment_663e5c8e587d")}
                           ${sensitiveCount > 0
                             ? html`
                                 <span class="pill pill--sm"
-                                  >${sensitiveCount} secret${sensitiveCount === 1 ? "" : "s"}
+                                  >${sensitiveCount}
+                                  ${t("rawUi.config_fragment_40f390488df7")}${sensitiveCount === 1
+                                    ? ""
+                                    : "s"}
                                   ${blurred ? "redacted" : "visible"}</span
                                 >
                                 <button
                                   class="btn btn--icon config-raw-toggle ${blurred ? "" : "active"}"
                                   title=${blurred
-                                    ? "Reveal sensitive values"
-                                    : "Hide sensitive values"}
-                                  aria-label="Toggle raw config redaction"
+                                    ? t("rawUi.config_dynamic_fc634eabba54")
+                                    : t("rawUi.config_dynamic_584aae6ac0ed")}
+                                  aria-label=${t("rawUi.config_attr_fa101828b40f")}
                                   aria-pressed=${!blurred}
                                   @click=${() => {
                                     cvs.rawRevealed = !cvs.rawRevealed;
@@ -1889,13 +2169,16 @@ export function renderConfig(props: ConfigProps) {
                         ${blurred
                           ? html`
                               <div class="callout info" style="margin-top: 12px">
-                                ${sensitiveCount} sensitive value${sensitiveCount === 1 ? "" : "s"}
-                                hidden. Use the reveal button above to edit the raw config.
+                                ${sensitiveCount}
+                                ${t("rawUi.config_fragment_11aa75ca887c")}${sensitiveCount === 1
+                                  ? ""
+                                  : "s"}
+                                ${t("rawUi.config_fragment_086df47e9ece")}
                               </div>
                             `
                           : html`
                               <textarea
-                                placeholder="Raw config (JSON/JSON5)"
+                                placeholder=${t("rawUi.config_attr_75b3a82b50bc")}
                                 .value=${props.raw}
                                 @input=${(e: Event) => {
                                   props.onRawChange((e.target as HTMLTextAreaElement).value);

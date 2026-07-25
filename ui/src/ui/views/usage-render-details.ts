@@ -1121,7 +1121,7 @@ function renderSessionLogsCompact(
         <select
           multiple
           size="4"
-          aria-label="Filter by role"
+          aria-label=${t("rawUi.usage_render_details_attr_eda2f8f42d00")}
           @change=${(event: Event) =>
             onFilterRolesChange(
               Array.from((event.target as HTMLSelectElement).selectedOptions).map(
@@ -1145,7 +1145,7 @@ function renderSessionLogsCompact(
         <select
           multiple
           size="4"
-          aria-label="Filter by tool"
+          aria-label=${t("rawUi.usage_render_details_attr_72c17c91a18f")}
           @change=${(event: Event) =>
             onFilterToolsChange(
               Array.from((event.target as HTMLSelectElement).selectedOptions).map(

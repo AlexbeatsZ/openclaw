@@ -22,8 +22,8 @@ export function renderWhatsAppCard(params: {
   const hasQr = props.whatsappQrDataUrl != null;
 
   return renderSingleAccountChannelCard({
-    title: "WhatsApp",
-    subtitle: "Link WhatsApp Web and monitor connection health.",
+    title: t("rawUi.channels_whatsapp_prop_fedd410f801c"),
+    subtitle: t("rawUi.channels_whatsapp_prop_458e90549b0f"),
     accountCountLabel,
     statusRows: [
       { label: t("common.configured"), value: formatNullableBoolean(configured) },

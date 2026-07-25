@@ -1,10 +1,11 @@
-// Control UI view renders agents utils screen content.
 import { html, nothing } from "lit";
 import {
   expandToolGroups,
   normalizeToolName,
   resolveToolProfilePolicy,
 } from "../../../../src/agents/tool-policy-shared.js";
+// Control UI view renders agents utils screen content.
+import { t } from "../../i18n/index.ts";
 import { DEFAULT_ASSISTANT_AVATAR } from "../assistant-identity.ts";
 import { buildQualifiedChatModelValue } from "../chat-model-ref.ts";
 import { controlUiPublicAssetPath } from "../public-assets.ts";
@@ -39,92 +40,326 @@ export type AgentToolSection = {
 export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   {
     id: "fs",
-    label: "Files",
+    get label() {
+      return t("rawUi.agents_utils_prop_108b00289d57");
+    },
     tools: [
-      { id: "read", label: "read", description: "Read file contents" },
-      { id: "write", label: "write", description: "Create or overwrite files" },
-      { id: "edit", label: "edit", description: "Make precise edits" },
-      { id: "apply_patch", label: "apply_patch", description: "Patch files (OpenAI)" },
+      {
+        id: "read",
+        get label() {
+          return t("rawUi.agents_utils_prop_b994b196f014");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_906e294a2f36");
+        },
+      },
+      {
+        id: "write",
+        get label() {
+          return t("rawUi.agents_utils_prop_20fe7a6580ad");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_e5863886c3b0");
+        },
+      },
+      {
+        id: "edit",
+        get label() {
+          return t("rawUi.agents_utils_prop_b88f44022831");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_47e11cf11a22");
+        },
+      },
+      {
+        id: "apply_patch",
+        get label() {
+          return t("rawUi.agents_utils_prop_72260ebef4b9");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_7fce1608c386");
+        },
+      },
     ],
   },
   {
     id: "runtime",
-    label: "Runtime",
+    get label() {
+      return t("rawUi.agents_utils_prop_526941d94607");
+    },
     tools: [
-      { id: "exec", label: "exec", description: "Run shell commands" },
-      { id: "process", label: "process", description: "Manage background processes" },
+      {
+        id: "exec",
+        get label() {
+          return t("rawUi.agents_utils_prop_0effc5ce8cd1");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_1f14a6660b73");
+        },
+      },
+      {
+        id: "process",
+        get label() {
+          return t("rawUi.agents_utils_prop_21f9109c11df");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_e7cc026f47af");
+        },
+      },
     ],
   },
   {
     id: "web",
-    label: "Web",
+    get label() {
+      return t("rawUi.agents_utils_prop_93c456d1a103");
+    },
     tools: [
-      { id: "web_search", label: "web_search", description: "Search the web" },
-      { id: "web_fetch", label: "web_fetch", description: "Fetch web content" },
+      {
+        id: "web_search",
+        get label() {
+          return t("rawUi.agents_utils_prop_084aa22cfdce");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_91eed5563434");
+        },
+      },
+      {
+        id: "web_fetch",
+        get label() {
+          return t("rawUi.agents_utils_prop_ae8a00ee77ee");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_ba27c8710877");
+        },
+      },
     ],
   },
   {
     id: "memory",
-    label: "Memory",
+    get label() {
+      return t("rawUi.agents_utils_prop_ed02d95b2f19");
+    },
     tools: [
-      { id: "memory_search", label: "memory_search", description: "Semantic search" },
-      { id: "memory_get", label: "memory_get", description: "Read memory files" },
+      {
+        id: "memory_search",
+        get label() {
+          return t("rawUi.agents_utils_prop_d2c9f590121c");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_0bd3b370f215");
+        },
+      },
+      {
+        id: "memory_get",
+        get label() {
+          return t("rawUi.agents_utils_prop_edb897ce544a");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_a584cb9769ea");
+        },
+      },
     ],
   },
   {
     id: "sessions",
-    label: "Sessions",
+    get label() {
+      return t("rawUi.agents_utils_prop_79460035cb24");
+    },
     tools: [
-      { id: "sessions_list", label: "sessions_list", description: "List sessions" },
-      { id: "sessions_history", label: "sessions_history", description: "Session history" },
-      { id: "sessions_send", label: "sessions_send", description: "Send to session" },
-      { id: "sessions_spawn", label: "sessions_spawn", description: "Spawn sub-agent" },
-      { id: "session_status", label: "session_status", description: "Session status" },
+      {
+        id: "sessions_list",
+        get label() {
+          return t("rawUi.agents_utils_prop_de6d0a85e9fb");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_3d7977866148");
+        },
+      },
+      {
+        id: "sessions_history",
+        get label() {
+          return t("rawUi.agents_utils_prop_efb4e3ce58cb");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_b14cdd43deab");
+        },
+      },
+      {
+        id: "sessions_send",
+        get label() {
+          return t("rawUi.agents_utils_prop_604ca97f54b1");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_ed108d84d541");
+        },
+      },
+      {
+        id: "sessions_spawn",
+        get label() {
+          return t("rawUi.agents_utils_prop_03d8de74fb7f");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_fa66168293d1");
+        },
+      },
+      {
+        id: "session_status",
+        get label() {
+          return t("rawUi.agents_utils_prop_baf56aecc397");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_3ff2e01f1e2d");
+        },
+      },
     ],
   },
   {
     id: "ui",
-    label: "UI",
+    get label() {
+      return t("rawUi.agents_utils_prop_d19d7172ae38");
+    },
     tools: [
-      { id: "browser", label: "browser", description: "Control web browser" },
-      { id: "canvas", label: "canvas", description: "Control canvases" },
+      {
+        id: "browser",
+        get label() {
+          return t("rawUi.agents_utils_prop_7ab29e457f28");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_1358d1edf751");
+        },
+      },
+      {
+        id: "canvas",
+        get label() {
+          return t("rawUi.agents_utils_prop_ac120d10f161");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_95c42a1b26f5");
+        },
+      },
     ],
   },
   {
     id: "messaging",
-    label: "Messaging",
-    tools: [{ id: "message", label: "message", description: "Send messages" }],
+    get label() {
+      return t("rawUi.agents_utils_prop_a5ba6f6126dc");
+    },
+    tools: [
+      {
+        id: "message",
+        get label() {
+          return t("rawUi.agents_utils_prop_8f6cab71187b");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_47688f136db6");
+        },
+      },
+    ],
   },
   {
     id: "automation",
-    label: "Automation",
+    get label() {
+      return t("rawUi.agents_utils_prop_e67dd9474498");
+    },
     tools: [
-      { id: "cron", label: "cron", description: "Schedule tasks" },
-      { id: "gateway", label: "gateway", description: "Gateway control" },
+      {
+        id: "cron",
+        get label() {
+          return t("rawUi.agents_utils_prop_7f2c05ebf1e3");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_efc6afddab0b");
+        },
+      },
+      {
+        id: "gateway",
+        get label() {
+          return t("rawUi.agents_utils_prop_c5889afe7586");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_810617c67e38");
+        },
+      },
     ],
   },
   {
     id: "nodes",
-    label: "Nodes",
-    tools: [{ id: "nodes", label: "nodes", description: "Nodes + devices" }],
+    get label() {
+      return t("rawUi.agents_utils_prop_979f9fcf6cda");
+    },
+    tools: [
+      {
+        id: "nodes",
+        get label() {
+          return t("rawUi.agents_utils_prop_276dffc7b7b0");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_97a55afde904");
+        },
+      },
+    ],
   },
   {
     id: "agents",
-    label: "Agents",
-    tools: [{ id: "agents_list", label: "agents_list", description: "List agents" }],
+    get label() {
+      return t("rawUi.agents_utils_prop_13c3f751f2c4");
+    },
+    tools: [
+      {
+        id: "agents_list",
+        get label() {
+          return t("rawUi.agents_utils_prop_d12c2bb4da8f");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_6223350a7c8d");
+        },
+      },
+    ],
   },
   {
     id: "media",
-    label: "Media",
-    tools: [{ id: "image", label: "image", description: "Image understanding" }],
+    get label() {
+      return t("rawUi.agents_utils_prop_1ccb54281fc4");
+    },
+    tools: [
+      {
+        id: "image",
+        get label() {
+          return t("rawUi.agents_utils_prop_661ceca2250b");
+        },
+        get description() {
+          return t("rawUi.agents_utils_prop_247ef66c1c2e");
+        },
+      },
+    ],
   },
 ];
 
 export const PROFILE_OPTIONS = [
-  { id: "minimal", label: "Minimal" },
-  { id: "coding", label: "Coding" },
-  { id: "messaging", label: "Messaging" },
-  { id: "full", label: "Full" },
+  {
+    id: "minimal",
+    get label() {
+      return t("rawUi.agents_utils_prop_e721d60ea9b7");
+    },
+  },
+  {
+    id: "coding",
+    get label() {
+      return t("rawUi.agents_utils_prop_2f814ce62410");
+    },
+  },
+  {
+    id: "messaging",
+    get label() {
+      return t("rawUi.agents_utils_prop_a5ba6f6126dc");
+    },
+  },
+  {
+    id: "full",
+    get label() {
+      return t("rawUi.agents_utils_prop_ae515cd6d722");
+    },
+  },
 ] as const;
 
 export function resolveToolSections(

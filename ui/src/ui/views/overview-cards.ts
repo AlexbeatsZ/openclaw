@@ -149,7 +149,9 @@ export function renderOverviewCards(props: OverviewCardsProps) {
 
   const cronHint =
     failedCronCount > 0
-      ? html`<span class="danger">${failedCronCount} failed</span>`
+      ? html`<span class="danger"
+          >${failedCronCount} ${t("rawUi.overview_cards_fragment_d479a6571063")}</span
+        >`
       : cronNext
         ? t("overview.stats.cronNext", { time: formatNextRun(cronNext) })
         : "";

@@ -1,5 +1,5 @@
 // Control UI tests cover format behavior.
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   formatDateTimeMs,
   formatDateMs,
@@ -81,15 +81,28 @@ describe("agents.defaults.timeFormat preference", () => {
   });
 
   it("forces a 12-hour clock when preference is 12", () => {
+    const localeTime = vi.spyOn(Date.prototype, "toLocaleTimeString");
     setUiTimeFormatPreference("12");
     const formatted = formatTimeMs(ts, opts, "");
     expect(formatted).toContain("7:30");
-    expect(formatted).toMatch(/PM/i);
+    expect(localeTime).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        hour12: true,
+      }),
+    );
   });
 
   it("lets the caller override the resolved hour cycle", () => {
+    const localeTime = vi.spyOn(Date.prototype, "toLocaleTimeString");
     setUiTimeFormatPreference("24");
-    expect(formatTimeMs(ts, { ...opts, hour12: true }, "")).toMatch(/PM/i);
+    expect(formatTimeMs(ts, { ...opts, hour12: true }, "")).toContain("7:30");
+    expect(localeTime).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        hour12: true,
+      }),
+    );
   });
 
   it("leaves rendering to the browser locale default for auto", () => {

@@ -2537,15 +2537,29 @@ describe("formatChatTimestampForDisplay time format", () => {
     setUiTimeFormatPreference("auto");
   });
 
-  it("renders an AM/PM clock when preference is 12", () => {
+  it("requests a locale-appropriate 12-hour clock when preference is 12", () => {
+    const localeString = vi.spyOn(Date.prototype, "toLocaleString");
     setUiTimeFormatPreference("12");
     const display = formatChatTimestampForDisplay(timestamp);
-    expect(display.label).toMatch(/AM|PM/i);
+    expect(display.label).not.toBe("");
+    expect(localeString).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        hour12: true,
+      }),
+    );
   });
 
-  it("renders a 24-hour clock with no AM/PM when preference is 24", () => {
+  it("requests a locale-appropriate 24-hour clock when preference is 24", () => {
+    const localeString = vi.spyOn(Date.prototype, "toLocaleString");
     setUiTimeFormatPreference("24");
     const display = formatChatTimestampForDisplay(timestamp);
-    expect(display.label).not.toMatch(/AM|PM/i);
+    expect(display.label).not.toBe("");
+    expect(localeString).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        hour12: false,
+      }),
+    );
   });
 });

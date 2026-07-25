@@ -1,4 +1,5 @@
 // Control UI chat module implements build chat items behavior.
+import { t } from "../../i18n/index.ts";
 import type { ChatItem, MessageGroup, NormalizedMessage, ToolCard } from "../types/chat-types.ts";
 import type { ChatQueueItem } from "../ui-types.ts";
 import {
@@ -694,12 +695,11 @@ export function buildChatItems(props: BuildChatItemsProps): Array<ChatItem | Mes
           typeof marker.id === "string"
             ? `divider:compaction:${marker.id}`
             : `divider:compaction:${normalized.timestamp}:${i}`,
-        label: "Compacted history",
-        description:
-          "The compacted transcript is preserved as a checkpoint. Open session checkpoints to branch or restore from that compacted view.",
+        label: t("rawUi.build_chat_items_prop_ff10f571442f"),
+        description: t("rawUi.build_chat_items_prop_f0ec6a43ca8d"),
         action: {
           kind: "session-checkpoints",
-          label: "Open checkpoints",
+          label: t("rawUi.build_chat_items_prop_93f25860e3f1"),
         },
         timestamp: normalized.timestamp ?? Date.now(),
       });

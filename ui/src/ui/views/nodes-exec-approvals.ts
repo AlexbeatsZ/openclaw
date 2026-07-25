@@ -57,15 +57,45 @@ type ExecApprovalsState = {
 const EXEC_APPROVALS_DEFAULT_SCOPE = "__defaults__";
 
 const SECURITY_OPTIONS: Array<{ value: ExecSecurity; label: string }> = [
-  { value: "deny", label: "Deny" },
-  { value: "allowlist", label: "Allowlist" },
-  { value: "full", label: "Full" },
+  {
+    value: "deny",
+    get label() {
+      return t("rawUi.nodes_exec_approvals_prop_9a3ad3bdd8b4");
+    },
+  },
+  {
+    value: "allowlist",
+    get label() {
+      return t("rawUi.nodes_exec_approvals_prop_774604deefd0");
+    },
+  },
+  {
+    value: "full",
+    get label() {
+      return t("rawUi.nodes_exec_approvals_prop_3d53f475ecea");
+    },
+  },
 ];
 
 const ASK_OPTIONS: Array<{ value: ExecAsk; label: string }> = [
-  { value: "off", label: "Off" },
-  { value: "on-miss", label: "On miss" },
-  { value: "always", label: "Always" },
+  {
+    value: "off",
+    get label() {
+      return t("rawUi.nodes_exec_approvals_prop_7489033f7b74");
+    },
+  },
+  {
+    value: "on-miss",
+    get label() {
+      return t("rawUi.nodes_exec_approvals_prop_79e608c86466");
+    },
+  },
+  {
+    value: "always",
+    get label() {
+      return t("rawUi.nodes_exec_approvals_prop_79ab065f676b");
+    },
+  },
 ];
 
 function normalizeSecurity(value?: string): ExecSecurity {
@@ -198,9 +228,10 @@ export function renderExecApprovals(state: ExecApprovalsState) {
     <section class="card">
       <div class="row" style="justify-content: space-between; align-items: center;">
         <div>
-          <div class="card-title">Exec approvals</div>
+          <div class="card-title">${t("rawUi.nodes_exec_approvals_text_16553d228f65")}</div>
           <div class="card-sub">
-            Allowlist and approval policy for <span class="mono">exec host=gateway/node</span>.
+            ${t("rawUi.nodes_exec_approvals_text_7b1c57641590")}
+            <span class="mono">${t("rawUi.nodes_exec_approvals_text_63c7eef08b9d")}</span>.
           </div>
         </div>
         <button
@@ -208,14 +239,16 @@ export function renderExecApprovals(state: ExecApprovalsState) {
           ?disabled=${state.disabled || !state.dirty || !targetReady}
           @click=${state.onSave}
         >
-          ${state.saving ? "Saving…" : "Save"}
+          ${state.saving
+            ? t("rawUi.nodes_exec_approvals_dynamic_9f343ab8246f")
+            : t("rawUi.nodes_exec_approvals_dynamic_ff9e3653b553")}
         </button>
       </div>
 
       ${renderExecApprovalsTarget(state)}
       ${!ready
         ? html`<div class="row" style="margin-top: 12px; gap: 12px;">
-            <div class="muted">Load exec approvals to edit allowlists.</div>
+            <div class="muted">${t("rawUi.nodes_exec_approvals_text_4f778a750cdb")}</div>
             <button class="btn" ?disabled=${state.loading || !targetReady} @click=${state.onLoad}>
               ${state.loading ? t("common.loading") : t("common.loadApprovals")}
             </button>
@@ -237,12 +270,12 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
     <div class="list" style="margin-top: 12px;">
       <div class="list-item">
         <div class="list-main">
-          <div class="list-title">Target</div>
-          <div class="list-sub">Gateway edits local approvals; node edits the selected node.</div>
+          <div class="list-title">${t("rawUi.nodes_exec_approvals_text_1ffe381dae39")}</div>
+          <div class="list-sub">${t("rawUi.nodes_exec_approvals_text_3bfed81ffd41")}</div>
         </div>
         <div class="list-meta">
           <label class="field">
-            <span>Host</span>
+            <span>${t("rawUi.nodes_exec_approvals_text_e2379e216a5a")}</span>
             <select
               ?disabled=${state.disabled}
               @change=${(event: Event) => {
@@ -256,14 +289,18 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
                 }
               }}
             >
-              <option value="gateway" ?selected=${state.target === "gateway"}>Gateway</option>
-              <option value="node" ?selected=${state.target === "node"}>Node</option>
+              <option value="gateway" ?selected=${state.target === "gateway"}>
+                ${t("rawUi.nodes_exec_approvals_text_a14619266d83")}
+              </option>
+              <option value="node" ?selected=${state.target === "node"}>
+                ${t("rawUi.nodes_exec_approvals_text_feafac6035bd")}
+              </option>
             </select>
           </label>
           ${state.target === "node"
             ? html`
                 <label class="field">
-                  <span>Node</span>
+                  <span>${t("rawUi.nodes_exec_approvals_text_feafac6035bd")}</span>
                   <select
                     ?disabled=${state.disabled || !hasNodes}
                     @change=${(event: Event) => {
@@ -272,7 +309,9 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
                       state.onSelectTarget("node", value ? value : null);
                     }}
                   >
-                    <option value="" ?selected=${nodeValue === ""}>Select node</option>
+                    <option value="" ?selected=${nodeValue === ""}>
+                      ${t("rawUi.nodes_exec_approvals_text_93d2d310fb7e")}
+                    </option>
                     ${state.targetNodes.map(
                       (node) =>
                         html`<option value=${node.id} ?selected=${nodeValue === node.id}>
@@ -286,7 +325,7 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
         </div>
       </div>
       ${state.target === "node" && !hasNodes
-        ? html` <div class="muted">No nodes advertise exec approvals yet.</div> `
+        ? html` <div class="muted">${t("rawUi.nodes_exec_approvals_text_d6d5c3ebb421")}</div> `
         : nothing}
     </div>
   `;
@@ -295,7 +334,7 @@ function renderExecApprovalsTarget(state: ExecApprovalsState) {
 function renderExecApprovalsTabs(state: ExecApprovalsState) {
   return html`
     <div class="row" style="margin-top: 12px; gap: 8px; flex-wrap: wrap;">
-      <span class="label">Scope</span>
+      <span class="label">${t("rawUi.nodes_exec_approvals_text_5f0d82e0b5a8")}</span>
       <div class="row" style="gap: 8px; flex-wrap: wrap;">
         <button
           class="btn btn--sm ${state.selectedScope === EXEC_APPROVALS_DEFAULT_SCOPE
@@ -303,7 +342,7 @@ function renderExecApprovalsTabs(state: ExecApprovalsState) {
             : ""}"
           @click=${() => state.onSelectScope(EXEC_APPROVALS_DEFAULT_SCOPE)}
         >
-          Defaults
+          ${t("rawUi.nodes_exec_approvals_text_1d238ec961c1")}
         </button>
         ${state.agents.map((agent) => {
           const label = agent.name?.trim() ? `${agent.name} (${agent.id})` : agent.id;
@@ -341,14 +380,18 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
     <div class="list" style="margin-top: 16px;">
       <div class="list-item">
         <div class="list-main">
-          <div class="list-title">Security</div>
+          <div class="list-title">${t("rawUi.nodes_exec_approvals_text_1957560b4f38")}</div>
           <div class="list-sub">
-            ${isDefaults ? "Default security mode." : `Default: ${defaults.security}.`}
+            ${isDefaults
+              ? t("rawUi.nodes_exec_approvals_dynamic_14cdafa5a84b")
+              : t("rawUi.nodes_exec_approvals_dynamic_defaultValue", {
+                  value: defaults.security,
+                })}
           </div>
         </div>
         <div class="list-meta">
           <label class="field">
-            <span>Mode</span>
+            <span>${t("rawUi.nodes_exec_approvals_text_e6c451f5ad5d")}</span>
             <select
               ?disabled=${state.disabled}
               @change=${(event: Event) => {
@@ -363,7 +406,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
             >
               ${!isDefaults
                 ? html`<option value="__default__" ?selected=${securityValue === "__default__"}>
-                    Use default (${defaults.security})
+                    ${t("rawUi.nodes_exec_approvals_fragment_c50b2bc770cb")}${defaults.security})
                   </option>`
                 : nothing}
               ${SECURITY_OPTIONS.map(
@@ -379,14 +422,18 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
 
       <div class="list-item">
         <div class="list-main">
-          <div class="list-title">Ask</div>
+          <div class="list-title">${t("rawUi.nodes_exec_approvals_text_bfa959799be0")}</div>
           <div class="list-sub">
-            ${isDefaults ? "Default prompt policy." : `Default: ${defaults.ask}.`}
+            ${isDefaults
+              ? t("rawUi.nodes_exec_approvals_dynamic_b8ff54df5cbd")
+              : t("rawUi.nodes_exec_approvals_dynamic_defaultValue", {
+                  value: defaults.ask,
+                })}
           </div>
         </div>
         <div class="list-meta">
           <label class="field">
-            <span>Mode</span>
+            <span>${t("rawUi.nodes_exec_approvals_text_e6c451f5ad5d")}</span>
             <select
               ?disabled=${state.disabled}
               @change=${(event: Event) => {
@@ -401,7 +448,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
             >
               ${!isDefaults
                 ? html`<option value="__default__" ?selected=${askValue === "__default__"}>
-                    Use default (${defaults.ask})
+                    ${t("rawUi.nodes_exec_approvals_fragment_c50b2bc770cb")}${defaults.ask})
                   </option>`
                 : nothing}
               ${ASK_OPTIONS.map(
@@ -417,16 +464,18 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
 
       <div class="list-item">
         <div class="list-main">
-          <div class="list-title">Ask fallback</div>
+          <div class="list-title">${t("rawUi.nodes_exec_approvals_text_4b27f374e2f2")}</div>
           <div class="list-sub">
             ${isDefaults
-              ? "Applied when the UI prompt is unavailable."
-              : `Default: ${defaults.askFallback}.`}
+              ? t("rawUi.nodes_exec_approvals_dynamic_4efa797e0cdc")
+              : t("rawUi.nodes_exec_approvals_dynamic_defaultValue", {
+                  value: defaults.askFallback,
+                })}
           </div>
         </div>
         <div class="list-meta">
           <label class="field">
-            <span>Fallback</span>
+            <span>${t("rawUi.nodes_exec_approvals_text_ffbcf32a5281")}</span>
             <select
               ?disabled=${state.disabled}
               @change=${(event: Event) => {
@@ -441,7 +490,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
             >
               ${!isDefaults
                 ? html`<option value="__default__" ?selected=${askFallbackValue === "__default__"}>
-                    Use default (${defaults.askFallback})
+                    ${t("rawUi.nodes_exec_approvals_fragment_c50b2bc770cb")}${defaults.askFallback})
                   </option>`
                 : nothing}
               ${SECURITY_OPTIONS.map(
@@ -457,18 +506,22 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
 
       <div class="list-item">
         <div class="list-main">
-          <div class="list-title">Auto-allow skill CLIs</div>
+          <div class="list-title">${t("rawUi.nodes_exec_approvals_text_94f0794f20b2")}</div>
           <div class="list-sub">
             ${isDefaults
-              ? "Allow skill executables listed by the Gateway."
+              ? t("rawUi.nodes_exec_approvals_dynamic_bacc126d1a57")
               : autoIsDefault
-                ? `Using default (${defaults.autoAllowSkills ? "on" : "off"}).`
-                : `Override (${autoEffective ? "on" : "off"}).`}
+                ? t("rawUi.nodes_exec_approvals_dynamic_usingDefault", {
+                    value: defaults.autoAllowSkills ? "on" : "off",
+                  })
+                : t("rawUi.nodes_exec_approvals_dynamic_override", {
+                    value: autoEffective ? "on" : "off",
+                  })}
           </div>
         </div>
         <div class="list-meta">
           <label class="field">
-            <span>Enabled</span>
+            <span>${t("rawUi.nodes_exec_approvals_text_9b56f09c56c6")}</span>
             <input
               type="checkbox"
               ?disabled=${state.disabled}
@@ -485,7 +538,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
                 ?disabled=${state.disabled}
                 @click=${() => state.onRemove([...basePath, "autoAllowSkills"])}
               >
-                Use default
+                ${t("rawUi.nodes_exec_approvals_text_73754d1dcf80")}
               </button>`
             : nothing}
         </div>
@@ -500,8 +553,8 @@ function renderExecApprovalsAllowlist(state: ExecApprovalsState) {
   return html`
     <div class="row" style="margin-top: 18px; justify-content: space-between;">
       <div>
-        <div class="card-title">Allowlist</div>
-        <div class="card-sub">Case-insensitive glob patterns.</div>
+        <div class="card-title">${t("rawUi.nodes_exec_approvals_text_e5ae2b3791cb")}</div>
+        <div class="card-sub">${t("rawUi.nodes_exec_approvals_text_819a7a849fb4")}</div>
       </div>
       <button
         class="btn btn--sm"
@@ -511,12 +564,12 @@ function renderExecApprovalsAllowlist(state: ExecApprovalsState) {
           state.onPatch(allowlistPath, next);
         }}
       >
-        Add pattern
+        ${t("rawUi.nodes_exec_approvals_text_94b23bc6d93d")}
       </button>
     </div>
     <div class="list" style="margin-top: 12px;">
       ${entries.length === 0
-        ? html` <div class="muted">No allowlist entries yet.</div> `
+        ? html` <div class="muted">${t("rawUi.nodes_exec_approvals_text_9f30abe871a3")}</div> `
         : entries.map((entry, index) => renderAllowlistEntry(state, entry, index))}
     </div>
   `;
@@ -533,14 +586,20 @@ function renderAllowlistEntry(
   return html`
     <div class="list-item">
       <div class="list-main">
-        <div class="list-title">${entry.pattern?.trim() ? entry.pattern : "New pattern"}</div>
-        <div class="list-sub">Last used: ${lastUsed}</div>
+        <div class="list-title">
+          ${entry.pattern?.trim()
+            ? entry.pattern
+            : t("rawUi.nodes_exec_approvals_dynamic_2a8d7e68fad3")}
+        </div>
+        <div class="list-sub">
+          ${t("rawUi.nodes_exec_approvals_fragment_d48bc300f319")} ${lastUsed}
+        </div>
         ${lastCommand ? html`<div class="list-sub mono">${lastCommand}</div>` : nothing}
         ${lastPath ? html`<div class="list-sub mono">${lastPath}</div>` : nothing}
       </div>
       <div class="list-meta">
         <label class="field">
-          <span>Pattern</span>
+          <span>${t("rawUi.nodes_exec_approvals_text_793b74c6f338")}</span>
           <input
             type="text"
             .value=${entry.pattern ?? ""}
@@ -565,7 +624,7 @@ function renderAllowlistEntry(
             state.onRemove(["agents", state.selectedScope, "allowlist", index]);
           }}
         >
-          Remove
+          ${t("rawUi.nodes_exec_approvals_text_32639c1fa136")}
         </button>
       </div>
     </div>

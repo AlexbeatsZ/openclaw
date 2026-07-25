@@ -1,7 +1,8 @@
-// Control UI view renders markdown sidebar screen content.
 import { html, nothing } from "lit";
 import { keyed } from "lit/directives/keyed.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+// Control UI view renders markdown sidebar screen content.
+import { t } from "../../i18n/index.ts";
 import { resolveCanvasIframeUrl } from "../canvas-url.ts";
 import { resolveEmbedSandbox, type EmbedSandboxMode } from "../embed-sandbox.ts";
 import { icons } from "../icons.ts";
@@ -45,12 +46,12 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
       : null;
   const title =
     content?.kind === "canvas"
-      ? content.title?.trim() || "Render Preview"
+      ? content.title?.trim() || t("rawUi.markdown_sidebar_renderPreview")
       : content?.kind === "image"
-        ? content.title.trim() || "Image Preview"
+        ? content.title.trim() || t("rawUi.markdown_sidebar_imagePreview")
         : content?.kind === "markdown"
-          ? "Markdown Preview"
-          : "Tool Details";
+          ? t("rawUi.markdown_sidebar_markdownPreview")
+          : t("rawUi.markdown_sidebar_toolDetails");
   return html`
     <div class="sidebar-panel">
       <div class="sidebar-header">
@@ -59,8 +60,8 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
           @click=${props.onClose}
           class="btn"
           type="button"
-          title="Close sidebar"
-          aria-label="Close sidebar"
+          title=${t("rawUi.markdown_sidebar_attr_570d4312a5bc")}
+          aria-label=${t("rawUi.markdown_sidebar_attr_d5037b4ecedb")}
         >
           ${icons.x}
         </button>
@@ -77,7 +78,7 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
                       type="button"
                       style="margin-top: 12px;"
                     >
-                      View Raw Text
+                      ${t("rawUi.markdown_sidebar_text_c896a733988a")}
                     </button>
                   `
                 : nothing}
@@ -92,7 +93,8 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
                         html`
                           <iframe
                             class="chat-tool-card__preview-frame"
-                            title=${content.title?.trim() || "Render preview"}
+                            title=${content.title?.trim() ||
+                            t("rawUi.markdown_sidebar_dynamic_94c528366166")}
                             sandbox=${canvasSandbox}
                             src=${canvasSrc ?? nothing}
                             style=${content.preferredHeight
@@ -106,7 +108,7 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
                       ? html`
                           <div style="margin-top: 12px;">
                             <button @click=${props.onViewRawText} class="btn" type="button">
-                              View Raw Text
+                              ${t("rawUi.markdown_sidebar_text_c896a733988a")}
                             </button>
                           </div>
                         `
@@ -128,7 +130,7 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
                         ? html`
                             <div style="margin-top: 12px;">
                               <button @click=${props.onViewRawText} class="btn" type="button">
-                                View Raw Text
+                                ${t("rawUi.markdown_sidebar_text_c896a733988a")}
                               </button>
                             </div>
                           `
@@ -141,14 +143,14 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
                         <div class="sidebar-markdown-shell__intro">
                           <div class="sidebar-markdown-shell__eyebrow">
                             ${icons.scrollText}
-                            <span>Rendered Markdown</span>
+                            <span>${t("rawUi.markdown_sidebar_text_54c9476e4ba1")}</span>
                           </div>
                           <div class="sidebar-markdown-shell__hint">
-                            Sanitized rich-text preview for quick reading.
+                            ${t("rawUi.markdown_sidebar_text_ce8dec5e38b5")}
                           </div>
                         </div>
                         <button @click=${props.onViewRawText} class="btn btn--sm" type="button">
-                          View Raw Text
+                          ${t("rawUi.markdown_sidebar_text_c896a733988a")}
                         </button>
                       </div>
                       ${markdownHtml
@@ -159,12 +161,12 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
                           `
                         : html`
                             <div class="sidebar-markdown-empty">
-                              No previewable markdown content.
+                              ${t("rawUi.markdown_sidebar_text_5a4b14bd6112")}
                             </div>
                           `}
                     </section>
                   `
-            : html` <div class="muted">No content available</div> `}
+            : html` <div class="muted">${t("rawUi.markdown_sidebar_text_2e365529ff01")}</div> `}
       </div>
     </div>
   `;

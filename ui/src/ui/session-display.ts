@@ -1,4 +1,5 @@
 // Control UI module implements session display behavior.
+import { t } from "../i18n/index.ts";
 import { normalizeLowercaseStringOrEmpty, normalizeOptionalString } from "./string-coerce.ts";
 import type { SessionsListResult } from "./types.ts";
 
@@ -37,17 +38,23 @@ export function parseSessionKey(key: string): SessionKeyInfo {
 
   // Main session.
   if (key === "main" || key === "agent:main:main") {
-    return { prefix: "", fallbackName: "Main Session" };
+    return { prefix: "", fallbackName: t("rawUi.session_display_mainSession") };
   }
 
   // Subagent.
   if (key.includes(":subagent:")) {
-    return { prefix: "Subagent:", fallbackName: "Subagent:" };
+    return {
+      prefix: t("rawUi.session_display_subagentPrefix"),
+      fallbackName: t("rawUi.session_display_subagentPrefix"),
+    };
   }
 
   // Cron job.
   if (normalized.startsWith("cron:") || key.includes(":cron:")) {
-    return { prefix: "Cron:", fallbackName: "Cron Job:" };
+    return {
+      prefix: t("rawUi.session_display_cronPrefix"),
+      fallbackName: t("rawUi.session_display_cronJob"),
+    };
   }
 
   // Direct chat: agent:<x>:<channel>:direct:<id>.

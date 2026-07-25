@@ -1,9 +1,10 @@
-// Control UI chat module implements slash commands behavior.
 import type {
   CommandEntry,
   CommandsListResult,
 } from "../../../../packages/gateway-protocol/src/index.js";
 import { buildBuiltinChatCommands } from "../../../../src/auto-reply/commands-registry.shared.js";
+// Control UI chat module implements slash commands behavior.
+import { t } from "../../i18n/index.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { IconName } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
@@ -101,7 +102,9 @@ const UI_ONLY_COMMANDS: SlashCommandDef[] = [
   {
     key: "clear",
     name: "clear",
-    description: "Clear chat history",
+    get description() {
+      return t("rawUi.slash_commands_prop_03bd358dbbbd");
+    },
     icon: "trash",
     category: "session",
     executeLocal: true,
@@ -110,7 +113,9 @@ const UI_ONLY_COMMANDS: SlashCommandDef[] = [
   {
     key: "redirect",
     name: "redirect",
-    description: "Abort and restart with a new message",
+    get description() {
+      return t("rawUi.slash_commands_prop_f0800cef73a3");
+    },
     args: "<message>",
     icon: "refresh",
     category: "agents",

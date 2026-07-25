@@ -529,12 +529,12 @@ export function renderRawOutputToggle(text: string) {
         aria-expanded="false"
         @click=${handleRawDetailsToggle}
       >
-        <span>Raw details</span>
+        <span>${t("rawUi.tool_cards_text_3be724be1aea")}</span>
         <span class="chat-tool-card__raw-toggle-icon">${icons.chevronDown}</span>
       </button>
       <div class="chat-tool-card__raw-body" hidden>
         ${renderToolDataBlock({
-          label: "Tool output",
+          label: t("rawUi.tool_cards_prop_09fb1110e313"),
           text,
           expanded: true,
         })}
@@ -591,8 +591,10 @@ function renderCollapsedToolSummary(params: {
         ? html`<span class="chat-tool-msg-summary__names">${displayName}</span>`
         : nothing}
       ${isError
-        ? html`<span class="chat-tool-msg-summary__error-badge" aria-label="Tool returned an error"
-            >${icons.x}<span>Error</span></span
+        ? html`<span
+            class="chat-tool-msg-summary__error-badge"
+            aria-label=${t("rawUi.tool_cards_attr_36796f3aafae")}
+            >${icons.x}<span>${t("rawUi.tool_cards_text_b3420ff18ad9")}</span></span
           >`
         : nothing}
     </button>
@@ -731,7 +733,7 @@ export function renderExpandedToolCardContent(
           <span>${display.label}</span>
           ${isError
             ? html`<span class="chat-tool-card__status-badge" role="status"
-                >${icons.x}<span>Error</span></span
+                >${icons.x}<span>${t("rawUi.tool_cards_text_b3420ff18ad9")}</span></span
               >`
             : nothing}
         </div>
@@ -742,8 +744,8 @@ export function renderExpandedToolCardContent(
                   class="chat-tool-card__action-btn"
                   type="button"
                   @click=${() => onOpenSidebar?.(sidebarActionContent)}
-                  title="Open in the side panel"
-                  aria-label="Open tool details in side panel"
+                  title=${t("rawUi.tool_cards_attr_a06845705e80")}
+                  aria-label=${t("rawUi.tool_cards_attr_6c7300673c60")}
                 >
                   <span class="chat-tool-card__action-icon">${icons.panelRightOpen}</span>
                 </button>
@@ -754,7 +756,7 @@ export function renderExpandedToolCardContent(
       ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
       ${hasInput
         ? renderToolDataBlock({
-            label: "Tool input",
+            label: t("rawUi.tool_cards_prop_a10de4f6919b"),
             text: card.inputText!,
             expanded: true,
           })
@@ -763,7 +765,9 @@ export function renderExpandedToolCardContent(
         ? card.preview
           ? html`${visiblePreview} ${renderRawOutputToggle(card.outputText!)}`
           : renderToolDataBlock({
-              label: isError ? "Tool error" : "Tool output",
+              label: isError
+                ? t("rawUi.tool_cards_dynamic_toolError")
+                : t("rawUi.tool_cards_dynamic_toolOutput"),
               text: card.outputText!,
               expanded: true,
             })
@@ -833,7 +837,12 @@ export function renderToolCardSidebar(
         ${canClick
           ? html`<span
               class="chat-tool-card__action ${isError ? "chat-tool-card__action--error" : ""}"
-              >${isError ? "View error" : hasText || hasPreview ? "View" : ""} ${statusIcon}</span
+              >${isError
+                ? t("rawUi.tool_cards_dynamic_75b51593a280")
+                : hasText || hasPreview
+                  ? t("rawUi.tool_cards_dynamic_3828479c1852")
+                  : ""}
+              ${statusIcon}</span
             >`
           : nothing}
         ${isEmpty && !canClick
@@ -850,7 +859,9 @@ export function renderToolCardSidebar(
               ? "chat-tool-card__status-text--error"
               : "muted"}"
           >
-            ${isError ? "Failed" : "Completed"}
+            ${isError
+              ? t("rawUi.tool_cards_dynamic_4a1248ea0c39")
+              : t("rawUi.tool_cards_dynamic_11ccde18094e")}
           </div>`
         : nothing}
       ${preview

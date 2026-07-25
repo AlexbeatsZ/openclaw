@@ -1,5 +1,6 @@
-// Control UI chat module implements context notice behavior.
 import { html, nothing } from "lit";
+// Control UI chat module implements context notice behavior.
+import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import type { GatewaySessionRow } from "../types.ts";
 import { formatCompactTokenCount } from "./token-format.ts";
@@ -122,7 +123,10 @@ export function renderContextNotice(
       class="context-notice ${model.warning ? "context-notice--warning" : "context-notice--usage"}"
       role="status"
       style="--ctx-color:${model.color};--ctx-bg:${model.bg}"
-      title=${`Session context usage: ${model.detail} (${model.pct}%)`}
+      title=${t("rawUi.context_notice_dynamic_sessionUsage", {
+        detail: model.detail,
+        pct: String(model.pct),
+      })}
     >
       ${model.warning
         ? html`
@@ -147,7 +151,7 @@ export function renderContextNotice(
               <span class="context-notice__meter-fill" style="width:${model.pct}%"></span>
             </span>
           `}
-      <span>${model.pct}% context used</span>
+      <span>${model.pct}${t("rawUi.context_notice_fragment_c0d5fe8d1cc8")}</span>
       <span class="context-notice__detail">${model.detail}</span>
       ${canRenderCompact
         ? html`
@@ -156,8 +160,8 @@ export function renderContextNotice(
                 ? "context-notice__action--busy"
                 : ""}"
               type="button"
-              title="Compact session context"
-              aria-label="Compact recommended session context"
+              title=${t("rawUi.context_notice_attr_0bad2df2bf7d")}
+              aria-label=${t("rawUi.context_notice_attr_32d22ad33a24")}
               ?disabled=${compactDisabled}
               @click=${(event: Event) => {
                 event.preventDefault();
@@ -169,7 +173,11 @@ export function renderContextNotice(
               }}
             >
               ${options.compactBusy ? icons.loader : icons.minimize}
-              <span>${options.compactBusy ? "Compacting" : "Compact"}</span>
+              <span
+                >${options.compactBusy
+                  ? t("rawUi.context_notice_dynamic_fccc61d25079")
+                  : t("rawUi.context_notice_dynamic_a5e37176bbbf")}</span
+              >
             </button>
           `
         : nothing}

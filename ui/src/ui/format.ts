@@ -102,7 +102,7 @@ export function formatDateTimeMs(
 
 export function formatList(values?: Array<string | null | undefined>): string {
   if (!values || values.length === 0) {
-    return "none";
+    return t("common.none");
   }
   return values.filter((v): v is string => Boolean(v && v.trim())).join(", ");
 }

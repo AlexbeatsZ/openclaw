@@ -202,12 +202,12 @@ export function renderNostrProfileForm(params: {
         : nothing}
       ${renderPicturePreview()}
       ${renderField("name", t("channels.nostr.username"), {
-        placeholder: "satoshi",
+        placeholder: t("rawUi.channels_nostr_profile_form_prop_c8a571743a26"),
         maxLength: 256,
         help: t("channels.nostr.usernameHelp"),
       })}
       ${renderField("displayName", t("channels.nostr.displayName"), {
-        placeholder: "Satoshi Nakamoto",
+        placeholder: t("rawUi.channels_nostr_profile_form_prop_e7fd310cde9d"),
         maxLength: 256,
         help: t("channels.nostr.displayNameHelp"),
       })}
@@ -219,7 +219,7 @@ export function renderNostrProfileForm(params: {
       })}
       ${renderField("picture", t("channels.nostr.avatarUrl"), {
         type: "url",
-        placeholder: "https://example.com/avatar.jpg",
+        placeholder: t("rawUi.channels_nostr_profile_form_prop_07c3bd7f48d1"),
         help: t("channels.nostr.avatarHelp"),
       })}
       ${state.showAdvanced
@@ -233,20 +233,20 @@ export function renderNostrProfileForm(params: {
 
               ${renderField("banner", t("channels.nostr.bannerUrl"), {
                 type: "url",
-                placeholder: "https://example.com/banner.jpg",
+                placeholder: t("rawUi.channels_nostr_profile_form_prop_d66a6407f71b"),
                 help: t("channels.nostr.bannerHelp"),
               })}
               ${renderField("website", t("channels.nostr.website"), {
                 type: "url",
-                placeholder: "https://example.com",
+                placeholder: t("rawUi.channels_nostr_profile_form_prop_86034702c0de"),
                 help: t("channels.nostr.websiteHelp"),
               })}
               ${renderField("nip05", t("channels.nostr.nip05Identifier"), {
-                placeholder: "you@example.com",
+                placeholder: t("rawUi.channels_nostr_profile_form_prop_5c4ed9af7bb4"),
                 help: t("channels.nostr.nip05Help"),
               })}
               ${renderField("lud16", t("channels.nostr.lightningAddress"), {
-                placeholder: "you@getalby.com",
+                placeholder: t("rawUi.channels_nostr_profile_form_prop_7fa5c2e7ad03"),
                 help: t("channels.nostr.lightningHelp"),
               })}
             </div>

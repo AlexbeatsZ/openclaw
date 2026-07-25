@@ -1,6 +1,7 @@
-// Control UI component implements the file preview modal element.
 import { LitElement, css, html, type PropertyValues } from "lit";
 import { property, query } from "lit/decorators.js";
+// Control UI component implements the file preview modal element.
+import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 
 export type FilePreviewModalFile = {
@@ -13,13 +14,13 @@ export class OpenClawFilePreviewModal extends LitElement {
   @property({ attribute: false }) files: FilePreviewModalFile[] = [];
   @property() activePath = "";
   @property() query = "";
-  @property() label = "Support files";
-  @property() listLabel = "Files";
-  @property() searchPlaceholder = "Search files...";
+  @property() label = t("rawUi.file_preview_supportFiles");
+  @property() listLabel = t("rawUi.file_preview_files");
+  @property() searchPlaceholder = t("rawUi.file_preview_searchFiles");
   @property() contextLabel = "";
   @property() readOnlyLabel = "read-only";
-  @property() emptyTitle = "No files match";
-  @property() emptySubtitle = "Try another file name or content search.";
+  @property() emptyTitle = t("rawUi.file_preview_noFilesMatch");
+  @property() emptySubtitle = t("rawUi.file_preview_tryAnotherSearch");
   @query(".search") private searchInput?: HTMLInputElement;
 
   static override styles = css`
@@ -404,13 +405,18 @@ export class OpenClawFilePreviewModal extends LitElement {
             @input=${this.handleQueryInput}
             autofocus
           />
-          <span class="state">${fileCount} <span class="esc">esc</span></span>
+          <span class="state"
+            >${fileCount}
+            <span class="esc">${t("rawUi.file_preview_modal_text_b140e6dbf7e9")}</span></span
+          >
         </header>
         <div class="body">
           <aside class="list">
             <div class="list-section">${this.listLabel} · ${filteredFiles.length}</div>
             ${filteredFiles.length === 0
-              ? html`<div class="empty-list">No files match.</div>`
+              ? html`<div class="empty-list">
+                  ${t("rawUi.file_preview_modal_text_d152aa7331ce")}
+                </div>`
               : filteredFiles.map(
                   (file) => html`
                     <button
@@ -429,10 +435,13 @@ export class OpenClawFilePreviewModal extends LitElement {
           ${activeFile ? this.renderFile(activeFile) : this.renderEmpty()}
         </div>
         <footer class="foot">
-          <span class="foot-group"><span class="kbd">↑↓</span> navigate</span>
+          <span class="foot-group"
+            ><span class="kbd">↑↓</span> ${t("rawUi.file_preview_modal_text_486244e638ca")}</span
+          >
           <span class="spacer"></span>
           <button class="button" @click=${this.emitClose}>
-            Close <span class="kbd">esc</span>
+            ${t("rawUi.file_preview_modal_text_2ac835bd70ea")}
+            <span class="kbd">${t("rawUi.file_preview_modal_text_b140e6dbf7e9")}</span>
           </button>
         </footer>
       </div>
@@ -591,7 +600,7 @@ function fileKind(path: string): string {
     py: "Python",
     sh: "Shell",
   };
-  return map[ext] ?? (ext ? ext.toUpperCase() : "File");
+  return map[ext] ?? (ext ? ext.toUpperCase() : t("rawUi.file_preview_file"));
 }
 
 if (!customElements.get("openclaw-file-preview-modal")) {

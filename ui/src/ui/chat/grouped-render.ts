@@ -1,7 +1,8 @@
-// Control UI chat module implements grouped render behavior.
 import { html, nothing } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { until } from "lit/directives/until.js";
+// Control UI chat module implements grouped render behavior.
+import { t } from "../../i18n/index.ts";
 import { getSafeLocalStorage } from "../../local-storage.ts";
 import type { AssistantIdentity } from "../assistant-identity.ts";
 import type { EmbedSandboxMode } from "../embed-sandbox.ts";
@@ -59,8 +60,8 @@ export function formatChatTimestampForDisplay(timestamp: number): ChatTimestampD
   const date = new Date(timestamp);
   if (!Number.isFinite(date.getTime())) {
     return {
-      label: "Unknown date",
-      title: "Unknown date",
+      label: t("rawUi.grouped_render_prop_b60445bb2b12"),
+      title: t("rawUi.grouped_render_prop_fe8d8e3882f6"),
       dateTime: "",
     };
   }
@@ -523,7 +524,9 @@ export function renderMessageGroup(group: MessageGroup, opts: RenderMessageGroup
     const activityExpanded = opts.isToolMessageExpanded?.(activityDisclosureId) ?? hasError;
 
     return html`
-      <div class="chat-group tool chat-group--activity">
+      <div
+        class="chat-group ${t("rawUi.grouped_render_fragment_67b7a9b85f3e")} chat-group--activity"
+      >
         ${renderChatAvatar(
           group.role,
           {
@@ -550,11 +553,18 @@ export function renderMessageGroup(group: MessageGroup, opts: RenderMessageGroup
             >
               <span class="chat-activity-group__icon">${icons.activity}</span>
               <span class="chat-activity-group__label"
-                >Activity: ${toolCount} tool${toolCount === 1 ? "" : "s"}</span
+                >${t(
+                  toolCount === 1
+                    ? "rawUi.grouped_render_dynamic_activityTool"
+                    : "rawUi.grouped_render_dynamic_activityTools",
+                  { count: String(toolCount) },
+                )}</span
               >
               <span class="chat-activity-group__preview">${preview}</span>
               ${hasError
-                ? html`<span class="chat-activity-group__badge">${icons.x}<span>Error</span></span>`
+                ? html`<span class="chat-activity-group__badge"
+                    >${icons.x}<span>${t("rawUi.grouped_render_text_3f87a9c1f0cb")}</span></span
+                  >`
                 : nothing}
               <span
                 class="collapse-chevron ${activityExpanded ? "" : "collapse-chevron--collapsed"}"
@@ -578,7 +588,7 @@ export function renderMessageGroup(group: MessageGroup, opts: RenderMessageGroup
               : nothing}
           </div>
           <div class="chat-group-footer">
-            <span class="chat-sender-name">Activity</span>
+            <span class="chat-sender-name">${t("rawUi.grouped_render_text_eddfd4c22f14")}</span>
             ${renderChatTimestamp(group.timestamp)}
             ${opts.onDelete ? renderDeleteButton(opts.onDelete, "right") : nothing}
           </div>
@@ -727,7 +737,9 @@ function renderMessageMeta(meta: GroupMeta | null) {
         : pct >= 75
           ? "msg-meta__ctx msg-meta__ctx--warn"
           : "msg-meta__ctx";
-    parts.push(html`<span class="${cls}">${pct}% ctx</span>`);
+    parts.push(
+      html`<span class="${cls}">${pct}${t("rawUi.grouped_render_fragment_8f1ee3378441")}</span>`,
+    );
   }
 
   // Model
@@ -743,9 +755,9 @@ function renderMessageMeta(meta: GroupMeta | null) {
 
   return html`
     <details class="msg-meta">
-      <summary class="msg-meta__summary" title="Show message context details">
+      <summary class="msg-meta__summary" title=${t("rawUi.grouped_render_attr_0cda145a3daa")}>
         <span class="msg-meta__summary-icon" aria-hidden="true">${icons.chevronRight}</span>
-        <span>Context</span>
+        <span>${t("rawUi.grouped_render_text_9f46d2fbe21a")}</span>
       </summary>
       <span class="msg-meta__details">${parts}</span>
     </details>
@@ -839,8 +851,8 @@ function renderDeleteButton(onDelete: () => void, side: DeleteConfirmSide) {
     <span class="chat-delete-wrap">
       <button
         class="chat-group-delete"
-        title="Delete"
-        aria-label="Delete message"
+        title=${t("rawUi.grouped_render_attr_11dfe9fc1182")}
+        aria-label=${t("rawUi.grouped_render_attr_891e1f203f81")}
         @click=${(e: Event) => {
           if (shouldSkipDeleteConfirm()) {
             onDelete();
@@ -959,7 +971,7 @@ function renderMessageImages(images: RenderableImageBlock[], opts?: ImageRenderO
   const renderImageElement = (img: RenderableImageBlock, previewUrl: string) => html`
     <img
       src=${previewUrl}
-      alt=${img.alt ?? "Attached image"}
+      alt=${img.alt ?? t("rawUi.grouped_render_dynamic_7ef5e1a2b24b")}
       class="chat-message-image"
       width=${img.width ?? nothing}
       height=${img.height ?? nothing}
@@ -992,8 +1004,8 @@ function renderReplyPill(replyTarget: NormalizedMessage["replyTarget"]) {
       <span class="chat-reply-pill__icon">${icons.messageSquare}</span>
       <span class="chat-reply-pill__label">
         ${replyTarget.kind === "current"
-          ? "Replying to current message"
-          : `Replying to ${replyTarget.id}`}
+          ? t("rawUi.grouped_render_dynamic_8a516590fce4")
+          : t("rawUi.grouped_render_dynamic_replyingTo", { id: replyTarget.id })}
       </span>
     </div>
   `;
@@ -1417,10 +1429,14 @@ function renderAssistantAttachments(
                 ${!attachmentUrl
                   ? html`<span
                       class="chat-assistant-attachment-badge chat-assistant-attachment-badge--muted"
-                      >${availability.status === "checking" ? "Checking..." : "Unavailable"}</span
+                      >${availability.status === "checking"
+                        ? t("rawUi.grouped_render_dynamic_4fd8c6b95de3")
+                        : t("rawUi.grouped_render_dynamic_b020e6e25385")}</span
                     >`
                   : attachment.isVoiceNote
-                    ? html`<span class="chat-assistant-attachment-badge">Voice note</span>`
+                    ? html`<span class="chat-assistant-attachment-badge"
+                        >${t("rawUi.grouped_render_text_46ba25a356f7")}</span
+                      >`
                     : nothing}
               </div>
               ${attachmentUrl
@@ -1495,7 +1511,7 @@ function renderInlineToolCards(
   },
 ) {
   return html`
-    <div class="chat-tools-inline">
+    <div class="chat-${t("rawUi.grouped_render_fragment_67b7a9b85f3e")}s-inline">
       ${toolCards.map((card, index) =>
         renderToolCard(card, {
           expanded: opts.isToolExpanded?.(`${opts.messageKey}:toolcard:${index}`) ?? false,
@@ -1572,8 +1588,8 @@ function renderExpandButton(
     <button
       class="btn btn--xs chat-expand-btn"
       type="button"
-      title="Open in canvas"
-      aria-label="Open in canvas"
+      title=${t("rawUi.grouped_render_attr_399aa239d0da")}
+      aria-label=${t("rawUi.grouped_render_attr_7bcda9147645")}
       @click=${() =>
         onOpenSidebar({
           kind: "markdown",
@@ -1750,7 +1766,7 @@ function renderGroupedMessage(
       ? singleToolDisplayDetail
       : singleToolDisplay && !markdown && !hasImages
         ? singleToolDisplay.label
-        : "Tool output";
+        : t("rawUi.grouped_render_prop_e4622a4d5027");
   const toolMessageLabel =
     formatCollapsedToolSummaryText(toolMessageLabelRaw) ?? toolMessageLabelRaw;
   const toolMessageIcon = singleToolDisplay ? icons[singleToolDisplay.icon] : icons.zap;
@@ -1775,36 +1791,54 @@ function renderGroupedMessage(
       ${isToolMessage
         ? html`
             <div
-              class="chat-tool-msg-collapse chat-tool-msg-collapse--manual ${toolMessageExpanded
-                ? "is-open"
-                : ""}"
+              class="chat-${t("rawUi.grouped_render_fragment_67b7a9b85f3e")}-msg-collapse chat-${t(
+                "rawUi.grouped_render_fragment_67b7a9b85f3e",
+              )}-msg-collapse--manual ${toolMessageExpanded ? "is-open" : ""}"
             >
               <button
-                class="chat-tool-msg-summary ${toolMessageHasError
-                  ? "chat-tool-msg-summary--error"
-                  : ""}"
+                class="chat-${t(
+                  "rawUi.grouped_render_fragment_67b7a9b85f3e",
+                )}-msg-summary ${toolMessageHasError ? "chat-tool-msg-summary--error" : ""}"
                 type="button"
                 aria-expanded=${String(toolMessageExpanded)}
                 @click=${() => opts.onToggleToolMessageExpanded?.(toolMessageDisclosureId)}
               >
-                <span class="chat-tool-msg-summary__icon">${toolMessageIcon}</span>
-                <span class="chat-tool-msg-summary__label">${toolMessageLabel}</span>
+                <span
+                  class="chat-${t("rawUi.grouped_render_fragment_67b7a9b85f3e")}-msg-summary__icon"
+                  >${toolMessageIcon}</span
+                >
+                <span
+                  class="chat-${t("rawUi.grouped_render_fragment_67b7a9b85f3e")}-msg-summary__label"
+                  >${toolMessageLabel}</span
+                >
                 ${toolSummaryLabel
-                  ? html`<span class="chat-tool-msg-summary__names">${toolSummaryLabel}</span>`
+                  ? html`<span
+                      class="chat-${t(
+                        "rawUi.grouped_render_fragment_67b7a9b85f3e",
+                      )}-msg-summary__names"
+                      >${toolSummaryLabel}</span
+                    >`
                   : toolPreview
-                    ? html`<span class="chat-tool-msg-summary__preview">${toolPreview}</span>`
+                    ? html`<span
+                        class="chat-${t(
+                          "rawUi.grouped_render_fragment_67b7a9b85f3e",
+                        )}-msg-summary__preview"
+                        >${toolPreview}</span
+                      >`
                     : nothing}
                 ${toolMessageHasError
                   ? html`<span
-                      class="chat-tool-msg-summary__error-badge"
-                      aria-label="Tool returned an error"
-                      >${icons.x}<span>Error</span></span
+                      class="chat-${t(
+                        "rawUi.grouped_render_fragment_67b7a9b85f3e",
+                      )}-msg-summary__error-badge"
+                      aria-label=${t("rawUi.grouped_render_attr_1ea1e15a1354")}
+                      >${icons.x}<span>${t("rawUi.grouped_render_text_3f87a9c1f0cb")}</span></span
                     >`
                   : nothing}
               </button>
               ${toolMessageExpanded
                 ? html`
-                    <div class="chat-tool-msg-body">
+                    <div class="chat-${t("rawUi.grouped_render_fragment_67b7a9b85f3e")}-msg-body">
                       ${renderMessageImages(images, imageRenderOptions)}
                       ${renderAssistantAttachments(
                         visibleAttachments,
@@ -1824,7 +1858,9 @@ function renderGroupedMessage(
                             ?open=${Boolean(opts.autoExpandToolCalls)}
                           >
                             <summary class="chat-json-summary">
-                              <span class="chat-json-badge">JSON</span>
+                              <span class="chat-json-badge"
+                                >${t("rawUi.grouped_render_text_9df0ee80b83d")}</span
+                              >
                               <span class="chat-json-label"
                                 >${jsonSummaryLabel(jsonResult.parsed)}</span
                               >
@@ -1889,7 +1925,9 @@ function renderGroupedMessage(
             ${jsonResult
               ? html`<details class="chat-json-collapse">
                   <summary class="chat-json-summary">
-                    <span class="chat-json-badge">JSON</span>
+                    <span class="chat-json-badge"
+                      >${t("rawUi.grouped_render_text_9df0ee80b83d")}</span
+                    >
                     <span class="chat-json-label">${jsonSummaryLabel(jsonResult.parsed)}</span>
                   </summary>
                   <pre class="chat-json-content"><code>${jsonResult.pretty}</code></pre>
@@ -1914,8 +1952,12 @@ function renderGroupedMessage(
       ${duplicateCount > 1
         ? html`<div
             class="chat-duplicate-count"
-            aria-label=${`${duplicateCount} consecutive identical messages collapsed`}
-            title=${`${duplicateCount} consecutive identical messages collapsed`}
+            aria-label=${t("rawUi.grouped_render_dynamic_duplicatesCollapsed", {
+              count: String(duplicateCount),
+            })}
+            title=${t("rawUi.grouped_render_dynamic_duplicatesCollapsed", {
+              count: String(duplicateCount),
+            })}
           >
             ×${duplicateCount}
           </div>`

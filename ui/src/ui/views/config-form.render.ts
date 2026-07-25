@@ -1,5 +1,6 @@
-// Control UI view renders config form.render screen content.
 import { html, nothing } from "lit";
+// Control UI view renders config form.render screen content.
+import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type { ConfigUiHints } from "../types.ts";
@@ -279,50 +280,262 @@ const sectionIcons = {
 // Section metadata
 export const SECTION_META: Record<string, { label: string; description: string }> = {
   env: {
-    label: "Environment Variables",
-    description: "Environment variables passed to the gateway process",
+    get label() {
+      return t("rawUi.config_form_render_prop_4270bf53fb8a");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_a4fce6218e83");
+    },
   },
-  update: { label: "Updates", description: "Auto-update settings and release channel" },
-  agents: { label: "Agents", description: "Agent configurations, models, and identities" },
-  auth: { label: "Authentication", description: "API keys and authentication profiles" },
+  update: {
+    get label() {
+      return t("rawUi.config_form_render_prop_2beb51f55322");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_f2b30977c5a6");
+    },
+  },
+  agents: {
+    get label() {
+      return t("rawUi.config_form_render_prop_9f5b7e1c6acc");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_3e7f503e4550");
+    },
+  },
+  auth: {
+    get label() {
+      return t("rawUi.config_form_render_prop_1a997f82376a");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_6657ecf0d4d3");
+    },
+  },
   channels: {
-    label: "Channels",
-    description: "Messaging channels (Telegram, Discord, Slack, etc.)",
+    get label() {
+      return t("rawUi.config_form_render_prop_a98df77368f5");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_e6bba71091cb");
+    },
   },
-  messages: { label: "Messages", description: "Message handling and routing settings" },
-  commands: { label: "Commands", description: "Custom slash commands" },
-  hooks: { label: "Hooks", description: "Webhooks and event hooks" },
-  skills: { label: "Skills", description: "Skill packs and capabilities" },
-  tools: { label: "Tools", description: "Tool configurations (browser, search, etc.)" },
-  gateway: { label: "Gateway", description: "Gateway server settings (port, auth, binding)" },
-  wizard: { label: "Setup Wizard", description: "Setup wizard state and history" },
+  messages: {
+    get label() {
+      return t("rawUi.config_form_render_prop_65276e71d431");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_f880c461a5a7");
+    },
+  },
+  commands: {
+    get label() {
+      return t("rawUi.config_form_render_prop_f638bffe135f");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_4965c84de4be");
+    },
+  },
+  hooks: {
+    get label() {
+      return t("rawUi.config_form_render_prop_768e51afde6b");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_848fb3a8af8d");
+    },
+  },
+  skills: {
+    get label() {
+      return t("rawUi.config_form_render_prop_fbe34cc3a90b");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_c6fc8d0264ea");
+    },
+  },
+  tools: {
+    get label() {
+      return t("rawUi.config_form_render_prop_1601841d6679");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_f925d92121a0");
+    },
+  },
+  gateway: {
+    get label() {
+      return t("rawUi.config_form_render_prop_bd3d0708f474");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_db6fdae1e55f");
+    },
+  },
+  wizard: {
+    get label() {
+      return t("rawUi.config_form_render_prop_cf2164c777ed");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_fbf7f05f3816");
+    },
+  },
   // Additional sections
-  meta: { label: "Metadata", description: "Gateway metadata and version information" },
-  logging: { label: "Logging", description: "Log levels and output configuration" },
-  browser: { label: "Browser", description: "Browser automation settings" },
-  ui: { label: "UI", description: "User interface preferences" },
-  models: { label: "Models", description: "AI model configurations and providers" },
-  bindings: { label: "Bindings", description: "Key bindings and shortcuts" },
-  broadcast: { label: "Broadcast", description: "Broadcast and notification settings" },
-  audio: { label: "Audio", description: "Audio input/output settings" },
-  session: { label: "Session", description: "Session management and persistence" },
-  cron: { label: "Cron", description: "Scheduled tasks and automation" },
-  web: { label: "Web", description: "Web server and API settings" },
-  discovery: { label: "Discovery", description: "Service discovery and networking" },
-  canvasHost: { label: "Canvas Host", description: "Canvas rendering and display" },
-  talk: { label: "Talk", description: "Voice and speech settings" },
-  plugins: { label: "Plugins", description: "Plugin management and extensions" },
+  meta: {
+    get label() {
+      return t("rawUi.config_form_render_prop_241f4b9d6593");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_35f756af9d71");
+    },
+  },
+  logging: {
+    get label() {
+      return t("rawUi.config_form_render_prop_3f9891e321a6");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_d386bdfa3259");
+    },
+  },
+  browser: {
+    get label() {
+      return t("rawUi.config_form_render_prop_d61aed8a64f1");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_629b0e88d486");
+    },
+  },
+  ui: {
+    get label() {
+      return t("rawUi.config_form_render_prop_c92c2cada6c4");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_d2cc3cde0aa6");
+    },
+  },
+  models: {
+    get label() {
+      return t("rawUi.config_form_render_prop_44acf552f01b");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_e4e1b6612407");
+    },
+  },
+  bindings: {
+    get label() {
+      return t("rawUi.config_form_render_prop_49d42e0383fa");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_60b62a249d69");
+    },
+  },
+  broadcast: {
+    get label() {
+      return t("rawUi.config_form_render_prop_e8494f5ffffd");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_6a9ea37fa3bf");
+    },
+  },
+  audio: {
+    get label() {
+      return t("rawUi.config_form_render_prop_3db44e4390c3");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_69a432faa8a2");
+    },
+  },
+  session: {
+    get label() {
+      return t("rawUi.config_form_render_prop_26cd50f04212");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_71f776cd0bde");
+    },
+  },
+  cron: {
+    get label() {
+      return t("rawUi.config_form_render_prop_9ef462856790");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_aee6103edfc6");
+    },
+  },
+  web: {
+    get label() {
+      return t("rawUi.config_form_render_prop_1d740bb9f514");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_7ede6c31dfbd");
+    },
+  },
+  discovery: {
+    get label() {
+      return t("rawUi.config_form_render_prop_dc1c5cc56fa6");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_c52b017ea947");
+    },
+  },
+  canvasHost: {
+    get label() {
+      return t("rawUi.config_form_render_prop_e847bdea3970");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_608f35f5a791");
+    },
+  },
+  talk: {
+    get label() {
+      return t("rawUi.config_form_render_prop_41d06bd0366b");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_6d926dd51eab");
+    },
+  },
+  plugins: {
+    get label() {
+      return t("rawUi.config_form_render_prop_4a00164ae4ed");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_f4a23403b1d5");
+    },
+  },
   diagnostics: {
-    label: "Diagnostics",
-    description: "Instrumentation, OpenTelemetry, and cache-trace settings",
+    get label() {
+      return t("rawUi.config_form_render_prop_effdffc722e3");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_5aec7a77ceb6");
+    },
   },
-  cli: { label: "CLI", description: "CLI banner and startup behavior" },
-  secrets: { label: "Secrets", description: "Secret provider configuration" },
+  cli: {
+    get label() {
+      return t("rawUi.config_form_render_prop_c4b17b995232");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_f380b2627775");
+    },
+  },
+  secrets: {
+    get label() {
+      return t("rawUi.config_form_render_prop_7a4dd9ff39c7");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_121b93892db7");
+    },
+  },
   acp: {
-    label: "ACP",
-    description: "Agent Communication Protocol runtime and streaming settings",
+    get label() {
+      return t("rawUi.config_form_render_prop_0d5b5b424499");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_84bc9d1e0d66");
+    },
   },
-  mcp: { label: "MCP", description: "Model Context Protocol server definitions" },
+  mcp: {
+    get label() {
+      return t("rawUi.config_form_render_prop_dab9b063a1b9");
+    },
+    get description() {
+      return t("rawUi.config_form_render_prop_62e3a79d6598");
+    },
+  },
 };
 
 function getSectionIcon(key: string) {
@@ -363,12 +576,14 @@ function matchesSearch(params: {
 
 export function renderConfigForm(props: ConfigFormProps) {
   if (!props.schema) {
-    return html` <div class="muted">Schema unavailable.</div> `;
+    return html` <div class="muted">${t("rawUi.config_form_render_text_f29bddc5c5f7")}</div> `;
   }
   const schema = props.schema;
   const value = props.value ?? {};
   if (schemaType(schema) !== "object" || !schema.properties) {
-    return html` <div class="callout danger">Unsupported schema. Use Raw.</div> `;
+    return html`
+      <div class="callout danger">${t("rawUi.config_form_render_text_11b360e9ba0b")}</div>
+    `;
   }
   const unsupported = new Set(props.unsupportedPaths ?? []);
   const properties = schema.properties;
@@ -428,7 +643,9 @@ export function renderConfigForm(props: ConfigFormProps) {
       <div class="config-empty">
         <div class="config-empty__icon">${icons.search}</div>
         <div class="config-empty__text">
-          ${searchQuery ? `No settings match "${searchQuery}"` : "No settings in this section"}
+          ${searchQuery
+            ? t("rawUi.config_form_render_dynamic_noSettingsMatch", { query: searchQuery })
+            : t("rawUi.config_form_render_dynamic_89c3a5aaa439")}
         </div>
       </div>
     `;

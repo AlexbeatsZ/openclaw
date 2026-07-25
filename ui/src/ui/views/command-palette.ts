@@ -411,7 +411,11 @@ export function renderCommandPalette(props: CommandPaletteProps) {
         <div class="cmd-palette__footer">
           <span><kbd>↑↓</kbd> ${t("overview.palette.footer.navigate")}</span>
           <span><kbd>↵</kbd> ${t("overview.palette.footer.select")}</span>
-          <span><kbd>esc</kbd> ${t("overview.palette.footer.close")}</span>
+          <span
+            ><kbd>${t("rawUi.command_palette_text_04a3f4331ee2")}</kbd> ${t(
+              "overview.palette.footer.close",
+            )}</span
+          >
         </div>
       </div>
     </dialog>

@@ -1,6 +1,7 @@
-// Control UI view renders mcp screen content.
 import { redactSensitiveUrlLikeString } from "@openclaw/net-policy/redact-sensitive-url";
 import { html, nothing, type TemplateResult } from "lit";
+// Control UI view renders mcp screen content.
+import { t } from "../../i18n/index.ts";
 
 type McpServerRow = {
   name: string;
@@ -74,15 +75,17 @@ function renderServerRow(props: McpViewProps, server: McpServerRow) {
         <div class="mcp-server-row__title">
           <span>${server.name}</span>
           <span class="pill pill--sm ${server.enabled ? "pill--ok" : ""}">
-            ${server.enabled ? "Enabled" : "Disabled"}
+            ${server.enabled
+              ? t("rawUi.mcp_dynamic_c04a5a541425")
+              : t("rawUi.mcp_dynamic_ce88ed70004a")}
           </span>
         </div>
         <div class="mcp-server-row__launch">${server.launch}</div>
         <div class="mcp-server-row__meta">
           <span>${server.transport}</span>
           ${server.auth ? html`<span>${server.auth}</span>` : nothing}
-          ${server.toolFilter ? html`<span>tool filter</span>` : nothing}
-          ${server.parallel ? html`<span>parallel</span>` : nothing}
+          ${server.toolFilter ? html`<span>${t("rawUi.mcp_text_d9f382a282bf")}</span>` : nothing}
+          ${server.parallel ? html`<span>${t("rawUi.mcp_text_7481d73080b2")}</span>` : nothing}
           ${server.tls ? html`<span>${server.tls}</span>` : nothing}
         </div>
       </div>
@@ -92,7 +95,9 @@ function renderServerRow(props: McpViewProps, server: McpServerRow) {
           ?disabled=${props.configSaving}
           @click=${() => props.onServerEnabledChange(server.name, !server.enabled)}
         >
-          ${server.enabled ? "Disable" : "Enable"}
+          ${server.enabled
+            ? t("rawUi.mcp_dynamic_2b1965eca7b0")
+            : t("rawUi.mcp_dynamic_50b5a17f82ce")}
         </button>
         <code>${server.auth === "oauth" ? loginCommand : probeCommand}</code>
       </div>
@@ -113,50 +118,47 @@ export function renderMcp(props: McpViewProps) {
     <section class="mcp-page">
       <div class="mcp-page__summary">
         <div class="stat">
-          <div class="stat-label">Servers</div>
+          <div class="stat-label">${t("rawUi.mcp_text_233b955bc2f3")}</div>
           <div class="stat-value">${rows.length}</div>
         </div>
         <div class="stat">
-          <div class="stat-label">Enabled</div>
+          <div class="stat-label">${t("rawUi.mcp_text_2962302a42b8")}</div>
           <div class="stat-value ${enabledCount === rows.length ? "ok" : "warn"}">
             ${enabledCount}
           </div>
         </div>
         <div class="stat">
-          <div class="stat-label">OAuth</div>
+          <div class="stat-label">${t("rawUi.mcp_text_2c34b2c6f1b8")}</div>
           <div class="stat-value">${oauthCount}</div>
         </div>
         <div class="stat">
-          <div class="stat-label">Filtered</div>
+          <div class="stat-label">${t("rawUi.mcp_text_e20bcad5843c")}</div>
           <div class="stat-value">${filteredCount}</div>
         </div>
       </div>
 
       <section class="card mcp-command-card">
         <div>
-          <div class="card-title">MCP operator commands</div>
-          <div class="card-sub">Status, diagnostics, auth, probing, and runtime reload.</div>
+          <div class="card-title">${t("rawUi.mcp_text_a3a31d6a7812")}</div>
+          <div class="card-sub">${t("rawUi.mcp_text_3141bdadf385")}</div>
         </div>
         <div class="mcp-command-card__grid">
-          <code>openclaw mcp status --verbose</code>
-          <code>openclaw mcp doctor --probe</code>
-          <code>openclaw mcp login &lt;name&gt;</code>
-          <code>openclaw mcp reload</code>
+          <code>${t("rawUi.mcp_text_0b7c22dc9884")}</code>
+          <code>${t("rawUi.mcp_text_9f2df998ad46")}</code>
+          <code>${t("rawUi.mcp_text_0d390ed58e51")}</code>
+          <code>${t("rawUi.mcp_text_52ab647698c9")}</code>
         </div>
       </section>
 
       <section class="card mcp-server-list">
         <div class="mcp-server-list__header">
           <div>
-            <div class="card-title">Configured servers</div>
-            <div class="card-sub">
-              Runtime changes apply after save and publish; active agents rebuild MCP runtimes on
-              next use.
-            </div>
+            <div class="card-title">${t("rawUi.mcp_text_204d9c7af4ba")}</div>
+            <div class="card-sub">${t("rawUi.mcp_text_393371a0293f")}</div>
           </div>
           <div class="mcp-server-list__actions">
             <button class="btn btn--sm" ?disabled=${saveDisabled} @click=${props.onSaveConfig}>
-              Save
+              ${t("rawUi.mcp_text_cdef961c4adb")}
             </button>
             <button
               class="btn btn--sm primary"
@@ -166,7 +168,9 @@ export function renderMcp(props: McpViewProps) {
               props.configSaving}
               @click=${props.onApplyConfig}
             >
-              ${props.configApplying ? "Publishing..." : "Save & Publish"}
+              ${props.configApplying
+                ? t("rawUi.mcp_dynamic_81cd1097d15a")
+                : t("rawUi.mcp_dynamic_3c7f11b2e69d")}
             </button>
           </div>
         </div>
@@ -174,7 +178,7 @@ export function renderMcp(props: McpViewProps) {
           ? html`<div class="mcp-server-list__rows">
               ${rows.map((row) => renderServerRow(props, row))}
             </div>`
-          : html`<div class="data-table-empty-state">No MCP servers configured.</div>`}
+          : html`<div class="data-table-empty-state">${t("rawUi.mcp_text_7dbd131175bf")}</div>`}
       </section>
 
       ${props.editor}

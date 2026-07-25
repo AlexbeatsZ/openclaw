@@ -1,7 +1,9 @@
 // Control UI English locale strings are the i18n source bundle.
 import type { TranslationMap } from "../lib/types.ts";
+import { rawUi } from "./en-raw-ui.ts";
 
 export const en: TranslationMap = {
+  rawUi,
   common: {
     health: "Health",
     ok: "OK",

@@ -22,8 +22,8 @@ export function renderNodes(props: NodesProps) {
     <section class="card">
       <div class="row" style="justify-content: space-between;">
         <div>
-          <div class="card-title">Nodes</div>
-          <div class="card-sub">Paired devices and live links.</div>
+          <div class="card-title">${t("rawUi.nodes_text_e5655e574967")}</div>
+          <div class="card-sub">${t("rawUi.nodes_text_b0309b042295")}</div>
         </div>
         <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
           ${props.loading ? t("common.loading") : t("common.refresh")}
@@ -31,7 +31,7 @@ export function renderNodes(props: NodesProps) {
       </div>
       <div class="list" style="margin-top: 16px;">
         ${props.nodes.length === 0
-          ? html` <div class="muted">No nodes found.</div> `
+          ? html` <div class="muted">${t("rawUi.nodes_text_f067443e747c")}</div> `
           : props.nodes.map((n) => renderNode(n))}
       </div>
     </section>
@@ -51,8 +51,8 @@ function renderDevices(props: NodesProps) {
     <section class="card">
       <div class="row" style="justify-content: space-between;">
         <div>
-          <div class="card-title">Devices</div>
-          <div class="card-sub">Pairing requests + role tokens.</div>
+          <div class="card-title">${t("rawUi.nodes_text_a12b9f03bf80")}</div>
+          <div class="card-sub">${t("rawUi.nodes_text_5d1ec1358774")}</div>
         </div>
         <button class="btn" ?disabled=${props.devicesLoading} @click=${props.onDevicesRefresh}>
           ${props.devicesLoading ? t("common.loading") : t("common.refresh")}
@@ -64,7 +64,9 @@ function renderDevices(props: NodesProps) {
       <div class="list" style="margin-top: 16px;">
         ${pending.length > 0
           ? html`
-              <div class="muted" style="margin-bottom: 8px;">Pending</div>
+              <div class="muted" style="margin-bottom: 8px;">
+                ${t("rawUi.nodes_text_809a204095b7")}
+              </div>
               ${pending.map((req) =>
                 renderPendingDevice(req, props, lookupPairedDevice(pairedByDeviceId, req)),
               )}
@@ -72,12 +74,14 @@ function renderDevices(props: NodesProps) {
           : nothing}
         ${paired.length > 0
           ? html`
-              <div class="muted" style="margin-top: 12px; margin-bottom: 8px;">Paired</div>
+              <div class="muted" style="margin-top: 12px; margin-bottom: 8px;">
+                ${t("rawUi.nodes_text_027f35d62e14")}
+              </div>
               ${paired.map((device) => renderPairedDevice(device, props))}
             `
           : nothing}
         ${pending.length === 0 && paired.length === 0
-          ? html` <div class="muted">No paired devices.</div> `
+          ? html` <div class="muted">${t("rawUi.nodes_text_f717b4645f06")}</div> `
           : nothing}
       </div>
     </section>
@@ -106,21 +110,24 @@ function lookupPairedDevice(
 
 function formatAccessSummary(access: DevicePairingAccessSummary | null): string {
   if (!access) {
-    return "none";
+    return t("rawUi.nodes_access_none");
   }
-  return `roles: ${formatList(access.roles)} · scopes: ${formatList(access.scopes)}`;
+  return t("rawUi.nodes_access_summary", {
+    roles: formatList(access.roles),
+    scopes: formatList(access.scopes),
+  });
 }
 
 function renderPendingApprovalNote(kind: PendingDeviceApprovalKind) {
   switch (kind) {
     case "scope-upgrade":
-      return "scope upgrade requires approval";
+      return t("rawUi.nodes_approval_scopeUpgrade");
     case "role-upgrade":
-      return "role upgrade requires approval";
+      return t("rawUi.nodes_approval_roleUpgrade");
     case "re-approval":
-      return "reconnect details changed; approval required";
+      return t("rawUi.nodes_approval_reapproval");
     case "new-pairing":
-      return "new device pairing request";
+      return t("rawUi.nodes_approval_newPairing");
   }
   const exhaustiveKind: never = kind;
   void exhaustiveKind;
@@ -131,7 +138,7 @@ function renderPendingDevice(req: PendingDevice, props: NodesProps, paired?: Pai
   const name = normalizeOptionalString(req.displayName) || req.deviceId;
   const age = typeof req.ts === "number" ? formatRelativeTimestamp(req.ts) : t("common.na");
   const approval = resolvePendingDeviceApprovalState(req, paired);
-  const repair = req.isRepair ? " · repair" : "";
+  const repair = req.isRepair ? t("rawUi.nodes_repair_suffix") : "";
   const ip = req.remoteIp ? ` · ${req.remoteIp}` : "";
   return html`
     <div class="list-item">
@@ -139,15 +146,18 @@ function renderPendingDevice(req: PendingDevice, props: NodesProps, paired?: Pai
         <div class="list-title">${name}</div>
         <div class="list-sub">${req.deviceId}${ip}</div>
         <div class="muted" style="margin-top: 6px;">
-          ${renderPendingApprovalNote(approval.kind)} · requested ${age}${repair}
+          ${t("rawUi.nodes_approval_requestedAt", {
+            approval: renderPendingApprovalNote(approval.kind),
+            age,
+          })}${repair}
         </div>
         <div class="muted" style="margin-top: 6px;">
-          requested: ${formatAccessSummary(approval.requested)}
+          ${t("rawUi.nodes_fragment_1cbbad0cc2f1")} ${formatAccessSummary(approval.requested)}
         </div>
         ${approval.approved
           ? html`
               <div class="muted" style="margin-top: 6px;">
-                approved now: ${formatAccessSummary(approval.approved)}
+                ${t("rawUi.nodes_fragment_860b09e6aa7a")} ${formatAccessSummary(approval.approved)}
               </div>
             `
           : nothing}
@@ -155,10 +165,10 @@ function renderPendingDevice(req: PendingDevice, props: NodesProps, paired?: Pai
       <div class="list-meta">
         <div class="row" style="justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn--sm primary" @click=${() => props.onDeviceApprove(req.requestId)}>
-            Approve
+            ${t("rawUi.nodes_text_615abe1ee13b")}
           </button>
           <button class="btn btn--sm" @click=${() => props.onDeviceReject(req.requestId)}>
-            Reject
+            ${t("rawUi.nodes_text_9020dfabd7fb")}
           </button>
         </div>
       </div>
@@ -169,8 +179,8 @@ function renderPendingDevice(req: PendingDevice, props: NodesProps, paired?: Pai
 function renderPairedDevice(device: PairedDevice, props: NodesProps) {
   const name = normalizeOptionalString(device.displayName) || device.deviceId;
   const ip = device.remoteIp ? ` · ${device.remoteIp}` : "";
-  const roles = `roles: ${formatList(device.roles)}`;
-  const scopes = `scopes: ${formatList(device.scopes)}`;
+  const roles = t("rawUi.nodes_roles", { roles: formatList(device.roles) });
+  const scopes = t("rawUi.nodes_scopes", { scopes: formatList(device.scopes) });
   const tokens = Array.isArray(device.tokens) ? device.tokens : [];
   return html`
     <div class="list-item">
@@ -179,9 +189,13 @@ function renderPairedDevice(device: PairedDevice, props: NodesProps) {
         <div class="list-sub">${device.deviceId}${ip}</div>
         <div class="muted" style="margin-top: 6px;">${roles} · ${scopes}</div>
         ${tokens.length === 0
-          ? html` <div class="muted" style="margin-top: 6px">Tokens: none</div> `
+          ? html`
+              <div class="muted" style="margin-top: 6px">${t("rawUi.nodes_text_31522c94408d")}</div>
+            `
           : html`
-              <div class="muted" style="margin-top: 10px;">Tokens</div>
+              <div class="muted" style="margin-top: 10px;">
+                ${t("rawUi.nodes_text_cfad0ced5539")}
+              </div>
               <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
                 ${tokens.map((token) => renderTokenRow(device.deviceId, token, props))}
               </div>
@@ -192,8 +206,8 @@ function renderPairedDevice(device: PairedDevice, props: NodesProps) {
 }
 
 function renderTokenRow(deviceId: string, token: DeviceTokenSummary, props: NodesProps) {
-  const status = token.revokedAtMs ? "revoked" : "active";
-  const scopes = `scopes: ${formatList(token.scopes)}`;
+  const status = token.revokedAtMs ? t("rawUi.nodes_token_revoked") : t("common.active");
+  const scopes = t("rawUi.nodes_scopes", { scopes: formatList(token.scopes) });
   const when = formatRelativeTimestamp(
     token.rotatedAtMs ?? token.createdAtMs ?? token.lastUsedAtMs ?? null,
   );
@@ -205,7 +219,7 @@ function renderTokenRow(deviceId: string, token: DeviceTokenSummary, props: Node
           class="btn btn--sm"
           @click=${() => props.onDeviceRotate(deviceId, token.role, token.scopes)}
         >
-          Rotate
+          ${t("rawUi.nodes_text_386f946f3885")}
         </button>
         ${token.revokedAtMs
           ? nothing
@@ -214,7 +228,7 @@ function renderTokenRow(deviceId: string, token: DeviceTokenSummary, props: Node
                 class="btn btn--sm danger"
                 @click=${() => props.onDeviceRevoke(deviceId, token.role)}
               >
-                Revoke
+                ${t("rawUi.nodes_text_4368b591fa27")}
               </button>
             `}
       </div>
@@ -322,7 +336,9 @@ function renderBindings(state: BindingState) {
                         state.onBindDefault(value ? value : null);
                       }}
                     >
-                      <option value="" ?selected=${defaultValue === ""}>Any node</option>
+                      <option value="" ?selected=${defaultValue === ""}>
+                        ${t("rawUi.nodes_text_092fbb50c031")}
+                      </option>
                       ${state.nodes.map(
                         (node) =>
                           html`<option value=${node.id} ?selected=${defaultValue === node.id}>
@@ -332,13 +348,13 @@ function renderBindings(state: BindingState) {
                     </select>
                   </label>
                   ${!supportsBinding
-                    ? html` <div class="muted">No nodes with system.run available.</div> `
+                    ? html` <div class="muted">${t("rawUi.nodes_text_298425cbf34c")}</div> `
                     : nothing}
                 </div>
               </div>
 
               ${state.agents.length === 0
-                ? html` <div class="muted">No agents found.</div> `
+                ? html` <div class="muted">${t("rawUi.nodes_text_3679c39e9686")}</div> `
                 : state.agents.map((agent) => renderAgentBinding(agent, state))}
             </div>
           `}
@@ -355,15 +371,17 @@ function renderAgentBinding(agent: BindingAgent, state: BindingState) {
       <div class="list-main">
         <div class="list-title">${label}</div>
         <div class="list-sub">
-          ${agent.isDefault ? "default agent" : "agent"} ·
+          ${agent.isDefault ? t("rawUi.nodes_dynamic_817ad2a7ad30") : "agent"} ·
           ${bindingValue === "__default__"
-            ? `uses default (${state.defaultBinding ?? "any"})`
-            : `override: ${agent.binding}`}
+            ? t("rawUi.nodes_dynamic_usesDefault", {
+                value: state.defaultBinding ?? "any",
+              })
+            : t("rawUi.nodes_dynamic_override", { value: agent.binding ?? "" })}
         </div>
       </div>
       <div class="list-meta">
         <label class="field">
-          <span>Binding</span>
+          <span>${t("rawUi.nodes_text_3a9333e9722f")}</span>
           <select
             ?disabled=${state.disabled || !supportsBinding}
             @change=${(event: Event) => {
@@ -373,7 +391,7 @@ function renderAgentBinding(agent: BindingAgent, state: BindingState) {
             }}
           >
             <option value="__default__" ?selected=${bindingValue === "__default__"}>
-              Use default
+              ${t("rawUi.nodes_text_527fd8693c43")}
             </option>
             ${state.nodes.map(
               (node) =>
@@ -455,9 +473,15 @@ function renderNode(node: Record<string, unknown>) {
           ${typeof node.version === "string" ? ` · ${node.version}` : ""}
         </div>
         <div class="chip-row" style="margin-top: 6px;">
-          <span class="chip">${paired ? "paired" : "unpaired"}</span>
+          <span class="chip"
+            >${paired
+              ? t("rawUi.nodes_dynamic_2001e17314af")
+              : t("rawUi.nodes_dynamic_0bb856bff8fd")}</span
+          >
           <span class="chip ${connected ? "chip-ok" : "chip-warn"}">
-            ${connected ? "connected" : "offline"}
+            ${connected
+              ? t("rawUi.nodes_dynamic_1a8dde63dc3f")
+              : t("rawUi.nodes_dynamic_3825edc0d44f")}
           </span>
           ${caps.slice(0, 12).map((c) => html`<span class="chip">${String(c)}</span>`)}
           ${commands.slice(0, 8).map((c) => html`<span class="chip">${String(c)}</span>`)}
