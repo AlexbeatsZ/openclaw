@@ -15,8 +15,7 @@ import "./sidebar-update-card.ts";
 import "./theme-mode-toggle.ts";
 import "./tooltip.ts";
 import { resolveAgentAvatarUrl } from "../lib/avatar.ts";
-import { searchForSession } from "../lib/sessions/index.ts";
-import { areUiSessionKeysEquivalent, normalizeAgentId } from "../lib/sessions/session-key.ts";
+import { normalizeAgentId } from "../lib/sessions/session-key.ts";
 import { shouldHandleNavigationClick } from "./app-sidebar-nav-menus.ts";
 import { AppSidebarSessionListElement } from "./app-sidebar-session-list.ts";
 import { icons } from "./icons.ts";
@@ -123,32 +122,13 @@ class AppSidebar extends AppSidebarSessionListElement {
     `;
   }
 
-  /** Home: the first page. Opens the agent's rolling main session and carries
-      its unread/running state; later grows into the docked dashboard surface. */
+  /** Home is the task-first workspace. Rolling and pinned conversations remain
+      available in the session list instead of taking over the landing page. */
   private renderHomeRow() {
-    const agentId = this.activeChipAgent().activeId;
-    const mainKey = this.selectedAgentMainSessionKey(agentId);
-    const mainRow = this.mainSessionRow(agentId);
-    const active =
-      this.activeRouteId === "chat" &&
-      areUiSessionKeysEquivalent(this.getRouteSessionKey(), mainKey);
-    const stateBadge = mainRow?.hasActiveRun
-      ? html`<span
-          class="session-run-spinner nav-item__state"
-          role="img"
-          aria-label=${t("sessionsView.activeRun")}
-          title=${t("sessionsView.activeRun")}
-        ></span>`
-      : mainRow?.unread === true && !active
-        ? html`<span
-            class="session-unread-dot nav-item__state"
-            role="img"
-            aria-label=${t("sessionsView.unread")}
-          ></span>`
-        : nothing;
+    const active = this.activeRouteId === "new-session";
     return html`
       <a
-        href=${`${pathForRoute("chat", this.basePath)}${searchForSession(mainKey)}`}
+        href=${pathForRoute("new-session", this.basePath)}
         class="nav-item nav-item--home ${active ? "nav-item--active" : ""}"
         aria-current=${active ? "page" : nothing}
         @click=${(event: MouseEvent) => {
@@ -156,12 +136,11 @@ class AppSidebar extends AppSidebarSessionListElement {
             return;
           }
           event.preventDefault();
-          this.openMainSession(agentId);
+          this.onNavigate?.("new-session");
         }}
       >
         <span class="nav-item__icon" aria-hidden="true">${icons.home}</span>
         <span class="nav-item__text">${t("nav.home")}</span>
-        ${stateBadge}
       </a>
     `;
   }
