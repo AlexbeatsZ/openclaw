@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { bundledPluginRoot } from "openclaw/plugin-sdk/test-fixtures";
 import { describe, expect, it } from "vitest";
-import tsdownConfig from "../../tsdown.config.ts";
+import tsdownConfig, { buildUnifiedDistEntries } from "../../tsdown.config.ts";
 
 type TsdownConfigEntry = {
   deps?: {
@@ -90,6 +90,17 @@ function readAgentModelDiscoveryCacheSource(): string {
 }
 
 describe("tsdown config", () => {
+  it("emits every private QA plugin SDK entry when private QA builds are enabled", () => {
+    const entries = buildUnifiedDistEntries({ includePrivateQa: true });
+
+    expect(entries).toMatchObject({
+      "plugin-sdk/qa-channel": "src/plugin-sdk/qa-channel.ts",
+      "plugin-sdk/qa-channel-protocol": "src/plugin-sdk/qa-channel-protocol.ts",
+      "plugin-sdk/qa-lab": "src/plugin-sdk/qa-lab.ts",
+      "plugin-sdk/qa-runtime": "src/plugin-sdk/qa-runtime.ts",
+    });
+  });
+
   it("keeps core, plugin runtime, plugin-sdk, bundled root plugins, and bundled hooks in one dist graph", () => {
     const distGraph = requireUnifiedDistGraph();
 
