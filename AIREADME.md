@@ -6,8 +6,11 @@
 
 # Current State
 
-- Branch: `feat/dual-agent-cores`; deployed implementation commit: `bf80bc1197a44c68370c579e379ac19a389d17d5`.
+- Branch: `feat/dual-agent-cores`; deployed implementation commit: `2396f55d675ba7e7fe47231a5ab9d2bbb8f6107e`.
 - Life and Professional keep isolated workspace, transcript, bootstrap, and memory state, while both use the shared OpenClaw model catalog and execution adapters. The server default is `agy/flash`, backed by the existing `agy` CLI authentication/runtime.
+- Control UI is desktop-first and responsive: the new-session page uses a two-column workbench on desktop and a compact single-column phone layout. Life/Professional selection is an accessible inline radio group, draft text survives core changes, and incompatible remote targets reset with an explanation.
+- Simplified Chinese covers the product UI and dynamic configuration-schema labels. The large schema catalog is loaded only with the `zh-CN` locale. Product/protocol names, commands, paths, config keys, enum values, and other executable identifiers remain unchanged.
+- Theme mode (`system` / `light` / `dark`) is directly available in the desktop sidebar footer; existing theme tokens provide the night-mode surface.
 - QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
 - Server WSL on `meta@100.106.169.46` is the runtime; the local Windows checkout is code/test only. Gateway service, health endpoint, and QQ WebSocket connection are healthy.
 - The superseded strict Claude/ACPX configuration is removed. Professional Core requires no Claude authentication and ignores stale ACP metadata; external native-session catalogs remain excluded because their history ownership would bypass core isolation.
@@ -17,6 +20,7 @@
 
 # Recent Changes
 
+- Reworked and deployed the Control UI as a responsive desktop workbench with a phone breakpoint, visible night-mode control, accessible dual-core selection, and complete Simplified Chinese runtime/config metadata. Production build and performance budgets passed; Gateway health recovered after restart.
 - Added and deployed trusted-agent cron authoring for model-free `command` jobs and `on-exit` schedules. The built-in `cron` tool can now create and manage same-agent jobs without an approval prompt, while cross-agent/session isolation remains enforced; command announce delivery also preserves `threadId`.
 - Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle while preserving an explicit shared model selection.
 - Added QQ `/mode` switching/status commands, Control UI core selection, Professional `AGENTS.md` bootstrap, and Life-memory prompt/recall improvements.
@@ -115,6 +119,11 @@ Important source anchors:
 - The root bundled-plugin build excludes QQ. Production QQ changes must be built and packed from `extensions/qqbot`, installed into the managed `~/.openclaw/npm/projects/openclaw-qqbot-*` capsule, and have the package-local `node_modules/openclaw` peer link restored to the deployed repository before restarting the gateway.
 - Do not create local Windows OpenClaw runtime config as a substitute for server deployment. A mistaken local `C:\Users\Meta\.openclaw\openclaw.json` was created during agy default-model testing and then removed.
 - Local Windows cleanup audit after the mistaken config creation found no local OpenClaw deployment: no `openclaw` command, no `C:\Users\Meta\.openclaw` or `.clawdbot`, no matching Windows service, no scheduled task, and no OpenClaw process. Temporary backup/probe artifacts from that mistaken local config attempt were also removed from `%LOCALAPPDATA%\Temp\.agents`.
+
+## Control UI localization
+
+- Dynamic config labels and help text come from `src/config/schema.labels.ts` and `src/config/schema.help.ts`, not the ordinary Control UI locale tree. Simplified Chinese therefore registers a separate lazy schema catalog when `zh-CN` loads; do not add that catalog to the startup bundle.
+- Translation audits must preserve executable grammar and canonical terminology. In particular, do not translate query syntax, prompt headings, lifecycle/config keys, CLI commands, paths, `Gateway`, `Control UI`, `Agent Communication Protocol`, or `Model Context Protocol`.
 
 ## Model fallback changes from this task
 
