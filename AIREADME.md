@@ -6,22 +6,21 @@
 
 # Current State
 
-- Branch: `feat/dual-agent-cores`; deployed implementation commit before the current correction: `c827b37f017d39053944e321ae13e919c996fc96`.
-- Dual-core correction is implemented locally and pending deployment: Life and Professional keep isolated workspace, transcript, bootstrap, and memory state, while both use the shared OpenClaw model catalog and execution adapters. The server default is `agy/flash`, backed by the existing `agy` CLI authentication/runtime.
+- Branch: `feat/dual-agent-cores`; deployed implementation commit: `771d3020d070720a446f9668b7fda626494d76dc`.
+- Life and Professional keep isolated workspace, transcript, bootstrap, and memory state, while both use the shared OpenClaw model catalog and execution adapters. The server default is `agy/flash`, backed by the existing `agy` CLI authentication/runtime.
 - QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
 - Server WSL on `meta@100.106.169.46` is the runtime; the local Windows checkout is code/test only. Gateway service, health endpoint, and QQ WebSocket connection are healthy.
-- The prior strict Claude/ACPX configuration was introduced only for the superseded Professional implementation and must be removed during this deployment. The QQ external plugin capsule remains pinned to the locally built `2026.7.2-6bc85cd5` artifact because this correction does not change QQ plugin code.
+- The superseded strict Claude/ACPX configuration is removed. Professional Core requires no Claude authentication and ignores stale ACP metadata; external native-session catalogs remain excluded because their history ownership would bypass core isolation.
+- The QQ external plugin capsule remains pinned to the locally built `2026.7.2-6bc85cd5` artifact because this correction does not change QQ plugin code.
 - Server WSL Node is `22.23.1`.
 - Last verified: 2026-07-28.
-
-# Active Work
-
-- Commit and push the shared-model correction, run Gateway integration tests under server Node, remove the superseded Claude/ACPX runtime policy, deploy, and validate `agy` execution.
 
 # Recent Changes
 
 - Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle while preserving an explicit shared model selection.
 - Added QQ `/mode` switching/status commands, Control UI core selection, Professional `AGENTS.md` bootstrap, and Life-memory prompt/recall improvements.
+- Replaced the erroneous Claude-only Professional ACP runtime with the shared OpenClaw/agy model path. Server integration tests passed, and a real Professional `agy/flash` run returned `AGY_PROFESSIONAL_OK` without fallback.
+- Fixed `/home/meta/.config/openclaw/agy-proxy.env` from a stale Tailscale proxy address to the working local proxy so expired Agy OAuth tokens refresh headlessly again.
 - Routed QQ token and official API requests through the trusted service proxy. The service now restores proxy variables after later drop-ins clear them, and the managed QQ plugin capsule is rebuilt and installed from this branch.
 
 # Lessons Learned
