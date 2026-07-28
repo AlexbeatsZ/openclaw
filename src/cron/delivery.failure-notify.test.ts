@@ -91,7 +91,7 @@ describe("sendFailureNotificationAnnounce", () => {
       cfg,
       "main",
       "job-1",
-      { channel: "telegram", to: "123", accountId: "bot-a" },
+      { channel: "telegram", to: "123", accountId: "bot-a", threadId: 99 },
       "Cron failed",
     );
 
@@ -102,6 +102,7 @@ describe("sendFailureNotificationAnnounce", () => {
         channel: "telegram",
         to: "123",
         accountId: "bot-a",
+        threadId: 99,
       },
       undefined,
     );

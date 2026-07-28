@@ -95,9 +95,9 @@ describe("createCronToolSchema", () => {
     );
   });
 
-  it("job.schedule exposes kind, at, everyMs, anchorMs, expr, tz, staggerMs", () => {
+  it("job.schedule exposes timed and on-exit schedule fields", () => {
     expect(keysAt(schemaRecord, "job.schedule")).toEqual(
-      ["anchorMs", "at", "everyMs", "expr", "kind", "staggerMs", "tz"].toSorted(),
+      ["anchorMs", "at", "command", "cwd", "everyMs", "expr", "kind", "staggerMs", "tz"].toSorted(),
     );
   });
 
@@ -168,15 +168,21 @@ describe("createCronToolSchema", () => {
     );
   });
 
-  it("job.payload exposes kind, text, message, model, thinking and extras", () => {
+  it("job.payload exposes agent, system-event, and command fields", () => {
     expect(keysAt(schemaRecord, "job.payload")).toEqual(
       [
         "allowUnsafeExternalContent",
+        "argv",
+        "cwd",
+        "env",
         "fallbacks",
+        "input",
         "kind",
         "lightContext",
         "message",
         "model",
+        "noOutputTimeoutSeconds",
+        "outputMaxBytes",
         "text",
         "thinking",
         "toolsAllow",
@@ -189,15 +195,21 @@ describe("createCronToolSchema", () => {
     expect(keysAt(schemaRecord, "job.payload")).toContain("fallbacks");
   });
 
-  it("patch.payload exposes agentTurn fallback overrides", () => {
+  it("patch.payload exposes agent and command updates", () => {
     expect(keysAt(schemaRecord, "patch.payload")).toEqual(
       [
         "allowUnsafeExternalContent",
+        "argv",
+        "cwd",
+        "env",
         "fallbacks",
+        "input",
         "kind",
         "lightContext",
         "message",
         "model",
+        "noOutputTimeoutSeconds",
+        "outputMaxBytes",
         "text",
         "thinking",
         "toolsAllow",

@@ -1,27 +1,8 @@
-// Agent cron-tool write safety and optimistic update orchestration.
-import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
+// Agent cron-tool optimistic update orchestration.
 import { isRecord } from "../../utils.js";
 import { planCronJobUpdatePatch } from "./cron-tool-creator-cap.js";
 import type { CronCreatorToolAllowlistEntry, GatewayToolCaller } from "./cron-tool.types.js";
 import type { GatewayCallOptions } from "./gateway.js";
-
-export function assertNoCronShellExecution(value: unknown): void {
-  if (!isRecord(value)) {
-    return;
-  }
-  const payload = isRecord(value.payload) ? value.payload : undefined;
-  if (normalizeLowercaseStringOrEmpty(payload?.kind) === "command") {
-    throw new Error(
-      "cron command payloads cannot be created or edited through the agent cron tool; use the CLI or Gateway API.",
-    );
-  }
-  const schedule = isRecord(value.schedule) ? value.schedule : undefined;
-  if (schedule?.kind === "on-exit") {
-    throw new Error(
-      "cron on-exit schedules cannot be created or edited through the agent cron tool; use the CLI or Gateway API.",
-    );
-  }
-}
 
 async function prepareCronJobUpdateForGateway(params: {
   id: string;
@@ -74,14 +55,8 @@ export async function updateCronJobFromAgentTool(params: {
   gatewayOpts: GatewayCallOptions;
   callGateway: GatewayToolCaller;
 }): Promise<unknown> {
-  const callerIncludedPayloadPatch = isRecord(params.patch.payload);
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const prepared = await prepareCronJobUpdateForGateway(params);
-    if (callerIncludedPayloadPatch) {
-      // Kind-less caller payloads inherit the stored kind above. Recheck those
-      // edits, but not a toolsAllow cap synthesized internally.
-      assertNoCronShellExecution(prepared.patch);
-    }
     try {
       return await params.callGateway("cron.update", params.gatewayOpts, {
         id: params.id,

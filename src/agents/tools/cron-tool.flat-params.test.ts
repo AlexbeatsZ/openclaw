@@ -119,62 +119,82 @@ describe("cron tool flat-params", () => {
     });
   });
 
-  it("rejects flat on-exit schedule shorthand for add", async () => {
+  it("recovers flat on-exit schedule shorthand for add", async () => {
     const tool = createCronTool(undefined, { callGatewayTool: callGatewayToolMock });
 
-    await expect(
-      tool.execute("call-flat-onexit-add", {
-        action: "add",
-        name: "rebuild on exit",
-        kind: "on-exit",
-        command: "pnpm build",
-        cwd: "/repo",
-        message: "rebuilt",
-      }),
-    ).rejects.toThrow("cron on-exit schedules cannot be created or edited");
-    expect(callGatewayToolMock).not.toHaveBeenCalled();
+    await tool.execute("call-flat-onexit-add", {
+      action: "add",
+      name: "rebuild on exit",
+      kind: "on-exit",
+      command: "pnpm build",
+      cwd: "/repo",
+      message: "rebuilt",
+    });
+
+    const [method, _gatewayOpts, params] = firstGatewayToolCall<{
+      schedule?: unknown;
+      payload?: unknown;
+    }>();
+    expect(method).toBe("cron.add");
+    expect(params.schedule).toEqual({ kind: "on-exit", command: "pnpm build", cwd: "/repo" });
+    expect(params.payload).toEqual({ kind: "agentTurn", message: "rebuilt" });
   });
 
-  it("rejects flat command schedule shorthand for add", async () => {
+  it("infers an on-exit schedule from flat command shorthand for add", async () => {
     const tool = createCronTool(undefined, { callGatewayTool: callGatewayToolMock });
 
-    await expect(
-      tool.execute("call-flat-onexit-infer", {
-        action: "add",
-        name: "watch build",
-        command: "make",
-        message: "done",
-      }),
-    ).rejects.toThrow("cron on-exit schedules cannot be created or edited");
-    expect(callGatewayToolMock).not.toHaveBeenCalled();
+    await tool.execute("call-flat-onexit-infer", {
+      action: "add",
+      name: "watch build",
+      command: "make",
+      message: "done",
+    });
+
+    const [method, _gatewayOpts, params] = firstGatewayToolCall<{
+      schedule?: unknown;
+      payload?: unknown;
+    }>();
+    expect(method).toBe("cron.add");
+    expect(params.schedule).toEqual({ kind: "on-exit", command: "make" });
+    expect(params.payload).toEqual({ kind: "agentTurn", message: "done" });
   });
 
-  it("rejects flat on-exit schedule shorthand for update", async () => {
+  it("recovers flat on-exit schedule shorthand for update", async () => {
     const tool = createCronTool(undefined, { callGatewayTool: callGatewayToolMock });
 
-    await expect(
-      tool.execute("call-flat-onexit-update", {
-        action: "update",
-        jobId: "job-onexit",
-        kind: "on-exit",
-        command: "pnpm build",
-        cwd: "/repo",
-      }),
-    ).rejects.toThrow("cron on-exit schedules cannot be created or edited");
-    expect(callGatewayToolMock).not.toHaveBeenCalled();
+    await tool.execute("call-flat-onexit-update", {
+      action: "update",
+      jobId: "job-onexit",
+      kind: "on-exit",
+      command: "pnpm build",
+      cwd: "/repo",
+    });
+
+    const [method, _gatewayOpts, params] = firstGatewayToolCall<{
+      patch?: { schedule?: unknown };
+    }>();
+    expect(method).toBe("cron.update");
+    expect(params.patch?.schedule).toEqual({
+      kind: "on-exit",
+      command: "pnpm build",
+      cwd: "/repo",
+    });
   });
 
-  it("rejects flat command schedule shorthand for update", async () => {
+  it("infers an on-exit schedule from flat command shorthand for update", async () => {
     const tool = createCronTool(undefined, { callGatewayTool: callGatewayToolMock });
 
-    await expect(
-      tool.execute("call-flat-onexit-update-infer", {
-        action: "update",
-        jobId: "job-infer",
-        command: "make",
-      }),
-    ).rejects.toThrow("cron on-exit schedules cannot be created or edited");
-    expect(callGatewayToolMock).not.toHaveBeenCalled();
+    await tool.execute("call-flat-onexit-update-infer", {
+      action: "update",
+      jobId: "job-infer",
+      command: "make",
+    });
+
+    const [method, _gatewayOpts, params] = firstGatewayToolCall<{
+      patch?: { schedule?: unknown };
+    }>();
+    expect(method).toBe("cron.update");
+    expect(params.patch?.schedule).toEqual({ kind: "on-exit", command: "make" });
   });
 
   it("passes local cron wall-clock expression and timezone through add", async () => {

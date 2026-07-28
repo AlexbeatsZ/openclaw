@@ -1069,37 +1069,44 @@ describe("cron tool", () => {
   it.each([
     ["canonical", "command"],
     ["mixed-case", "Command"],
-  ])("rejects %s command payloads from the agent cron tool on add", async (_case, kind) => {
+  ])("allows %s command payloads from the agent cron tool on add", async (_case, kind) => {
     const tool = createTestCronTool();
 
-    await expect(
-      tool.execute("call-command-add", {
-        action: "add",
-        job: {
-          name: "command",
-          schedule: { at: new Date(123).toISOString() },
-          sessionTarget: "isolated",
-          payload: { kind, argv: ["sh", "-lc", "echo ok"] },
-        },
-      }),
-    ).rejects.toThrow("cron command payloads cannot be created or edited");
-    expect(callGatewayMock).not.toHaveBeenCalled();
+    await tool.execute("call-command-add", {
+      action: "add",
+      job: {
+        name: "command",
+        schedule: { at: new Date(123).toISOString() },
+        sessionTarget: "isolated",
+        payload: { kind, argv: ["sh", "-lc", "echo ok"] },
+      },
+    });
+
+    expect(expectSingleGatewayCallMethod("cron.add")).toMatchObject({
+      name: "command",
+      schedule: { kind: "at", at: new Date(123).toISOString() },
+      sessionTarget: "isolated",
+      payload: { kind: "command", argv: ["sh", "-lc", "echo ok"] },
+    });
   });
 
-  it("rejects on-exit schedules from the agent cron tool on add", async () => {
+  it("allows on-exit schedules from the agent cron tool on add", async () => {
     const tool = createTestCronTool();
 
-    await expect(
-      tool.execute("call-on-exit-add", {
-        action: "add",
-        job: {
-          name: "watch command",
-          schedule: { kind: "on-exit", command: "make" },
-          payload: { kind: "agentTurn", message: "done" },
-        },
-      }),
-    ).rejects.toThrow("cron on-exit schedules cannot be created or edited");
-    expect(callGatewayMock).not.toHaveBeenCalled();
+    await tool.execute("call-on-exit-add", {
+      action: "add",
+      job: {
+        name: "watch command",
+        schedule: { kind: "on-exit", command: "make" },
+        payload: { kind: "agentTurn", message: "done" },
+      },
+    });
+
+    expect(expectSingleGatewayCallMethod("cron.add")).toMatchObject({
+      name: "watch command",
+      schedule: { kind: "on-exit", command: "make" },
+      payload: { kind: "agentTurn", message: "done" },
+    });
   });
 
   it.each([
@@ -2237,43 +2244,44 @@ describe("cron tool", () => {
   it.each([
     ["canonical", "command"],
     ["mixed-case", "Command"],
-  ])("rejects %s command payloads from the agent cron tool on update", async (_case, kind) => {
+  ])("allows %s command payloads from the agent cron tool on update", async (_case, kind) => {
     const tool = createTestCronTool();
 
-    await expect(
-      tool.execute("call-command-update", {
-        action: "update",
-        id: "job-4",
-        patch: {
-          payload: { kind, argv: ["sh", "-lc", "echo ok"] },
-        },
-      }),
-    ).rejects.toThrow("cron command payloads cannot be created or edited");
-    expect(callGatewayMock).not.toHaveBeenCalled();
+    await tool.execute("call-command-update", {
+      action: "update",
+      id: "job-4",
+      patch: {
+        payload: { kind, argv: ["sh", "-lc", "echo ok"] },
+      },
+    });
+
+    expect(expectSingleGatewayCallMethod("cron.update")).toMatchObject({
+      id: "job-4",
+      patch: { payload: { kind: "command", argv: ["sh", "-lc", "echo ok"] } },
+    });
   });
 
-  it("rejects kind-less edits to stored command payloads", async () => {
-    callGatewayMock.mockResolvedValueOnce({
-      id: "job-command",
-      trigger: { script: "json({ fire: true })" },
-      payload: { kind: "command", argv: ["echo", "before"] },
-    });
+  it("allows kind-less edits to stored command payloads", async () => {
+    callGatewayMock.mockResolvedValueOnce({ ok: true });
     const tool = createTestCronTool();
 
-    await expect(
-      tool.execute("call-kindless-command-update", {
-        action: "update",
-        id: "job-command",
-        patch: {
-          payload: { argv: ["sh", "-lc", "echo bypass"] },
-        },
-      }),
-    ).rejects.toThrow("cron command payloads cannot be created or edited");
+    await tool.execute("call-kindless-command-update", {
+      action: "update",
+      id: "job-command",
+      patch: {
+        payload: { argv: ["sh", "-lc", "echo updated"] },
+      },
+    });
 
     expect(callGatewayMock).toHaveBeenCalledTimes(1);
-    expect(readGatewayCall()).toEqual({
-      method: "cron.get",
-      params: { id: "job-command" },
+    expect(readGatewayCall(0)).toEqual({
+      method: "cron.update",
+      params: {
+        id: "job-command",
+        patch: {
+          payload: { kind: "command", argv: ["sh", "-lc", "echo updated"] },
+        },
+      },
     });
   });
 
@@ -2310,19 +2318,21 @@ describe("cron tool", () => {
     });
   });
 
-  it("rejects on-exit schedules from the agent cron tool on update", async () => {
+  it("allows on-exit schedules from the agent cron tool on update", async () => {
     const tool = createTestCronTool();
 
-    await expect(
-      tool.execute("call-on-exit-update", {
-        action: "update",
-        id: "job-4",
-        patch: {
-          schedule: { kind: "on-exit", command: "make" },
-        },
-      }),
-    ).rejects.toThrow("cron on-exit schedules cannot be created or edited");
-    expect(callGatewayMock).not.toHaveBeenCalled();
+    await tool.execute("call-on-exit-update", {
+      action: "update",
+      id: "job-4",
+      patch: {
+        schedule: { kind: "on-exit", command: "make" },
+      },
+    });
+
+    expect(expectSingleGatewayCallMethod("cron.update")).toMatchObject({
+      id: "job-4",
+      patch: { schedule: { kind: "on-exit", command: "make" } },
+    });
   });
 
   it("recovers flattened payload patch params for update action", async () => {

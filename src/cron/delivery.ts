@@ -25,6 +25,7 @@ type CronAnnounceTarget = {
   channel?: string;
   to?: string;
   accountId?: string;
+  threadId?: string | number;
   sessionKey?: string;
   inheritSessionThread?: boolean;
 };
@@ -56,6 +57,7 @@ async function resolveCronAnnounceDelivery(params: {
       channel: params.target.channel as CronMessageChannel | undefined,
       to: params.target.to,
       accountId: params.target.accountId,
+      threadId: params.target.threadId,
       sessionKey: params.target.sessionKey,
     },
     targetResolutionOptions,

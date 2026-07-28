@@ -40,7 +40,7 @@ import {
   recoverCronObjectFromFlatParams,
 } from "./cron-tool-canonicalize.js";
 import { capCronJobToolsAllowOnCreate } from "./cron-tool-creator-cap.js";
-import { assertNoCronShellExecution, updateCronJobFromAgentTool } from "./cron-tool-write.js";
+import { updateCronJobFromAgentTool } from "./cron-tool-write.js";
 import type {
   ChatMessage,
   CronCreatorToolAllowlistEntry,
@@ -71,9 +71,9 @@ const CRON_ACTIONS = [
   "wake",
 ] as const;
 
-const CRON_SCHEDULE_KINDS = ["at", "every", "cron"] as const;
+const CRON_SCHEDULE_KINDS = ["at", "every", "cron", "on-exit"] as const;
 const CRON_WAKE_MODES = ["now", "next-heartbeat"] as const;
-const CRON_PAYLOAD_KINDS = ["systemEvent", "agentTurn"] as const;
+const CRON_PAYLOAD_KINDS = ["systemEvent", "agentTurn", "command"] as const;
 const CRON_DELIVERY_MODES = ["none", "announce", "webhook"] as const;
 const CRON_RUN_MODES = ["due", "force"] as const;
 
@@ -129,6 +129,23 @@ function cronPayloadObjectSchema(params: {
       timeoutSeconds: optionalFiniteNumberSchema({ minimum: 0 }),
       lightContext: Type.Optional(Type.Boolean()),
       allowUnsafeExternalContent: Type.Optional(Type.Boolean()),
+      argv: Type.Optional(
+        Type.Array(Type.String({ minLength: 1 }), {
+          minItems: 1,
+          description: "Exact argv vector for kind=command; use a shell argv explicitly if needed.",
+        }),
+      ),
+      cwd: Type.Optional(Type.String({ minLength: 1, description: "Command working directory" })),
+      env: Type.Optional(
+        Type.Record(Type.String({ minLength: 1 }), Type.String(), {
+          description: "Command environment overrides",
+        }),
+      ),
+      input: Type.Optional(Type.String({ description: "Command stdin" })),
+      noOutputTimeoutSeconds: optionalFiniteNumberSchema({ minimum: 0 }),
+      outputMaxBytes: optionalPositiveIntegerSchema({
+        description: "Maximum captured command output bytes",
+      }),
       fallbacks: params.fallbacks,
       toolsAllow: params.toolsAllow,
     },
@@ -159,6 +176,12 @@ function createCronScheduleSchema(): TSchema {
           }),
         ),
         staggerMs: optionalNonNegativeIntegerSchema({ description: "Jitter ms (kind=cron)" }),
+        command: Type.Optional(
+          Type.String({ minLength: 1, description: "Watched shell command (kind=on-exit)" }),
+        ),
+        cwd: Type.Optional(
+          Type.String({ minLength: 1, description: "Watched command cwd (kind=on-exit)" }),
+        ),
       },
       { additionalProperties: true },
     ),
@@ -704,12 +727,14 @@ Required: schedule,payload. enabled default true. trigger only every/cron.
 TARGET/PAYLOAD:
 - main => systemEvent {kind:"systemEvent",text:"..."}; direct delivery also permits agentTurn. systemEvent defaults main.
 - isolated/current/session:<id> => agentTurn {kind:"agentTurn",message:"...",model?,thinking?,timeoutSeconds?}; agentTurn defaults isolated. timeoutSeconds=0 means none.
+- isolated/current/session:<id> => command {kind:"command",argv:["bin","arg"],cwd?,env?,input?,timeoutSeconds?,noOutputTimeoutSeconds?,outputMaxBytes?}; runs on the Gateway without a model. Exact argv is preferred; print only NO_REPLY to suppress delivery.
 - current binds caller session at creation. session:<id> is persistent. Prefer isolated unless user explicitly wants current binding.
 
 SCHEDULE:
 - at: {kind:"at",at:"ISO-8601"}; timezone-less = UTC.
 - every: {kind:"every",everyMs:<ms>,anchorMs?}.
 - cron: {kind:"cron",expr:"...",tz?:"IANA"}. Expr is requested local wall time; never pre-convert to UTC. Missing tz = Gateway host local, not UTC. Shanghai 18:00: {kind:"cron",expr:"0 18 * * *",tz:"Asia/Shanghai"}.
+- on-exit: {kind:"on-exit",command:"...",cwd?}; fires when the Gateway-owned watcher exits.
 
 TRIGGER SCRIPT:
 - Requires cron.triggers.enabled; if off, explain and never model-poll fallback.
@@ -830,7 +855,6 @@ Restricted isolated runs may only self status/list, current get/runs, and remove
               throw new Error("job required");
             }
             const canonicalJob = canonicalizeCronToolObject(params.job as Record<string, unknown>);
-            assertNoCronShellExecution(canonicalJob);
             assertCronDeliveryInputNonBlankFields(canonicalJob.delivery);
             if (
               typeof canonicalJob.declarationKey === "string" &&
@@ -974,7 +998,6 @@ Restricted isolated runs may only self status/list, current get/runs, and remove
             const canonicalPatch = canonicalizeCronToolObject(
               params.patch as Record<string, unknown>,
             );
-            assertNoCronShellExecution(canonicalPatch);
             assertCronDeliveryInputNonBlankFields(canonicalPatch.delivery);
             if (
               typeof canonicalPatch.displayName === "string" &&

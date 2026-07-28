@@ -8,7 +8,7 @@ import { isRecord } from "../../utils.js";
 import { isStringOption } from "../../utils/string-readers.js";
 
 const CRON_SCHEDULE_KINDS = ["at", "every", "cron", "on-exit"] as const;
-const CRON_PAYLOAD_KINDS = ["systemEvent", "agentTurn"] as const;
+const CRON_PAYLOAD_KINDS = ["systemEvent", "agentTurn", "command"] as const;
 const CRON_FLAT_PAYLOAD_KEYS = [
   "message",
   "text",
@@ -19,6 +19,11 @@ const CRON_FLAT_PAYLOAD_KEYS = [
   "timeoutSeconds",
   "lightContext",
   "allowUnsafeExternalContent",
+  "argv",
+  "env",
+  "input",
+  "noOutputTimeoutSeconds",
+  "outputMaxBytes",
 ] as const;
 const CRON_FLAT_SCHEDULE_KEYS = [
   "kind",
@@ -64,7 +69,7 @@ function isCronScheduleKind(value: unknown): value is (typeof CRON_SCHEDULE_KIND
 }
 
 function isCronPayloadKind(value: unknown): value is (typeof CRON_PAYLOAD_KINDS)[number] {
-  return value === "systemEvent" || value === "agentTurn";
+  return isStringOption(value, CRON_PAYLOAD_KINDS);
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -234,6 +239,7 @@ function canonicalizeCronToolPayload(value: Record<string, unknown>): void {
   }
 
   if (!isCronPayloadKind(payload.kind)) {
+    const hasCommandSignal = Array.isArray(payload.argv) && payload.argv.length > 0;
     const hasAgentTurnSignal =
       isNonEmptyString(payload.message) ||
       isNonEmptyString(payload.model) ||
@@ -243,7 +249,9 @@ function canonicalizeCronToolPayload(value: Record<string, unknown>): void {
       typeof payload.lightContext === "boolean" ||
       typeof payload.allowUnsafeExternalContent === "boolean" ||
       (payload.fallbacks !== undefined && isStringArrayOrNull(payload.fallbacks));
-    if (hasAgentTurnSignal) {
+    if (hasCommandSignal) {
+      payload.kind = "command";
+    } else if (hasAgentTurnSignal) {
       payload.kind = "agentTurn";
     } else if (isNonEmptyString(payload.text)) {
       payload.kind = "systemEvent";

@@ -632,6 +632,7 @@ export function buildGatewayCronService(params: {
             channel: plan.channel,
             to: plan.to,
             accountId: plan.accountId,
+            threadId: plan.threadId,
             sessionKey: resolveCronDeliverySessionKey(job),
           },
           message,

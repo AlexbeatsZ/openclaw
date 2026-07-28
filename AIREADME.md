@@ -17,6 +17,7 @@
 
 # Recent Changes
 
+- Added trusted-agent cron authoring for model-free `command` jobs and `on-exit` schedules. The built-in `cron` tool can now create and manage same-agent jobs without an approval prompt, while cross-agent/session isolation remains enforced; command announce delivery also preserves `threadId`. This is committed/tested locally but not yet deployed to server WSL.
 - Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle while preserving an explicit shared model selection.
 - Added QQ `/mode` switching/status commands, Control UI core selection, Professional `AGENTS.md` bootstrap, and Life-memory prompt/recall improvements.
 - Replaced the erroneous Claude-only Professional ACP runtime with the shared OpenClaw/agy model path. Server integration tests passed, and a real Professional `agy/flash` run returned `AGY_PROFESSIONAL_OK` without fallback.
@@ -28,12 +29,13 @@
 ## Cron / scheduled task implementation
 
 - Public surface: `src/cron/service.ts` exposes `CronService`, a thin facade over locked operation helpers in `src/cron/service/ops.ts`. Main methods are `start`, `stop`, `status`, `list`, `add`, `update`, `remove`, `run`, and `enqueueRun`.
-- Persisted job shape: `src/cron/types.ts` defines three schedule forms: `at`, `every`, and `cron`. Agent-turn cron payloads can specify `payload.model` and per-job `payload.fallbacks`, where `fallbacks` overrides agent/global fallback config when present.
+- Persisted job shape: `src/cron/types.ts` defines four schedule forms: `at`, `every`, `cron`, and `on-exit`. Payloads include model-backed `agentTurn`, main-session `systemEvent`, and model-free Gateway-host `command` execution. Agent-turn cron payloads can specify `payload.model` and per-job `payload.fallbacks`, where `fallbacks` overrides agent/global fallback config when present.
 - Schedule math: `src/cron/schedule.ts` computes next/previous timestamps. `cron` expressions use `croner` with an LRU-like cache capped at 512 entries. Timezone defaults to `Intl.DateTimeFormat().resolvedOptions().timeZone`. There is a defensive retry path for a Croner past-time/year-rollback issue, including Asia/Shanghai cases.
 - Job-level schedule semantics: `src/cron/service/jobs.ts` wraps raw schedule math. `every` prefers `lastRunAtMs + everyMs`, otherwise uses an anchor; `at` one-shot jobs remain due until they complete successfully; `cron` supports deterministic staggering and retries the next second if initial computation is undefined.
 - Scheduler loop: `src/cron/service/timer.ts` owns the single timer. `armTimer` clears any previous timeout, skips when stopped/disabled/restart-recovery-pending, clamps wakes to a max interval, and floors zero-delay wakes to avoid hot loops. `onTimer` reloads state, reserves due jobs by persisting `runningAtMs`, executes outside the lock, writes results, and rearms.
 - Concurrency model: mutation/read repair paths use `locked(state, ...)`; long job execution intentionally happens outside the lock. A job with `state.runningAtMs` is not due, and active markers protect restart/cancel races.
 - Execution modes: main-session jobs enqueue `systemEvent` text and request/trigger heartbeat. Detached jobs execute either `command` via `runCommandJob` or `agentTurn` via `runIsolatedAgentJob`.
+- Trusted agent authoring: the built-in `cron` tool exposes `command` payload and `on-exit` schedule schemas and may manage jobs within its existing agent/owner/session scope without a separate approval workflow. Command cron runs outside `tools.exec` sandbox/approval policy, so granting `cron` now grants Gateway-host scheduled command execution and should remain limited to trusted agents.
 - Timeout/watchdog: `executeJobCoreWithTimeout` creates an `AbortController`, registers active task cancellation for detached jobs, and uses agent setup/execution watchdog phases so cold setup failures get clearer timeout reasons.
 - Result writeback: `applyJobResult` clears `runningAtMs`, records last status/error/diagnostics/duration/delivery state, classifies `lastErrorReason`, increments `consecutiveErrors` on error, tracks skipped separately, emits failure alerts, and computes the next run or deletion policy.
 - Retry/backoff: failed cron jobs use `resolveJobErrorBackoffUntilMs`, based on `lastRunAtMs + lastDurationMs + errorBackoffMs(consecutiveErrors)`. `recomputeJobNextRunAtMs` floors the next run at the backoff timestamp for non-`at` schedules.
@@ -148,6 +150,7 @@ Important source anchors:
 
 ## Verification notes
 
+- 2026-07-29 trusted-agent command/on-exit cron authoring passed 645 targeted Vitest assertions across the agent tool, flat recovery, Gateway caller scope, command delivery, and schema suites; `tsgo:core`, modified-file oxfmt/oxlint, and the full build also passed under isolated Node `24.18.0`.
 - 2026-07-18 upstream sync targets official snapshot `66f4ccabc505fb211e151474e7385b1975cb1f30` (`2026.7.2`) while preserving the fork's direct cron delivery, agy provider, QQBot UTF-8 chunking, generic CLI streaming decoder, and replay-safe fallback behavior.
 - The official Cron Control UI was reorganized from the old `ui/src/ui/views/cron.ts` / controller layout into `ui/src/pages/cron/view.ts` and `ui/src/lib/cron/index.ts`. Direct-delivery controls and validation must be ported into those new canonical files; retaining only the deleted old UI files does not preserve the feature.
 - The new scheduler uses exact active-job and command-lane task markers. A direct cron run may ignore only its own markers; it must still defer when any other cron job or cron lane task is active.
@@ -270,6 +273,7 @@ Important source anchors:
 - [x] Move fork checkout to `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
 - [x] Add `upstream` remote pointing at `https://github.com/openclaw/openclaw.git`.
 - [x] Analyze scheduled task / cron code.
+- [ ] Deploy trusted-agent `command` / `on-exit` cron authoring to server WSL after explicit deployment confirmation.
 - [x] Analyze model fallback code.
 - [x] Record findings in `AIREADME.md`.
 - [x] Commit and push this analysis file to the fork.

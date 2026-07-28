@@ -183,7 +183,7 @@ Before an isolated run starts, OpenClaw checks reachable local endpoints for con
 Command payloads run deterministic scripts inside the Gateway scheduler without starting a model-backed turn. They execute on the Gateway host, capture stdout/stderr, record the run in cron history, and reuse the same `announce`, `webhook`, and `none` delivery modes as agent-turn jobs.
 
 <Note>
-Command cron is an operator-admin Gateway automation surface, not an agent `tools.exec` call. Creating, updating, removing, or manually running cron jobs requires `operator.admin`; scheduled command runs later execute inside the Gateway process as that admin-authored automation. Agent exec policy (`tools.exec.mode`, approval prompts, per-agent tool allowlists) governs model-visible exec tools, not command cron payloads.
+Command cron is Gateway-host automation, not an agent `tools.exec` call. Operator CLI/API callers need `operator.admin`. A trusted agent with the built-in `cron` tool can also create and manage command jobs owned by that same agent without an approval prompt; caller scoping still prevents it from accessing another agent's jobs. Scheduled commands execute inside the Gateway process, so `tools.exec` sandbox/approval settings do not apply—only expose `cron` to agents you trust with Gateway-host command execution.
 </Note>
 
 ```bash

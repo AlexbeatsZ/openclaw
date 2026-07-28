@@ -876,6 +876,7 @@ describe("buildGatewayCronService", () => {
           mode: "announce",
           channel: "telegram",
           to: "123",
+          threadId: 42,
         },
       });
 
@@ -888,6 +889,11 @@ describe("buildGatewayCronService", () => {
       const message = typeof announcePayload.message === "string" ? announcePayload.message : "";
       expect(message).toContain("token=***");
       expect(message).not.toContain("opaque-secret-value");
+      expect(announcePayload.target).toMatchObject({
+        channel: "telegram",
+        to: "123",
+        threadId: 42,
+      });
     } finally {
       state.cron.stop();
     }

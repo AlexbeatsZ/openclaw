@@ -164,6 +164,7 @@ function createCronContext(currentJobs?: CronJob | CronJob[]) {
       info: vi.fn(),
     },
     getRuntimeConfig: () => getRuntimeConfig(),
+    cronStorePath: "cron-validation-test",
   };
 }
 
@@ -531,7 +532,7 @@ describe("cron method validation", () => {
     });
   });
 
-  it("hides operator command cron jobs from caller-scoped cron.remove", async () => {
+  it("allows caller-scoped cron.remove for a same-agent command job", async () => {
     const context = createCronContext(
       createCronJob({
         id: "cron-1",
@@ -550,11 +551,8 @@ describe("cron method validation", () => {
       { context, client: callerClient("ops") },
     );
 
-    expect(context.cron.remove).not.toHaveBeenCalled();
-    expectResponseError(respond, {
-      code: "INVALID_REQUEST",
-      messageIncludes: "invalid cron.remove params: id not found",
-    });
+    expect(context.cron.remove).toHaveBeenCalledWith("cron-1");
+    expect(respond).toHaveBeenCalledWith(true, { ok: true, removed: true }, undefined);
   });
 
   it("returns a single cron job for cron.get", async () => {
@@ -606,7 +604,7 @@ describe("cron method validation", () => {
     });
   });
 
-  it("hides same-agent command cron payloads from caller-scoped cron.get", async () => {
+  it("returns same-agent command cron payloads from caller-scoped cron.get", async () => {
     const job = createCronJob({
       id: "cron-42",
       agentId: "ops",
@@ -621,14 +619,11 @@ describe("cron method validation", () => {
       client: callerClient("ops"),
     });
 
-    expectResponseError(respond, {
-      code: "INVALID_REQUEST",
-      messageIncludes: "cron job not found: cron-42",
-    });
-    expect(JSON.stringify(respond.mock.calls)).not.toContain("fixture-marker");
+    expectCronReadSuccess(respond, job);
+    expect(JSON.stringify(respond.mock.calls)).toContain("fixture-marker");
   });
 
-  it("hides same-agent on-exit cron jobs from caller-scoped cron.get", async () => {
+  it("returns same-agent on-exit cron jobs from caller-scoped cron.get", async () => {
     const job = createCronJob({
       id: "cron-42",
       agentId: "ops",
@@ -639,11 +634,8 @@ describe("cron method validation", () => {
       client: callerClient("ops"),
     });
 
-    expectResponseError(respond, {
-      code: "INVALID_REQUEST",
-      messageIncludes: "cron job not found: cron-42",
-    });
-    expect(JSON.stringify(respond.mock.calls)).not.toContain("deploy");
+    expectCronReadSuccess(respond, job);
+    expect(JSON.stringify(respond.mock.calls)).toContain("deploy");
   });
 
   it("returns INVALID_REQUEST when cron.get cannot find the job", async () => {
@@ -674,7 +666,7 @@ describe("cron method validation", () => {
     );
   });
 
-  it("filters operator command cron jobs from caller-scoped cron.list", async () => {
+  it("includes same-agent command jobs in caller-scoped cron.list", async () => {
     const context = createCronContext([
       createCronJob({
         id: "command-job",
@@ -697,8 +689,11 @@ describe("cron method validation", () => {
     expect(respond).toHaveBeenCalledWith(
       true,
       expect.objectContaining({
-        total: 1,
-        jobs: [expect.objectContaining({ id: "agent-job" })],
+        total: 2,
+        jobs: [
+          expect.objectContaining({ id: "command-job" }),
+          expect.objectContaining({ id: "agent-job" }),
+        ],
       }),
       undefined,
     );
@@ -2179,7 +2174,7 @@ describe("cron method validation", () => {
     });
   });
 
-  it("hides operator command cron jobs from caller-scoped cron.update", async () => {
+  it("allows caller-scoped cron.update for a same-agent command job", async () => {
     const context = createCronContext(
       createCronJob({
         id: "cron-1",
@@ -2198,11 +2193,8 @@ describe("cron method validation", () => {
       { context, client: callerClient("ops") },
     );
 
-    expect(context.cron.update).not.toHaveBeenCalled();
-    expectResponseError(respond, {
-      code: "INVALID_REQUEST",
-      messageIncludes: "invalid cron.update params: id not found",
-    });
+    expect(context.cron.update).toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(true, expect.any(Object), undefined);
   });
 
   it("returns INVALID_REQUEST when cron.run cannot find the job", async () => {
@@ -2275,7 +2267,7 @@ describe("cron method validation", () => {
     });
   });
 
-  it("does not enqueue same-agent command cron jobs from caller-scoped cron.run", async () => {
+  it("enqueues same-agent command cron jobs from caller-scoped cron.run", async () => {
     const context = createCronContext(
       createCronJob({
         id: "cron-1",
@@ -2295,11 +2287,17 @@ describe("cron method validation", () => {
       { context, client: callerClient("ops") },
     );
 
-    expect(context.cron.enqueueRun).not.toHaveBeenCalled();
-    expectResponseError(respond, {
-      code: "INVALID_REQUEST",
-      messageIncludes: "invalid cron.run params: id not found",
-    });
+    expect(context.cron.enqueueRun).toHaveBeenCalledWith("cron-1", "force");
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      {
+        ok: true,
+        enqueued: true,
+        runId: "run-1",
+        processInstanceId: getGatewayProcessInstanceId(),
+      },
+      undefined,
+    );
   });
 
   it("rejects caller-scoped cron.runs all-scope history", async () => {
@@ -2333,7 +2331,7 @@ describe("cron method validation", () => {
     });
   });
 
-  it("hides operator command cron history from caller-scoped cron.runs", async () => {
+  it("returns same-agent command cron history to caller-scoped cron.runs", async () => {
     const context = createCronContext(
       createCronJob({
         id: "cron-1",
@@ -2352,10 +2350,11 @@ describe("cron method validation", () => {
       { context, client: callerClient("ops") },
     );
 
-    expectResponseError(respond, {
-      code: "INVALID_REQUEST",
-      messageIncludes: "invalid cron.runs params: id not found",
-    });
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ entries: expect.any(Array) }),
+      undefined,
+    );
   });
 
   it("re-throws non-parse errors from cron.add instead of masking as INVALID_REQUEST", async () => {
