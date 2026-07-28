@@ -50,13 +50,26 @@ import { startThemeTransition } from "./theme-transition.ts";
 import { resolveTheme, type ThemeMode } from "./theme.ts";
 import { createWebPushCapability } from "./web-push.ts";
 
-function normalizeInitialApplicationLocation(
+function isApplicationMountRoot(pathname: string, basePath: string): boolean {
+  const normalizedPath = pathname.replace(/\/+$/, "") || "/";
+  const normalizedBasePath = basePath.replace(/\/+$/, "") || "/";
+  return normalizedPath === normalizedBasePath;
+}
+
+export function normalizeInitialApplicationLocation(
   location: RouteLocation,
   basePath: string,
   sessionKey: string,
 ) {
   const routeId = routeIdFromPath(location.pathname, basePath);
-  if (!isDefaultChatLanding(location, basePath, routeIdFromPath) || !sessionKey.trim()) {
+  const isDefaultLanding = isDefaultChatLanding(location, basePath, routeIdFromPath);
+  if (isDefaultLanding && isApplicationMountRoot(location.pathname, basePath)) {
+    return {
+      ...location,
+      pathname: pathForRoute("new-session", basePath),
+    };
+  }
+  if (!isDefaultLanding || !sessionKey.trim()) {
     return location;
   }
 
@@ -268,10 +281,7 @@ export function bootstrapApplication(): ApplicationRuntime {
     : normalizeInitialApplicationLocation(startup.location, basePath, startup.settings.sessionKey);
   const firstRunDefaultLanding =
     documentMode === null && isDefaultChatLanding(startup.location, basePath, routeIdFromPath);
-  const expectedDefaultLanding = {
-    ...initialLocation,
-    pathname: pathForRoute("chat", basePath),
-  };
+  const expectedDefaultLanding = initialLocation;
   const currentLocation = history.location();
   if (
     currentLocation.pathname !== initialLocation.pathname ||
