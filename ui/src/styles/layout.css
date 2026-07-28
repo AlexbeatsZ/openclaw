@@ -2516,6 +2516,12 @@ wa-dropdown.sidebar-session-sort-menu::part(menu) {
     background var(--duration-fast) ease;
 }
 
+.sidebar-footer-bar .theme-mode-toggle {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
 .sidebar-footer-bar__settings:hover,
 .sidebar-footer-bar__settings:focus-visible {
   color: var(--text);

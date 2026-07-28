@@ -184,6 +184,82 @@ describeControlUiE2e("Control UI new-session page mocked Gateway E2E", () => {
     await server?.close();
   });
 
+  it("uses a desktop workbench, adapts to phones, and exposes the color mode control", async () => {
+    const context = await browser.newContext({
+      locale: "zh-CN",
+      serviceWorkers: "block",
+      viewport: { height: 900, width: 1280 },
+    });
+    const page = await context.newPage();
+    await installMockGateway(page, {});
+
+    try {
+      await page.goto(`${server.baseUrl}new`);
+      await page.getByRole("radio", { name: "生活" }).waitFor();
+
+      const desktop = await page.evaluate(() => {
+        const welcome = document.querySelector<HTMLElement>(
+          ".new-session-page .agent-chat__welcome",
+        );
+        const hero = document.querySelector<HTMLElement>(
+          ".new-session-page .agent-chat__welcome-hero",
+        );
+        const draft = document.querySelector<HTMLElement>(".new-session-page__draft");
+        if (!welcome || !hero || !draft) {
+          throw new Error("new-session workbench is incomplete");
+        }
+        const heroRect = hero.getBoundingClientRect();
+        const draftRect = draft.getBoundingClientRect();
+        return {
+          display: getComputedStyle(welcome).display,
+          heroWidth: heroRect.width,
+          draftWidth: draftRect.width,
+          draftStartsAfterHero: draftRect.left > heroRect.left + heroRect.width,
+        };
+      });
+      expect(desktop.display).toBe("grid");
+      expect(desktop.heroWidth).toBeGreaterThan(250);
+      expect(desktop.draftWidth).toBeGreaterThan(500);
+      expect(desktop.draftStartsAfterHero).toBe(true);
+
+      const themeToggle = page.locator(".sidebar-footer-bar .theme-mode-toggle");
+      expect(await themeToggle.isVisible()).toBe(true);
+      await themeToggle.click();
+      await expect.poll(() => page.locator("html").getAttribute("data-theme-mode")).toBe("light");
+      await themeToggle.click();
+      await expect.poll(() => page.locator("html").getAttribute("data-theme-mode")).toBe("dark");
+
+      await page.setViewportSize({ height: 844, width: 390 });
+      const phone = await page.evaluate(() => {
+        const welcome = document.querySelector<HTMLElement>(
+          ".new-session-page .agent-chat__welcome",
+        );
+        const options = document.querySelector<HTMLElement>(".new-session-page__core-options");
+        const draft = document.querySelector<HTMLElement>(".new-session-page__draft");
+        if (!welcome || !options || !draft) {
+          throw new Error("new-session mobile layout is incomplete");
+        }
+        const draftRect = draft.getBoundingClientRect();
+        return {
+          display: getComputedStyle(welcome).display,
+          optionColumns: getComputedStyle(options).gridTemplateColumns.split(" ").length,
+          overflow:
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth,
+          draftLeft: draftRect.left,
+          draftRight: draftRect.right,
+        };
+      });
+      expect(phone.display).toBe("flex");
+      expect(phone.optionColumns).toBe(1);
+      expect(phone.overflow).toBeLessThanOrEqual(1);
+      expect(phone.draftLeft).toBeGreaterThanOrEqual(0);
+      expect(phone.draftRight).toBeLessThanOrEqual(391);
+    } finally {
+      await context.close();
+    }
+  });
+
   it("pastes an image into the draft and forwards it with the initial turn", async () => {
     const context = await browser.newContext({
       locale: "en-US",
@@ -548,11 +624,17 @@ describeControlUiE2e("Control UI new-session page mocked Gateway E2E", () => {
         .poll(() => whereTrigger.locator(".new-session-page__trigger-label").textContent())
         .toBe("MacBook");
 
-      await page.getByLabel("Mode", { exact: true }).selectOption("professional");
+      await page.getByRole("radio", { name: "Professional" }).check();
+      expect(await page.getByRole("radio", { name: "Professional" }).isChecked()).toBe(true);
       await expect
         .poll(() => whereTrigger.locator(".new-session-page__trigger-label").textContent())
         .toBe("Gateway · local");
-      expect(await page.locator('[data-chat-model-select="true"]').count()).toBe(0);
+      await expect
+        .poll(() => page.getByRole("status").textContent())
+        .toContain("The remote target was reset to this Gateway; your draft was kept.");
+      // Both private cores share the Gateway model catalog even though their
+      // conversation state, transcript, and memory remain isolated.
+      expect(await page.locator('[data-chat-model-select="true"]').count()).toBe(1);
 
       await whereTrigger.click();
       expect(await where.getByRole("button", { name: "MacBook" }).count()).toBe(0);

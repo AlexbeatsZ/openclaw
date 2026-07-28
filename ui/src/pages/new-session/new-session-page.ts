@@ -64,6 +64,7 @@ class NewSessionPage extends OpenClawLightDomElement {
 
   @state() private agentId = "";
   @state() private conversationCoreId: "life" | "professional" = "life";
+  @state() private coreTargetReset = false;
   @state() private folder = "";
   @state() private worktree = false;
   @state() private worktreeName = "";
@@ -417,6 +418,7 @@ class NewSessionPage extends OpenClawLightDomElement {
     this.invalidateSubmission();
     this.submissionOutcomeUnknown = preservePendingCloud;
     this.agentSelectedByUser = false;
+    this.coreTargetReset = false;
     this.folder = "";
     this.folderSelectedByUser = false;
     this.worktree = false;
@@ -930,7 +932,9 @@ class NewSessionPage extends OpenClawLightDomElement {
     ) {
       return;
     }
+    const targetWasReset = core === "professional" && Boolean(this.execNode || this.cloudProfileId);
     this.conversationCoreId = core;
+    this.coreTargetReset = targetWasReset;
     if (core === "professional") {
       const wasNodeTarget = Boolean(this.execNode);
       this.closeBrowser();
@@ -1322,6 +1326,7 @@ class NewSessionPage extends OpenClawLightDomElement {
         : renderCoreSelect({
             core: this.conversationCoreId,
             disabled: this.submitting || Boolean(this.pendingCloud.sessionKey),
+            targetReset: this.coreTargetReset,
             onSelect: (core) => this.selectConversationCore(core),
           }),
       agentSelect: agents.length > 1 ? this.renderAgentSelect(agents) : nothing,
@@ -1337,6 +1342,11 @@ class NewSessionPage extends OpenClawLightDomElement {
     const worktreeNameInvalid = this.worktree && !isWorktreeNameValid(this.worktreeName);
     return html`
       <div class="new-session-page__draft" aria-busy=${String(this.submitting)}>
+        <header class="new-session-page__draft-heading">
+          <span class="new-session-page__eyebrow">${t("newSession.title")}</span>
+          <h1>${t("newSession.workspaceTitle")}</h1>
+          <p>${t("newSession.workspaceHint")}</p>
+        </header>
         ${this.renderTargetBar()}
         ${worktreeNameInvalid ? renderDraftError(t("newSession.worktreeNameInvalid")) : nothing}
         ${this.error ? renderDraftError(this.error) : nothing}
@@ -1375,7 +1385,7 @@ class NewSessionPage extends OpenClawLightDomElement {
       assistantName: identity?.name ?? agent?.name ?? agent?.id ?? "",
       assistantAvatar: identity?.avatar ?? identity?.emoji ?? null,
       assistantAvatarUrl: identity?.avatarUrl ?? null,
-      hint: t("newSession.hint"),
+      hint: t("newSession.identityHint"),
       composer: this.renderDraftBlock(),
       sessions: this.context?.sessions.state.result,
       sessionKey: buildAgentMainSessionKey({

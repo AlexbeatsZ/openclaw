@@ -1142,7 +1142,7 @@ function renderCompactionIndicator(status: CompactionStatus | null | undefined) 
         role="status"
         aria-live="polite"
       >
-        ${icons.loader} Compacting context...
+        ${icons.loader} ${t("chat.composer.compactingContext")}
       </div>
     `;
   }
@@ -1155,7 +1155,7 @@ function renderCompactionIndicator(status: CompactionStatus | null | undefined) 
           role="status"
           aria-live="polite"
         >
-          ${icons.check} Context compacted
+          ${icons.check} ${t("chat.composer.contextCompacted")}
         </div>
       `;
     }
@@ -2325,9 +2325,11 @@ export function renderChatComposer(props: ChatComposerProps) {
           ? html`
               <div class="chat-reply-preview">
                 <span class="chat-reply-preview__icon">${icons.messageSquare}</span>
-                <span class="chat-reply-preview__label"
-                  >Replying to ${props.replyTarget.senderLabel ?? "message"}</span
-                >
+                <span class="chat-reply-preview__label">
+                  ${t("chat.composer.replyingTo", {
+                    name: props.replyTarget.senderLabel ?? t("chat.composer.message"),
+                  })}
+                </span>
                 <span class="chat-reply-preview__text"
                   >${truncateUtf16Safe(props.replyTarget.text, 120)}${props.replyTarget.text
                     .length > 120

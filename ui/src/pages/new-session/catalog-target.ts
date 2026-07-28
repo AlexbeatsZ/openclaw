@@ -85,10 +85,10 @@ export function renderBar(params: {
 }) {
   const pending = isTarget(params.data) && !isResolvedTarget(params.data);
   return html`
+    ${params.coreSelect}
     <div class="new-session-page__triggers">
-      ${renderTarget(params.data)} ${params.coreSelect}
-      ${isTarget(params.data) ? nothing : params.agentSelect} ${params.folderSelect}
-      ${params.whereSelect}
+      ${renderTarget(params.data)} ${isTarget(params.data) ? nothing : params.agentSelect}
+      ${params.folderSelect} ${params.whereSelect}
       ${pending
         ? html`<span class="new-session-page__catalog-unavailable">
             ${t("newSession.catalogUnavailable")}

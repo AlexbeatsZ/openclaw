@@ -3983,6 +3983,13 @@ openclaw-chat-page {
   min-height: 0;
 }
 
+.agent-chat__welcome-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
 .agent-chat__welcome h2 {
   font-size: 24px;
   font-weight: 600;
@@ -4013,6 +4020,10 @@ openclaw-chat-page {
   .agent-chat__welcome {
     gap: 8px;
     padding: 16px 12px;
+  }
+
+  .agent-chat__welcome-hero {
+    gap: 8px;
   }
 
   .agent-chat__welcome h2 {

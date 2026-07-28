@@ -1,4 +1,6 @@
 import type { ConfigUiHints } from "../api/types.ts";
+import { localizeConfigSchemaText } from "../i18n/config-schema.ts";
+import { i18n } from "../i18n/index.ts";
 import { normalizeLowercaseStringOrEmpty } from "../lib/string-coerce.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 
@@ -67,8 +69,10 @@ export function resolveConfigFieldMeta(
   hints: ConfigUiHints,
 ): ConfigFieldMeta {
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const rawHelp = hint?.help ?? schema.description;
+  const label = localizeConfigSchemaText(rawLabel, i18n.getLocale()) ?? rawLabel;
+  const help = localizeConfigSchemaText(rawHelp, i18n.getLocale());
   const schemaTags = normalizeTags(schema["x-tags"] ?? schema.tags);
   const hintTags = normalizeTags(hint?.tags);
   return {

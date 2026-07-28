@@ -19,25 +19,72 @@ function agentDisplayName(agent: DraftAgent): string {
 export function renderCoreSelect(params: {
   core: "life" | "professional";
   disabled: boolean;
+  targetReset: boolean;
   onSelect: (core: "life" | "professional") => void;
 }) {
+  const options = [
+    {
+      value: "life" as const,
+      label: t("newSession.lifeMode"),
+      hint: t("newSession.lifeModeHint"),
+    },
+    {
+      value: "professional" as const,
+      label: t("newSession.professionalMode"),
+      hint: t("newSession.professionalModeHint"),
+    },
+  ];
+  const description = params.targetReset
+    ? t("newSession.professionalTargetReset")
+    : params.core === "professional"
+      ? t("newSession.professionalModeDescription")
+      : t("newSession.lifeModeDescription");
+
   return html`
-    <label class="new-session-page__core-select" title=${t("newSession.mode")}>
-      <span class="new-session-page__target-icon" aria-hidden="true">${icons.bot}</span>
-      <span class="agent-chat__sr-only">${t("newSession.mode")}</span>
-      <select
-        aria-label=${t("newSession.mode")}
-        ?disabled=${params.disabled}
-        .value=${params.core}
-        @change=${(event: Event) =>
-          params.onSelect(
-            (event.target as HTMLSelectElement).value === "professional" ? "professional" : "life",
-          )}
+    <fieldset class="new-session-page__core-picker" ?disabled=${params.disabled}>
+      <legend class="agent-chat__sr-only">${t("newSession.mode")}</legend>
+      <div class="new-session-page__core-heading" aria-hidden="true">
+        <span class="new-session-page__target-icon">${icons.bot}</span>
+        <span>${t("newSession.mode")}</span>
+      </div>
+      <div class="new-session-page__core-options">
+        ${options.map(
+          (option) => html`
+            <label
+              class="new-session-page__core-option ${params.core === option.value
+                ? "new-session-page__core-option--active"
+                : ""}"
+            >
+              <input
+                type="radio"
+                name="new-session-conversation-core"
+                value=${option.value}
+                .checked=${params.core === option.value}
+                @change=${(event: Event) => {
+                  const input = event.target as HTMLInputElement;
+                  if (input.checked) {
+                    params.onSelect(input.value === "professional" ? "professional" : "life");
+                  }
+                }}
+              />
+              <span class="new-session-page__core-option-copy">
+                <span class="new-session-page__core-option-label">${option.label}</span>
+                <span class="new-session-page__core-option-hint">${option.hint}</span>
+              </span>
+            </label>
+          `,
+        )}
+      </div>
+      <p
+        class="new-session-page__core-description ${params.targetReset
+          ? "new-session-page__core-description--notice"
+          : ""}"
+        role="status"
+        aria-live="polite"
       >
-        <option value="life">${t("newSession.lifeMode")}</option>
-        <option value="professional">${t("newSession.professionalMode")}</option>
-      </select>
-    </label>
+        ${description}
+      </p>
+    </fieldset>
   `;
 }
 

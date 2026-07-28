@@ -216,6 +216,7 @@ class AppSidebar extends AppSidebarSessionListElement {
           aria-label=${gatewayStatus}
           title=${gatewayStatus}
         ></span>
+        <openclaw-theme-mode-toggle .mode=${this.themeMode}></openclaw-theme-mode-toggle>
         <openclaw-tooltip .content=${t("nav.settings")}>
           <button
             type="button"

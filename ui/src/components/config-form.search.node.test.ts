@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { matchesNodeSearch, parseConfigSearchQuery } from "./config-form.search.ts";
+import { i18n } from "../i18n/index.ts";
+import { SECTION_META } from "./config-form.meta.ts";
+import {
+  matchesNodeSearch,
+  parseConfigSearchQuery,
+  resolveConfigFieldMeta,
+} from "./config-form.search.ts";
 
 const schema = {
   type: "object",
@@ -24,6 +30,24 @@ const schema = {
 };
 
 describe("config form search", () => {
+  it("localizes schema metadata without losing English search candidates", async () => {
+    await i18n.setLocale("zh-CN");
+    const meta = resolveConfigFieldMeta(["logging"], { type: "object", title: "Logging" }, {});
+
+    expect(meta.label).toBe("日志");
+    expect(SECTION_META.cron?.label).toBe("定时任务");
+    expect(
+      matchesNodeSearch({
+        schema: { type: "object", title: "Logging" },
+        value: {},
+        path: ["logging"],
+        hints: {},
+        criteria: parseConfigSearchQuery("Logging"),
+      }),
+    ).toBe(true);
+    await i18n.setLocale("en");
+  });
+
   it("parses tag-prefixed query terms", () => {
     const parsed = parseConfigSearchQuery("token tag:security tag:Auth");
     expect(parsed.text).toBe("token");

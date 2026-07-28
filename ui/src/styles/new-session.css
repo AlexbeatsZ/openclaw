@@ -27,7 +27,14 @@ openclaw-new-session-page {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: clamp(44px, 5vh, 52px) clamp(6px, 1vw, 12px) 6px;
+  padding: clamp(28px, 4vh, 48px) clamp(18px, 3vw, 42px) 24px;
+  background:
+    radial-gradient(
+      circle at 76% 18%,
+      color-mix(in srgb, var(--accent) 9%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(155deg, color-mix(in srgb, var(--panel) 32%, transparent), transparent 42%);
 }
 
 /* The shared welcome stretches (flex: 1) and centers via justify-content,
@@ -37,9 +44,67 @@ openclaw-new-session-page {
 .new-session-page .agent-chat__welcome {
   flex: 0 0 auto;
   width: 100%;
-  max-width: none;
+  max-width: 74rem;
   min-height: auto;
   box-sizing: border-box;
+}
+
+@media (min-width: 960px) {
+  .new-session-page .agent-chat__welcome {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    grid-template-areas:
+      "hero draft"
+      "recents draft";
+    align-items: start;
+    justify-content: stretch;
+    gap: 18px 24px;
+    margin: auto;
+    padding: 0;
+    text-align: left;
+  }
+
+  .new-session-page .agent-chat__welcome-hero {
+    grid-area: hero;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 24px;
+    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+    border-radius: calc(var(--radius-lg) + 2px);
+    background: color-mix(in srgb, var(--panel) 76%, transparent);
+    box-shadow: 0 18px 48px color-mix(in srgb, var(--bg) 38%, transparent);
+  }
+
+  .new-session-page .agent-chat__welcome-clawd {
+    margin: 0 0 6px -10px;
+  }
+
+  .new-session-page .agent-chat__welcome h2 {
+    font-size: clamp(26px, 2.2vw, 34px);
+    letter-spacing: -0.025em;
+  }
+
+  .new-session-page .agent-chat__hint {
+    max-width: 26ch;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .new-session-page .agent-chat__recents,
+  .new-session-page .agent-chat__suggestions {
+    grid-area: recents;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--panel) 58%, transparent);
+    box-sizing: border-box;
+  }
+
+  .new-session-page .agent-chat__suggestions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Draft block inside the centered welcome column; the welcome centers text,
@@ -47,10 +112,57 @@ openclaw-new-session-page {
 .new-session-page__draft {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
   margin-top: 6px;
   text-align: left;
+}
+
+.new-session-page__draft-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.new-session-page__draft-heading h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(22px, 2vw, 30px);
+  font-weight: 680;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.new-session-page__draft-heading p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.new-session-page__eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 960px) {
+  .new-session-page__draft {
+    grid-area: draft;
+    min-height: 430px;
+    margin: 0;
+    padding: 24px;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: calc(var(--radius-lg) + 2px);
+    background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+    box-shadow:
+      0 24px 70px color-mix(in srgb, var(--bg) 52%, transparent),
+      inset 0 1px 0 var(--card-highlight);
+    box-sizing: border-box;
+  }
 }
 
 /* Quiet chip row directly above the composer: every picker (agent, folder,
@@ -62,7 +174,7 @@ openclaw-new-session-page {
   align-items: center;
   justify-content: flex-start;
   gap: 4px 2px;
-  width: calc(100% - 36px);
+  width: 100%;
   max-width: 48rem;
   margin: 0 auto;
   padding: 0;
@@ -129,29 +241,112 @@ openclaw-new-session-page {
   background: transparent;
 }
 
-.new-session-page__core-select {
-  display: inline-flex;
+.new-session-page__core-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  box-sizing: border-box;
+}
+
+.new-session-page__core-picker:disabled {
+  opacity: 0.62;
+}
+
+.new-session-page__core-heading {
+  display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 30px;
-  padding: 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.new-session-page__core-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.new-session-page__core-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 9px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  background: color-mix(in srgb, var(--bg) 74%, transparent);
   color: var(--text);
-}
-
-.new-session-page__core-select select {
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
   cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
-.new-session-page__core-select:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+.new-session-page__core-option:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--bg-hover) 82%, transparent);
+}
+
+.new-session-page__core-option--active {
+  border-color: color-mix(in srgb, var(--accent) 66%, var(--border));
+  background: color-mix(in srgb, var(--accent) 11%, var(--bg-elevated));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.new-session-page__core-option:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 62%, transparent);
+  outline-offset: 2px;
+}
+
+.new-session-page__core-option input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.new-session-page__core-option-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.new-session-page__core-option-label {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.new-session-page__core-option-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.new-session-page__core-description {
+  min-height: 16px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.new-session-page__core-description--notice {
+  color: var(--warning);
 }
 
 .new-session-page__catalog-unavailable {
@@ -270,6 +465,8 @@ wa-popover.new-session-page__select--folder::part(body) {
 
 /* The chip row already spaces itself; keep the composer snug beneath it. */
 .new-session-page__composer.agent-chat__composer-shell {
+  width: 100%;
+  max-width: none;
   margin-top: 0;
 }
 
@@ -461,9 +658,47 @@ wa-popover.new-session-page__select--folder::part(body) {
     padding: 12px 8px;
   }
 
+  .new-session-page .agent-chat__welcome-hero {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+  }
+
+  .new-session-page .agent-chat__welcome-clawd,
+  .new-session-page .agent-chat__welcome-avatar,
+  .new-session-page .agent-chat__avatar--text {
+    grid-row: 1 / span 2;
+    margin: 0;
+  }
+
+  .new-session-page .agent-chat__welcome h2,
+  .new-session-page .agent-chat__hint {
+    grid-column: 2;
+  }
+
+  .new-session-page__draft {
+    margin-top: 2px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
+    box-sizing: border-box;
+  }
+
+  .new-session-page__draft-heading h1 {
+    font-size: 21px;
+  }
+
   .new-session-page__triggers {
     position: relative;
     gap: 4px 2px;
+  }
+
+  .new-session-page__core-options {
+    grid-template-columns: 1fr;
   }
 
   .new-session-page__select {

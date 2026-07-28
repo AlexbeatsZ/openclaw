@@ -622,7 +622,7 @@ export function renderChatPinnedMessages(
           requestUpdate();
         }}
       >
-        ${icons.bookmark} ${entries.length} pinned
+        ${icons.bookmark} ${t("chat.thread.pinnedCount", { count: String(entries.length) })}
         <span class="collapse-chevron ${state.pinnedExpanded ? "" : "collapse-chevron--collapsed"}"
           >${icons.chevronDown}</span
         >
@@ -634,7 +634,7 @@ export function renderChatPinnedMessages(
                 ({ index, text, role }) => html`
                   <div class="agent-chat__pinned-item">
                     <span class="agent-chat__pinned-role"
-                      >${role === "user" ? userRoleLabel : "Assistant"}</span
+                      >${role === "user" ? userRoleLabel : t("sessions.assistant")}</span
                     >
                     <span class="agent-chat__pinned-text"
                       >${truncateUtf16Safe(text, 100)}${text.length > 100 ? "..." : ""}</span

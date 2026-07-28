@@ -1,4 +1,5 @@
 // Control UI i18n module implements registry behavior.
+import { registerConfigSchemaTranslations } from "../config-schema.ts";
 import type { Locale, TranslationMap } from "./types.ts";
 
 type LazyLocale = Exclude<Locale, "en">;
@@ -37,7 +38,14 @@ const LAZY_LOCALES: readonly LazyLocale[] = [
 const LAZY_LOCALE_REGISTRY: Record<LazyLocale, LazyLocaleRegistration> = {
   "zh-CN": {
     exportName: "zh_CN",
-    loader: () => import("../locales/zh-CN.ts"),
+    loader: async () => {
+      const [localeModule, configSchemaModule] = await Promise.all([
+        import("../locales/zh-CN.ts"),
+        import("../config-schema.zh-CN.ts"),
+      ]);
+      registerConfigSchemaTranslations("zh-CN", configSchemaModule.ZH_CN_CONFIG_SCHEMA_TEXT);
+      return localeModule;
+    },
   },
   "zh-TW": {
     exportName: "zh_TW",

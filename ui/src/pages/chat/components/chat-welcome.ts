@@ -155,15 +155,17 @@ function renderWelcomeHero(
   const avatar = resolveAssistantAvatarUrl(props);
   const avatarText = avatar ? null : resolveAssistantTextAvatar(props.assistantAvatar);
   return html`
-    ${avatar
-      ? html`<img class="agent-chat__welcome-avatar" src=${avatar} alt=${name} />`
-      : avatarText
-        ? html`<div class="agent-chat__avatar agent-chat__avatar--text" aria-label=${name}>
-            ${avatarText}
-          </div>`
-        : renderWelcomeClawd()}
-    <h2>${name}</h2>
-    <p class="agent-chat__hint">${props.hint}</p>
+    <div class="agent-chat__welcome-hero">
+      ${avatar
+        ? html`<img class="agent-chat__welcome-avatar" src=${avatar} alt=${name} />`
+        : avatarText
+          ? html`<div class="agent-chat__avatar agent-chat__avatar--text" aria-label=${name}>
+              ${avatarText}
+            </div>`
+          : renderWelcomeClawd()}
+      <h2>${name}</h2>
+      <p class="agent-chat__hint">${props.hint}</p>
+    </div>
   `;
 }
 

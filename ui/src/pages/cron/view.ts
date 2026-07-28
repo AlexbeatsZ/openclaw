@@ -316,7 +316,8 @@ function renderRequiredTitle(label: string) {
 // wrapped control its accessible name (including the visually-hidden required marker).
 function renderFieldRow(params: {
   label: string;
-  controlId: string;
+  controlId?: string;
+  labelId?: string;
   control: unknown;
   required?: boolean;
   help?: string;
@@ -333,7 +334,11 @@ function renderFieldRow(params: {
     : html`<div class=${controlClass}>${params.control}</div>`;
   return html`
     <div class=${params.stacked ? "settings-row settings-row--stacked" : "settings-row"}>
-      <label class="settings-row__text" for=${params.controlId}>
+      <label
+        id=${params.labelId ?? nothing}
+        class="settings-row__text"
+        for=${params.controlId ?? nothing}
+      >
         <span class="settings-row__title">
           ${params.required ? renderRequiredTitle(params.label) : params.label}
         </span>
@@ -1443,12 +1448,17 @@ function renderDeliverySection(
       ${props.form.sessionTarget === "main"
         ? renderFieldRow({
             label: t("cron.form.deliveryStrategy"),
+            labelId: "cron-delivery-strategy-label",
             help:
               props.form.deliveryStrategy === "direct"
                 ? t("cron.form.directDeliveryHelp")
                 : t("cron.form.heartbeatDeliveryHelp"),
             control: html`
-              <div class="cfg-segmented" role="group">
+              <div
+                class="cfg-segmented"
+                role="group"
+                aria-labelledby="cron-delivery-strategy-label"
+              >
                 <button
                   type="button"
                   class="cfg-segmented__btn ${props.form.deliveryStrategy === "heartbeat"

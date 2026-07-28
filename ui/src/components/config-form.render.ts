@@ -1,7 +1,8 @@
 // Control UI view renders config form.render screen content.
 import { html, nothing, type TemplateResult } from "lit";
 import type { ConfigUiHints } from "../api/types.ts";
-import { t } from "../i18n/index.ts";
+import { localizeConfigSchemaText } from "../i18n/config-schema.ts";
+import { i18n, t } from "../i18n/index.ts";
 import { SECTION_META } from "./config-form.meta.ts";
 import { renderNode } from "./config-form.node.ts";
 import { matchesConfigSectionSearch, parseConfigSearchQuery } from "./config-form.search.ts";
@@ -160,8 +161,10 @@ export function renderConfigForm(props: ConfigFormProps) {
       ? (() => {
           const { sectionKey, subsectionKey, schema: node } = subsectionContext;
           const hint = hintForPath([sectionKey, subsectionKey], props.uiHints);
-          const label = hint?.label ?? node.title ?? humanize(subsectionKey);
-          const description = hint?.help ?? node.description ?? "";
+          const rawLabel = hint?.label ?? node.title ?? humanize(subsectionKey);
+          const rawDescription = hint?.help ?? node.description;
+          const label = localizeConfigSchemaText(rawLabel, i18n.getLocale()) ?? rawLabel;
+          const description = localizeConfigSchemaText(rawDescription, i18n.getLocale()) ?? "";
           const sectionValue = value[sectionKey];
           const scopedValue =
             sectionValue && typeof sectionValue === "object"
@@ -177,9 +180,10 @@ export function renderConfigForm(props: ConfigFormProps) {
           });
         })()
       : filteredEntries.map(([key, node]) => {
+          const rawLabel = node.title ?? humanize(key);
           const meta = SECTION_META[key] ?? {
-            label: key.charAt(0).toUpperCase() + key.slice(1),
-            description: node.description ?? "",
+            label: localizeConfigSchemaText(rawLabel, i18n.getLocale()) ?? rawLabel,
+            description: localizeConfigSchemaText(node.description, i18n.getLocale()) ?? "",
           };
 
           return renderSection({
