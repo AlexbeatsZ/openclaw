@@ -140,6 +140,7 @@ export class ApiClient {
         url,
         init: fetchInit,
         auditContext: "qqbot-api",
+        mode: "trusted_env_proxy",
         policy: resolveQqbotApiSsrfPolicy(url),
         timeoutMs: guardedTimeoutMs,
       });

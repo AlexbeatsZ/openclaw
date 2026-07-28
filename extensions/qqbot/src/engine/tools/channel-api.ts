@@ -330,6 +330,7 @@ export async function executeChannelApi(
         url,
         init: fetchOptions,
         auditContext: "qqbot-channel-api",
+        mode: "trusted_env_proxy",
         policy: resolveChannelApiSsrfPolicy(url),
       });
       release = guarded.release;

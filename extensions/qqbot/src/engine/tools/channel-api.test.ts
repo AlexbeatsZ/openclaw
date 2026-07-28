@@ -79,6 +79,7 @@ describe("executeChannelApi", () => {
         signal: expect.any(AbortSignal),
       },
       auditContext: "qqbot-channel-api",
+      mode: "trusted_env_proxy",
       policy: {
         hostnameAllowlist: ["api.sgroup.qq.com"],
         allowRfc2544BenchmarkRange: true,

@@ -89,6 +89,7 @@ describe("ApiClient", () => {
         },
       },
       auditContext: "qqbot-api",
+      mode: "trusted_env_proxy",
       policy: {
         hostnameAllowlist: ["qqbot.test"],
         allowRfc2544BenchmarkRange: true,
