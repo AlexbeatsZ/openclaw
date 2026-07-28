@@ -40,6 +40,18 @@ function errorMessage(error: unknown): string {
     : t("custodian.requestFailed");
 }
 
+function isInferenceSetupUnavailable(message: string | null): boolean {
+  if (!message) {
+    return false;
+  }
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("requires working inference") &&
+    (normalized.includes("hard tool-free") ||
+      normalized.includes("cannot be used for inference-gated setup"))
+  );
+}
+
 export class CustodianPage extends OpenClawLightDomElement {
   @consume({ context: applicationContext, subscribe: true })
   private context!: ApplicationContext;
@@ -286,6 +298,14 @@ export class CustodianPage extends OpenClawLightDomElement {
     this.context.navigate("chat");
   }
 
+  private startNewTask(): void {
+    this.context.navigate("new-session");
+  }
+
+  private openModelSetup(): void {
+    this.context.navigate("model-setup");
+  }
+
   private canRetry(): boolean {
     // Only the welcome request is safely replayable; a user turn has no
     // idempotency key and may have already acted on the agent side.
@@ -309,12 +329,15 @@ export class CustodianPage extends OpenClawLightDomElement {
   }
 
   override render() {
+    const setupUnavailable = isInferenceSetupUnavailable(this.error);
+    const isConnected = this.activeClient !== null && this.chatAvailable;
     return html`
       <section class="custodian">
         <header class="custodian__header">
           <div class="custodian__identity">
             <div class="custodian__mark" aria-hidden="true">OC</div>
             <div>
+              <span class="custodian__eyebrow">${t("custodian.eyebrow")}</span>
               <h1>${t("custodian.title")}</h1>
               <p>${t("custodian.subtitle")}</p>
             </div>
@@ -326,95 +349,187 @@ export class CustodianPage extends OpenClawLightDomElement {
             : nothing}
         </header>
 
-        <div class="custodian__messages" aria-live="polite">
-          ${this.messages.map((message) => {
-            const questionKey = message.question ? `${message.id}:${message.question.id}` : "";
-            const showQuestion =
-              message.question !== null && !this.dismissedQuestions.has(questionKey);
-            return html`
-              <article class=${`custodian__message custodian__message--${message.role}`}>
-                ${message.text
-                  ? html`<div class="custodian__message-text chat-text">
-                      ${message.role === "assistant"
-                        ? unsafeHTML(toSanitizedMarkdownHtml(message.text))
-                        : message.text}
+        <div class="custodian__workspace">
+          <main class="custodian__conversation">
+            <div class="custodian__conversation-heading">
+              <h2>${t("custodian.assistantTitle")}</h2>
+              <p>${t("custodian.assistantHint")}</p>
+            </div>
+
+            <div class="custodian__messages" aria-live="polite">
+              ${this.messages.map((message) => {
+                const questionKey = message.question ? `${message.id}:${message.question.id}` : "";
+                const showQuestion =
+                  message.question !== null && !this.dismissedQuestions.has(questionKey);
+                return html`
+                  <article class=${`custodian__message custodian__message--${message.role}`}>
+                    ${message.text
+                      ? html`<div class="custodian__message-text chat-text">
+                          ${message.role === "assistant"
+                            ? unsafeHTML(toSanitizedMarkdownHtml(message.text))
+                            : message.text}
+                        </div>`
+                      : nothing}
+                    ${showQuestion
+                      ? html`<openclaw-option-card
+                          .props=${{
+                            header: message.question!.header,
+                            question: message.question!.question,
+                            options: message.question!.options.map((option) => ({
+                              value: option.label,
+                              label: option.label,
+                              description: option.description,
+                              recommended: option.recommended,
+                            })),
+                            disabled:
+                              this.sending ||
+                              !this.chatAvailable ||
+                              this.answeredQuestions.has(questionKey),
+                            onSelect: (label: string) => this.answerQuestion(message, label),
+                            onSkip: () => this.dismissQuestion(message),
+                          }}
+                        ></openclaw-option-card>`
+                      : nothing}
+                  </article>
+                `;
+              })}
+              ${this.sending
+                ? html`<div class="custodian__thinking" role="status">
+                    <span></span><span></span><span></span>
+                    <span class="sr-only">${t("custodian.thinking")}</span>
+                  </div>`
+                : nothing}
+              ${setupUnavailable
+                ? html`<section class="custodian__recovery" role="alert">
+                    <div class="custodian__recovery-icon" aria-hidden="true">!</div>
+                    <div>
+                      <h3>${t("custodian.inferenceUnavailableTitle")}</h3>
+                      <p>${t("custodian.inferenceUnavailableBody")}</p>
+                    </div>
+                    <div class="custodian__recovery-actions">
+                      <button
+                        class="btn primary custodian__primary-action"
+                        type="button"
+                        @click=${() => this.startNewTask()}
+                      >
+                        ${t("custodian.startTask")}
+                      </button>
+                      <button class="btn" type="button" @click=${() => this.openModelSetup()}>
+                        ${t("custodian.openModelSetup")}
+                      </button>
+                    </div>
+                  </section>`
+                : this.error
+                  ? html`<div class="custodian__error" role="alert">
+                      <span>${this.error}</span>
+                      ${this.activeClient && this.chatAvailable && this.canRetry()
+                        ? html`<button
+                            class="btn btn--sm"
+                            type="button"
+                            @click=${() => this.retry()}
+                          >
+                            ${t("common.retry")}
+                          </button>`
+                        : nothing}
                     </div>`
                   : nothing}
-                ${showQuestion
-                  ? html`<openclaw-option-card
-                      .props=${{
-                        header: message.question!.header,
-                        question: message.question!.question,
-                        options: message.question!.options.map((option) => ({
-                          value: option.label,
-                          label: option.label,
-                          description: option.description,
-                          recommended: option.recommended,
-                        })),
-                        disabled:
-                          this.sending ||
-                          !this.chatAvailable ||
-                          this.answeredQuestions.has(questionKey),
-                        onSelect: (label: string) => this.answerQuestion(message, label),
-                        onSkip: () => this.dismissQuestion(message),
-                      }}
-                    ></openclaw-option-card>`
-                  : nothing}
-              </article>
-            `;
-          })}
-          ${this.sending
-            ? html`<div class="custodian__thinking" role="status">
-                <span></span><span></span><span></span>
-                <span class="sr-only">${t("custodian.thinking")}</span>
-              </div>`
-            : nothing}
-          ${this.error
-            ? html`<div class="custodian__error" role="alert">
-                <span>${this.error}</span>
-                ${this.activeClient && this.chatAvailable && this.canRetry()
-                  ? html`<button class="btn btn--sm" type="button" @click=${() => this.retry()}>
-                      ${t("common.retry")}
-                    </button>`
-                  : nothing}
-              </div>`
-            : nothing}
-        </div>
+              ${this.messages.length === 0 && !this.sending && !this.error
+                ? html`<div class="custodian__empty">
+                    <span aria-hidden="true">${t("custodian.mark")}</span>
+                    <p>${t("custodian.emptyState")}</p>
+                  </div>`
+                : nothing}
+            </div>
 
-        <div class="custodian__composer">
-          ${this.sensitive
-            ? html`<input
-                type="password"
-                .value=${this.input}
-                autocomplete="off"
-                placeholder=${t("custodian.sensitivePlaceholder")}
-                aria-label=${t("custodian.sensitivePlaceholder")}
-                ?disabled=${!this.activeClient || !this.chatAvailable || this.sending}
-                @input=${(event: Event) => (this.input = (event.target as HTMLInputElement).value)}
-                @keydown=${(event: KeyboardEvent) => this.handleComposerKeydown(event)}
-              />`
-            : html`<textarea
-                rows="1"
-                .value=${this.input}
-                autocomplete="on"
-                placeholder=${t("custodian.placeholder")}
-                aria-label=${t("custodian.placeholder")}
-                ?disabled=${!this.activeClient || !this.chatAvailable || this.sending}
-                @input=${(event: Event) =>
-                  (this.input = (event.target as HTMLTextAreaElement).value)}
-                @keydown=${(event: KeyboardEvent) => this.handleComposerKeydown(event)}
-              ></textarea>`}
-          <button
-            class="btn primary"
-            type="button"
-            ?disabled=${!this.input.trim() ||
-            !this.activeClient ||
-            !this.chatAvailable ||
-            this.sending}
-            @click=${() => this.send()}
-          >
-            ${t("custodian.send")}
-          </button>
+            <div class="custodian__composer">
+              ${this.sensitive
+                ? html`<input
+                    type="password"
+                    .value=${this.input}
+                    autocomplete="off"
+                    placeholder=${setupUnavailable
+                      ? t("custodian.unavailablePlaceholder")
+                      : t("custodian.sensitivePlaceholder")}
+                    aria-label=${setupUnavailable
+                      ? t("custodian.unavailablePlaceholder")
+                      : t("custodian.sensitivePlaceholder")}
+                    ?disabled=${setupUnavailable ||
+                    !this.activeClient ||
+                    !this.chatAvailable ||
+                    this.sending}
+                    @input=${(event: Event) =>
+                      (this.input = (event.target as HTMLInputElement).value)}
+                    @keydown=${(event: KeyboardEvent) => this.handleComposerKeydown(event)}
+                  />`
+                : html`<textarea
+                    rows="1"
+                    .value=${this.input}
+                    autocomplete="on"
+                    placeholder=${setupUnavailable
+                      ? t("custodian.unavailablePlaceholder")
+                      : t("custodian.placeholder")}
+                    aria-label=${setupUnavailable
+                      ? t("custodian.unavailablePlaceholder")
+                      : t("custodian.placeholder")}
+                    ?disabled=${setupUnavailable ||
+                    !this.activeClient ||
+                    !this.chatAvailable ||
+                    this.sending}
+                    @input=${(event: Event) =>
+                      (this.input = (event.target as HTMLTextAreaElement).value)}
+                    @keydown=${(event: KeyboardEvent) => this.handleComposerKeydown(event)}
+                  ></textarea>`}
+              <button
+                class="btn primary"
+                type="button"
+                ?disabled=${setupUnavailable ||
+                !this.input.trim() ||
+                !this.activeClient ||
+                !this.chatAvailable ||
+                this.sending}
+                @click=${() => this.send()}
+              >
+                ${t("custodian.send")}
+              </button>
+            </div>
+          </main>
+
+          <aside class="custodian__rail" aria-label=${t("custodian.quickActions")}>
+            <section class="custodian__rail-card custodian__rail-card--primary">
+              <span class="custodian__rail-kicker">${t("custodian.quickStart")}</span>
+              <h2>${t("custodian.startTask")}</h2>
+              <p>${t("custodian.startTaskHint")}</p>
+              <button
+                class="btn primary custodian__rail-action"
+                type="button"
+                @click=${() => this.startNewTask()}
+              >
+                ${t("custodian.startTask")}
+                <span aria-hidden="true">→</span>
+              </button>
+            </section>
+
+            <section class="custodian__rail-card">
+              <div class="custodian__status-row">
+                <span>${t("custodian.gatewayStatus")}</span>
+                <strong class=${isConnected ? "is-online" : "is-offline"}>
+                  <i aria-hidden="true"></i>
+                  ${isConnected ? t("custodian.connected") : t("custodian.disconnected")}
+                </strong>
+              </div>
+              <button
+                class="custodian__text-action"
+                type="button"
+                @click=${() => this.openModelSetup()}
+              >
+                <span>
+                  <b>${t("custodian.openModelSetup")}</b>
+                  <small>${t("custodian.modelSetupHint")}</small>
+                </span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </section>
+          </aside>
         </div>
       </section>
     `;

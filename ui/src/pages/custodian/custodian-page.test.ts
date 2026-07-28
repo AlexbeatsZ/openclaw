@@ -464,6 +464,27 @@ describe("custodian page", () => {
     expect(page.querySelector('[role="alert"] button')).toBeNull();
   });
 
+  it("turns incompatible setup inference into a recoverable workspace state", async () => {
+    const technicalError =
+      "OpenClaw requires working inference: CLI backend agy cannot be used for inference-gated setup because it has no hard tool-free mode. Choose another inference provider.";
+    const request = vi.fn().mockRejectedValueOnce(new Error(technicalError));
+    const { context } = createContext(request);
+    const { page } = await mountPage(context, { onboarding: false });
+
+    await waitForFast(() => expect(page.querySelector(".custodian__recovery")).not.toBeNull());
+    expect(page.textContent).not.toContain(technicalError);
+    expect(page.querySelector(".custodian__workspace")).not.toBeNull();
+    expect(page.querySelector<HTMLTextAreaElement>(".custodian__composer textarea")?.disabled).toBe(
+      true,
+    );
+
+    page.querySelector<HTMLButtonElement>(".custodian__primary-action")!.click();
+    expect(context.navigate).toHaveBeenCalledWith("new-session");
+
+    page.querySelectorAll<HTMLButtonElement>(".custodian__recovery-actions button").item(1).click();
+    expect(context.navigate).toHaveBeenCalledWith("model-setup");
+  });
+
   it("sends sensitive input verbatim and masks it in the transcript", async () => {
     const request = vi
       .fn()
