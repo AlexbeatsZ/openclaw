@@ -24,29 +24,43 @@ describe("conversation core selection", () => {
     ).toEqual({ coreId: "life", implementation: "openclaw" });
   });
 
-  it("routes an explicitly bound Professional session only through ready ACP", () => {
-    const resolution = readyResolution();
+  it("routes an explicitly bound Professional session through shared OpenClaw model execution", () => {
     expect(
-      resolveConversationCoreRunPlan({
-        entry: { conversationCoreId: "professional" },
-        acpResolution: resolution,
-        rawModelRun: false,
-      }),
-    ).toEqual({
-      coreId: "professional",
-      implementation: "professional-acp",
-      resolution,
-    });
-  });
-
-  it("fails closed when Professional native state is absent", () => {
-    expect(() =>
       resolveConversationCoreRunPlan({
         entry: { conversationCoreId: "professional" },
         acpResolution: { kind: "none", sessionKey: "agent:main:dashboard:professional" },
         rawModelRun: false,
       }),
-    ).toThrow(/native session is unavailable/i);
+    ).toEqual({
+      coreId: "professional",
+      implementation: "openclaw",
+    });
+  });
+
+  it("ignores legacy Professional ACP state and keeps the isolated OpenClaw path", () => {
+    expect(
+      resolveConversationCoreRunPlan({
+        entry: { conversationCoreId: "professional" },
+        acpResolution: readyResolution(),
+        rawModelRun: false,
+      }),
+    ).toEqual({
+      coreId: "professional",
+      implementation: "openclaw",
+    });
+  });
+
+  it("supports raw model runs without crossing into Life Core", () => {
+    expect(
+      resolveConversationCoreRunPlan({
+        entry: { conversationCoreId: "professional" },
+        acpResolution: { kind: "none", sessionKey: "agent:main:dashboard:professional" },
+        rawModelRun: true,
+      }),
+    ).toEqual({
+      coreId: "professional",
+      implementation: "openclaw",
+    });
   });
 
   it("does not let an explicit Life session inherit a native binding", () => {

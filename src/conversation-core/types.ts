@@ -4,7 +4,6 @@ export const CONVERSATION_CORE_IDS = ["life", "professional"] as const;
 export type ConversationCoreId = (typeof CONVERSATION_CORE_IDS)[number];
 
 export const DEFAULT_CONVERSATION_CORE_ID: ConversationCoreId = "life";
-export const PROFESSIONAL_CORE_ACP_AGENT = "claude";
 
 export function normalizeConversationCoreId(value: unknown): ConversationCoreId | undefined {
   if (typeof value !== "string") {

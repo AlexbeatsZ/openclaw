@@ -1187,11 +1187,9 @@ export async function performGatewaySessionReset(params: {
           const sessionAgentId = normalizeAgentId(
             parsed?.agentId ?? target.agentId ?? requestedAgentId ?? resolveDefaultAgentId(cfg),
           );
-          const resetPreservedSelection = switchingConversationCore
-            ? {}
-            : resolveResetPreservedSelection({
-                entry: currentEntry,
-              });
+          const resetPreservedSelection = resolveResetPreservedSelection({
+            entry: currentEntry,
+          });
           const now = Date.now();
           const nextSessionId = randomUUID();
           const sessionFile = formatSqliteSessionFileMarker({

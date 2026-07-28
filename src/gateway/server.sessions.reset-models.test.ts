@@ -18,6 +18,7 @@ const { createSessionStoreDir } = setupGatewaySessionsTestHarness();
 type ResetSessionEntry = {
   sessionId?: string;
   sessionFile?: string;
+  conversationCoreId?: "life" | "professional";
   chatType?: string;
   channel?: string;
   groupId?: string;
@@ -469,6 +470,57 @@ test("sessions.reset preserves legacy explicit model overrides without modelOver
       modelOverrideSource: "user",
     },
     expectedResolved: { modelProvider: "anthropic", model: "claude-opus-4-1" },
+  });
+});
+
+test("a conversation-core switch preserves the explicit shared model selection", async () => {
+  const { storePath } = await createSessionStoreDir();
+  testState.agentConfig = {
+    model: {
+      primary: "agy/default",
+    },
+  };
+  await writeSessionStore({
+    entries: {
+      main: sessionStoreEntry("life-session", {
+        conversationCoreId: "life",
+        providerOverride: "agy",
+        modelOverride: "flash",
+        modelOverrideSource: "user",
+        authProfileOverride: "agy:default",
+        authProfileOverrideSource: "user",
+      }),
+    },
+  });
+
+  const { performGatewaySessionReset } = await import("./session-reset-service.js");
+  const reset = await performGatewaySessionReset({
+    key: "main",
+    reason: "reset",
+    commandSource: "test:mode-switch",
+    conversationCoreId: "professional",
+  });
+
+  expect(reset.ok).toBe(true);
+  if (!reset.ok) {
+    return;
+  }
+  expect(reset.entry).toMatchObject({
+    conversationCoreId: "professional",
+    providerOverride: "agy",
+    modelOverride: "flash",
+    modelOverrideSource: "user",
+    authProfileOverride: "agy:default",
+    authProfileOverrideSource: "user",
+  });
+  const stored = loadSessionEntry({ sessionKey: "agent:main:main", storePath });
+  expect(stored).toMatchObject({
+    conversationCoreId: "professional",
+    providerOverride: "agy",
+    modelOverride: "flash",
+    modelOverrideSource: "user",
+    authProfileOverride: "agy:default",
+    authProfileOverrideSource: "user",
   });
 });
 

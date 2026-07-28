@@ -6,22 +6,22 @@
 
 # Current State
 
-- Branch: `feat/dual-agent-cores`; deployed implementation commit: `6bc85cd58dbe2b4ac295976eefb3ab5384ca6e34`.
-- Dual-core implementation is deployed: Life Core keeps the embedded OpenClaw runtime; Professional Core uses an isolated persistent Claude ACP session through ACPX with a native session system prompt.
+- Branch: `feat/dual-agent-cores`; deployed implementation commit before the current correction: `c827b37f017d39053944e321ae13e919c996fc96`.
+- Dual-core correction is implemented locally and pending deployment: Life and Professional keep isolated workspace, transcript, bootstrap, and memory state, while both use the shared OpenClaw model catalog and execution adapters. The server default is `agy/flash`, backed by the existing `agy` CLI authentication/runtime.
 - QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
 - Server WSL on `meta@100.106.169.46` is the runtime; the local Windows checkout is code/test only. Gateway service, health endpoint, and QQ WebSocket connection are healthy.
-- ACP is enabled with a strict Claude-only ACPX policy. The QQ external plugin capsule is pinned to the locally built `2026.7.2-6bc85cd5` artifact so the deployed channel uses the same dual-core/proxy behavior as this branch.
-- Server WSL Node is `22.23.1`; bundled project-local ACPX and Claude ACP adapters start successfully. Professional turns intentionally fail closed with `AUTH_REQUIRED` until the user supplies Claude OAuth or an Anthropic API key.
+- The prior strict Claude/ACPX configuration was introduced only for the superseded Professional implementation and must be removed during this deployment. The QQ external plugin capsule remains pinned to the locally built `2026.7.2-6bc85cd5` artifact because this correction does not change QQ plugin code.
+- Server WSL Node is `22.23.1`.
 - Last verified: 2026-07-28.
 
 # Active Work
 
-- Complete Claude authentication on the server, then run `/mode professional` from QQ to create and validate the native Professional session.
+- Commit and push the shared-model correction, run Gateway integration tests under server Node, remove the superseded Claude/ACPX runtime policy, deploy, and validate `agy` execution.
 
 # Recent Changes
 
-- Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle; Professional failures never fall back into Life.
-- Added QQ `/mode` switching/status commands, Control UI core selection, persistent ACPX native prompts, and Life-memory prompt/recall improvements.
+- Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle while preserving an explicit shared model selection.
+- Added QQ `/mode` switching/status commands, Control UI core selection, Professional `AGENTS.md` bootstrap, and Life-memory prompt/recall improvements.
 - Routed QQ token and official API requests through the trusted service proxy. The service now restores proxy variables after later drop-ins clear them, and the managed QQ plugin capsule is rebuilt and installed from this branch.
 
 # Lessons Learned

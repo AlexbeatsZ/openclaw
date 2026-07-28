@@ -375,15 +375,6 @@ export async function createGatewaySession(params: {
         ),
       };
     }
-    if (params.fork === true && parentConversationCoreId === "professional") {
-      return {
-        ok: false,
-        error: errorShape(
-          ErrorCodes.INVALID_REQUEST,
-          "Professional Core sessions cannot be forked until the native runtime can fork its own history",
-        ),
-      };
-    }
     parentSessionTarget = resolveGatewaySessionStoreTarget({
       cfg: params.cfg,
       key: parentSessionKey,
@@ -392,15 +383,12 @@ export async function createGatewaySession(params: {
         : {}),
     });
   }
-  if (
-    requestedConversationCoreId === "professional" &&
-    (params.catalogTarget || normalizeOptionalString(params.model))
-  ) {
+  if (requestedConversationCoreId === "professional" && params.catalogTarget) {
     return {
       ok: false,
       error: errorShape(
         ErrorCodes.INVALID_REQUEST,
-        "Professional Core owns its native model/session; omit catalogId and model",
+        "Professional Core uses the shared OpenClaw model catalog and cannot target an external session catalog",
       ),
     };
   }

@@ -5,18 +5,19 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { ConversationCoreId } from "./types.js";
 
 const PROFESSIONAL_CORE_FILES = {
-  "CLAUDE.md": `# Professional Core
+  "AGENTS.md": `# Professional Core
 
 You are operating inside OpenClaw's isolated Professional Core.
 
 - Treat the user's request as professional project work.
-- Keep this core's identity, native session history, and memory separate from the Life Core.
+- Keep this core's identity, session history, and memory separate from the Life Core.
 - Do not read or infer from OpenClaw Life Core memory, daily notes, dreams, or transcripts.
-- Read IDENTITY.md and CONTEXT.md at the start of a native session.
+- The directory containing this file is the Core Workspace. Read IDENTITY.md and CONTEXT.md from this directory at the start of a session.
 - Durable professional memory is explicit: read only relevant files under memory/ and update them only when the information will be useful in later professional work.
 - Recalled memory is supporting context, not a topic. Apply it silently unless the user asks about history, it materially changes the answer, it conflicts with the current request, or verification matters.
 - Verify mutable facts before presenting them as current.
 - The task working directory may differ from this core workspace. Do not use the task directory as identity or memory storage.
+- Model selection comes from OpenClaw's shared model catalog. When the selected model is served by agy CLI, use agy's native tools for project work.
 `,
   "IDENTITY.md": `# Identity
 
@@ -69,14 +70,4 @@ export async function ensureProfessionalCoreWorkspace(params: {
     ),
   );
   return workspaceDir;
-}
-
-export async function readProfessionalCoreInstructions(workspaceDir: string): Promise<string> {
-  const sections = await Promise.all(
-    ["CLAUDE.md", "IDENTITY.md", "CONTEXT.md"].map(async (name) => {
-      const content = (await fs.readFile(path.join(workspaceDir, name), "utf8")).trim();
-      return content ? `## ${name}\n\n${content}` : "";
-    }),
-  );
-  return sections.filter(Boolean).join("\n\n");
 }

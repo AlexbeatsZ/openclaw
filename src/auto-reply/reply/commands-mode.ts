@@ -1,6 +1,4 @@
 /** Handles isolated Life/Professional conversation-core lifecycle switches. */
-import { resolveSessionAgentId } from "../../agents/agent-scope.js";
-import { initializeProfessionalCoreSession } from "../../conversation-core/professional.js";
 import {
   conversationCoreLabel,
   normalizeConversationCoreId,
@@ -89,7 +87,7 @@ export const handleModeCommand: CommandHandler = async (params, allowTextCommand
       reply: {
         text: parsed.invalid
           ? `Unknown mode "${parsed.invalid}". Use /mode life or /mode professional.`
-          : `Current mode: ${conversationCoreLabel(current)} (${current}).\nUse /mode life or /mode professional to start a fresh isolated session in that core.`,
+          : `Current mode: ${conversationCoreLabel(current)} (${current}).\nCurrent model: ${params.provider}/${params.model}.\nBoth modes use the shared OpenClaw model catalog; use /model to inspect or change the model.`,
       },
     };
   }
@@ -97,36 +95,11 @@ export const handleModeCommand: CommandHandler = async (params, allowTextCommand
     parsed.target === current &&
     normalizeConversationCoreId(currentEntry?.conversationCoreId) === parsed.target
   ) {
-    if (current === "professional") {
-      try {
-        await initializeProfessionalCoreSession({
-          cfg: params.cfg,
-          sessionKey: params.sessionKey,
-          agentId:
-            params.agentId ??
-            resolveSessionAgentId({
-              sessionKey: params.sessionKey,
-              config: params.cfg,
-            }),
-          cwd: currentEntry?.spawnedCwd,
-        });
-      } catch (error) {
-        const failureReason = error instanceof Error ? error.message : String(error);
-        return {
-          shouldContinue: false,
-          reply: {
-            text: `⚠️ Professional mode is selected, but its native session is unavailable. ${failureReason}`,
-          },
-        };
-      }
-      return {
-        shouldContinue: false,
-        reply: { text: "Already in Professional mode. The isolated native session is ready." },
-      };
-    }
     return {
       shouldContinue: false,
-      reply: { text: `Already in ${conversationCoreLabel(current)} mode.` },
+      reply: {
+        text: `Already in ${conversationCoreLabel(current)} mode. Current model: ${params.provider}/${params.model}.`,
+      },
     };
   }
 
@@ -147,46 +120,14 @@ export const handleModeCommand: CommandHandler = async (params, allowTextCommand
     };
   }
 
-  if (parsed.target === "professional") {
-    try {
-      await initializeProfessionalCoreSession({
-        cfg: params.cfg,
-        sessionKey: switched.key,
-        agentId: switched.agentId,
-        cwd: switched.entry.spawnedCwd,
-      });
-    } catch (error) {
-      const rollback = await performGatewaySessionReset({
-        key: switched.key,
-        agentId: switched.agentId,
-        reason: "reset",
-        commandSource: `${params.command.surface}:${params.ctx.CommandSource ?? "text"}:mode-rollback`,
-        conversationCoreId: current,
-        clearSpawnedCwd: false,
-      });
-      if (rollback.ok) {
-        updateCommandSessionBinding(params, rollback.entry);
-      }
-      const failureReason = error instanceof Error ? error.message : String(error);
-      return {
-        shouldContinue: false,
-        reply: {
-          text: rollback.ok
-            ? `⚠️ Professional mode is unavailable, so the switch was rolled back to ${conversationCoreLabel(current)} mode. ${failureReason}`
-            : `⚠️ Professional mode is unavailable, and automatic rollback also failed. Run /mode ${current} before continuing. ${failureReason}; rollback: ${rollback.error.message}`,
-        },
-      };
-    }
-  }
-
   updateCommandSessionBinding(params, switched.entry);
   return {
     shouldContinue: false,
     reply: {
       text:
         parsed.target === "professional"
-          ? "✅ Switched to Professional mode. A fresh isolated native session is ready; Life memory and transcript are not loaded."
-          : "✅ Switched to Life mode. A fresh OpenClaw session is ready; Professional memory and native history remain isolated.",
+          ? `✅ Switched to Professional mode. A fresh isolated work session is ready; Life memory and transcript are not loaded. Model: ${switched.resolved.modelProvider}/${switched.resolved.model}.`
+          : `✅ Switched to Life mode. A fresh personal session is ready; Professional memory and history remain isolated. Model: ${switched.resolved.modelProvider}/${switched.resolved.model}.`,
     },
   };
 };

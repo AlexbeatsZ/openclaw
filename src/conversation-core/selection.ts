@@ -13,11 +13,7 @@ export type ConversationCoreRunPlan =
       implementation: "legacy-acp";
       resolution: Extract<AcpSessionResolution, { kind: "ready" }>;
     }
-  | {
-      coreId: "professional";
-      implementation: "professional-acp";
-      resolution: Extract<AcpSessionResolution, { kind: "ready" }>;
-    };
+  | { coreId: "professional"; implementation: "openclaw" };
 
 export function resolveConversationCoreRunPlan(params: {
   entry?: Pick<SessionEntry, "conversationCoreId">;
@@ -29,22 +25,10 @@ export function resolveConversationCoreRunPlan(params: {
   const acpResolution = params.acpResolution;
 
   if (coreId === "professional") {
-    if (params.rawModelRun) {
-      throw new Error("Professional Core does not support raw model runs.");
-    }
-    if (acpResolution?.kind === "stale") {
-      throw acpResolution.error;
-    }
-    if (acpResolution?.kind !== "ready") {
-      throw new Error(
-        "Professional Core native session is unavailable. Run /mode professional again after checking ACP/Claude availability.",
-      );
-    }
-    return {
-      coreId,
-      implementation: "professional-acp",
-      resolution: acpResolution,
-    };
+    // Professional owns an isolated workspace and transcript lifecycle, while
+    // model resolution remains shared with OpenClaw. The selected model may be
+    // served by a CLI backend such as agy without a second auth/catalog stack.
+    return { coreId, implementation: "openclaw" };
   }
 
   // Existing ACP-bound rows predate explicit Core bindings. Preserve them as

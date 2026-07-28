@@ -364,7 +364,7 @@ export async function prepareAgentCommandExecution(opts: AgentCommandOpts, runti
     const acpManager = getAcpSessionManager();
     const acpResolution = sessionKey ? acpManager.resolveSession({ cfg, sessionKey }) : null;
     const body =
-      !isRawModelRun && acpResolution?.kind === "ready"
+      conversationCoreId === "life" && !isRawModelRun && acpResolution?.kind === "ready"
         ? resolveAcpPromptBody(message, opts.internalEvents)
         : prependInternalEventContext(message, opts.internalEvents);
     const transcriptBody =

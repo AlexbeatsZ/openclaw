@@ -931,7 +931,6 @@ class NewSessionPage extends OpenClawLightDomElement {
       return;
     }
     this.conversationCoreId = core;
-    this.modelControl.reset();
     if (core === "professional") {
       const wasNodeTarget = Boolean(this.execNode);
       this.closeBrowser();
@@ -940,8 +939,6 @@ class NewSessionPage extends OpenClawLightDomElement {
       if (wasNodeTarget) {
         this.folder = this.workspacePath();
       }
-    } else {
-      this.modelControl.load(this.context, this.agentId, true);
     }
     this.error = null;
   }
@@ -1225,9 +1222,9 @@ class NewSessionPage extends OpenClawLightDomElement {
 
   /** Where + worktree consolidated into one "run on" menu (Cursor-style). */
   private renderWhereSelect() {
-    const nativeCore = this.conversationCoreId === "professional";
-    const execNodes = nativeCore ? [] : this.execNodes();
-    const cloudProfiles = catalog.isTarget(this.data) || nativeCore ? [] : this.cloudProfiles;
+    const isolatedCore = this.conversationCoreId === "professional";
+    const execNodes = isolatedCore ? [] : this.execNodes();
+    const cloudProfiles = catalog.isTarget(this.data) || isolatedCore ? [] : this.cloudProfiles;
     return renderWhereSelect({
       execNodes: this.isAdmin() ? execNodes : [],
       cloudProfiles: this.isAdmin() ? cloudProfiles : [],
@@ -1353,7 +1350,6 @@ class NewSessionPage extends OpenClawLightDomElement {
           canSubmit: this.canSubmit(),
           context: this.context,
           isCatalogTarget: catalog.isTarget(this.data),
-          nativeCore: this.conversationCoreId === "professional",
           message: this.message,
           modelControl: this.modelControl,
           requiresModifier: loadSettings().chatSendShortcut === "modifier-enter",

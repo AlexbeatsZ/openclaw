@@ -532,6 +532,30 @@ describe("tryDispatchAcpReply", () => {
     expect(auditMocks.emitAcpLifecycleError).not.toHaveBeenCalled();
   });
 
+  it("does not let stale ACP metadata intercept Professional Core model execution", async () => {
+    const cfg = createAcpTestConfig();
+    setReadyAcpResolution();
+    sessionMetaMocks.readAcpSessionEntry.mockReturnValue({
+      cfg,
+      storePath: "sessions.json",
+      sessionKey,
+      storeSessionKey: sessionKey,
+      entry: {
+        sessionId: "professional-session",
+        conversationCoreId: "professional",
+      },
+      acp: createAcpSessionMeta(),
+    });
+
+    const result = await runDispatch({
+      bodyForAgent: "use the selected agy model",
+      cfg,
+    });
+
+    expect(result).toBeNull();
+    expect(managerMocks.runTurn).not.toHaveBeenCalled();
+  });
+
   it("keeps caller-owned run ids on the shared lifecycle path", async () => {
     setReadyAcpResolution();
 

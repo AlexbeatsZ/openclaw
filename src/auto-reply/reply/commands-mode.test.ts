@@ -3,12 +3,7 @@ import type { SessionEntry } from "../../config/sessions/types.js";
 import type { HandleCommandsParams } from "./commands-types.js";
 
 const modeMocks = vi.hoisted(() => ({
-  initializeProfessionalCoreSession: vi.fn(),
   performGatewaySessionReset: vi.fn(),
-}));
-
-vi.mock("../../conversation-core/professional.js", () => ({
-  initializeProfessionalCoreSession: modeMocks.initializeProfessionalCoreSession,
 }));
 
 vi.mock("../../gateway/server-methods/sessions.runtime.js", () => ({
@@ -16,6 +11,7 @@ vi.mock("../../gateway/server-methods/sessions.runtime.js", () => ({
 }));
 
 import { handleModeCommand, parseModeCommand } from "./commands-mode.js";
+import { parseInlineDirectives } from "./directive-handling.parse.js";
 
 function commandParams(entry: SessionEntry): HandleCommandsParams {
   const sessionKey = "agent:main:qq:owner";
@@ -23,7 +19,7 @@ function commandParams(entry: SessionEntry): HandleCommandsParams {
     ctx: { CommandAuthorized: true, CommandSource: "qq", Provider: "qqbot" },
     cfg: {},
     command: {
-      surface: "qq",
+      surface: "text",
       channel: "qqbot",
       ownerList: ["owner"],
       senderIsOwner: true,
@@ -32,7 +28,7 @@ function commandParams(entry: SessionEntry): HandleCommandsParams {
       rawBodyNormalized: "/mode professional",
       commandBodyNormalized: "/mode professional",
     },
-    directives: {},
+    directives: parseInlineDirectives(""),
     elevated: { enabled: false, allowed: false, failures: [] },
     sessionEntry: entry,
     sessionStore: { [sessionKey]: entry },
@@ -43,8 +39,8 @@ function commandParams(entry: SessionEntry): HandleCommandsParams {
     resolvedVerboseLevel: "off",
     resolvedReasoningLevel: "off",
     resolveDefaultThinkingLevel: async () => undefined,
-    provider: "openai",
-    model: "gpt-5",
+    provider: "agy",
+    model: "flash",
     contextTokens: 128_000,
     isGroup: false,
   };
@@ -52,7 +48,6 @@ function commandParams(entry: SessionEntry): HandleCommandsParams {
 
 describe("parseModeCommand", () => {
   afterEach(() => {
-    modeMocks.initializeProfessionalCoreSession.mockReset();
     modeMocks.performGatewaySessionReset.mockReset();
   });
 
@@ -79,7 +74,7 @@ describe("parseModeCommand", () => {
     expect(parseModeCommand("/model life")).toEqual({ matched: false });
   });
 
-  it("rotates the QQ session and initializes Professional Core", async () => {
+  it("rotates the QQ session into Professional Core while preserving shared model resolution", async () => {
     const entry: SessionEntry = { sessionId: "life-session", updatedAt: 1 };
     const params = commandParams(entry);
     const switchedEntry: SessionEntry = {
@@ -92,24 +87,18 @@ describe("parseModeCommand", () => {
       key: params.sessionKey,
       agentId: "main",
       entry: switchedEntry,
-      resolved: { modelProvider: "anthropic", model: "claude" },
+      resolved: { modelProvider: "agy", model: "flash" },
       storePath: params.storePath,
     });
-    modeMocks.initializeProfessionalCoreSession.mockResolvedValue(undefined);
 
     const result = await handleModeCommand(params, true);
 
     expect(result?.reply?.text).toContain("Switched to Professional mode");
+    expect(result?.reply?.text).toContain("agy/flash");
     expect(modeMocks.performGatewaySessionReset).toHaveBeenCalledWith(
       expect.objectContaining({
         key: params.sessionKey,
         conversationCoreId: "professional",
-      }),
-    );
-    expect(modeMocks.initializeProfessionalCoreSession).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sessionKey: params.sessionKey,
-        agentId: "main",
       }),
     );
     expect(entry).toMatchObject({
@@ -141,14 +130,13 @@ describe("parseModeCommand", () => {
     expect(modeMocks.performGatewaySessionReset).toHaveBeenCalledWith(
       expect.objectContaining({ conversationCoreId: "life" }),
     );
-    expect(modeMocks.initializeProfessionalCoreSession).not.toHaveBeenCalled();
     expect(entry).toMatchObject({
       sessionId: "fresh-life-session",
       conversationCoreId: "life",
     });
   });
 
-  it("revalidates the native session when Professional mode is already selected", async () => {
+  it("reports the shared model without resetting when Professional mode is already selected", async () => {
     const entry: SessionEntry = {
       sessionId: "professional-session",
       updatedAt: 1,
@@ -156,64 +144,31 @@ describe("parseModeCommand", () => {
       spawnedCwd: "/work/project",
     };
     const params = commandParams(entry);
-    modeMocks.initializeProfessionalCoreSession.mockResolvedValue(undefined);
 
     const result = await handleModeCommand(params, true);
 
-    expect(result?.reply?.text).toContain("isolated native session is ready");
+    expect(result?.reply?.text).toContain("Already in Professional mode");
+    expect(result?.reply?.text).toContain("agy/flash");
     expect(modeMocks.performGatewaySessionReset).not.toHaveBeenCalled();
-    expect(modeMocks.initializeProfessionalCoreSession).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sessionKey: params.sessionKey,
-        agentId: "main",
-        cwd: "/work/project",
-      }),
-    );
   });
 
-  it("rolls back to the previous core when Professional initialization fails", async () => {
+  it("reports a lifecycle reset failure without changing the current core", async () => {
     const entry: SessionEntry = {
       sessionId: "life-session",
       updatedAt: 1,
       conversationCoreId: "life",
     };
     const params = commandParams(entry);
-    modeMocks.performGatewaySessionReset
-      .mockResolvedValueOnce({
-        ok: true,
-        key: params.sessionKey,
-        agentId: "main",
-        entry: {
-          sessionId: "professional-session",
-          updatedAt: 2,
-          conversationCoreId: "professional",
-        },
-        resolved: { modelProvider: "anthropic", model: "claude" },
-        storePath: params.storePath,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        key: params.sessionKey,
-        agentId: "main",
-        entry: {
-          sessionId: "life-rollback",
-          updatedAt: 3,
-          conversationCoreId: "life",
-        },
-        resolved: { modelProvider: "openai", model: "gpt-5" },
-        storePath: params.storePath,
-      });
-    modeMocks.initializeProfessionalCoreSession.mockRejectedValue(new Error("ACP unavailable"));
+    modeMocks.performGatewaySessionReset.mockResolvedValue({
+      ok: false,
+      error: { code: "UNAVAILABLE", message: "session reset unavailable" },
+    });
 
     const result = await handleModeCommand(params, true);
 
-    expect(result?.reply?.text).toContain("rolled back to Life mode");
-    expect(modeMocks.performGatewaySessionReset).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ conversationCoreId: "life" }),
-    );
+    expect(result?.reply?.text).toContain("Mode switch failed");
     expect(entry).toMatchObject({
-      sessionId: "life-rollback",
+      sessionId: "life-session",
       conversationCoreId: "life",
     });
   });

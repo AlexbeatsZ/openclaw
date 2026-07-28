@@ -48,18 +48,22 @@ describe("buildDraftSessionCreateParams", () => {
     });
   });
 
-  it("pins a professional draft to the isolated Professional Core", () => {
+  it("pins a professional draft to the isolated core with a shared model selection", () => {
     expect(
       buildDraftSessionCreateParams({
         agentId: "main",
         message: "review the architecture",
         core: "professional",
+        model: "agy/flash",
+        thinkingLevel: "high",
         worktree: false,
       }),
     ).toEqual({
       agentId: "main",
       message: "review the architecture",
       core: "professional",
+      model: "agy/flash",
+      thinkingLevel: "high",
     });
   });
 

@@ -17,6 +17,7 @@ import { resolveAgentDir, resolveAgentWorkspaceDir } from "../../agents/agent-sc
 import type { ChatType } from "../../channels/chat-type.js";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import type { TtsAutoMode } from "../../config/types.tts.js";
+import { resolveConversationCoreId } from "../../conversation-core/types.js";
 import { logVerbose } from "../../globals.js";
 import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { formatErrorMessage } from "../../infra/errors.js";
@@ -434,6 +435,17 @@ export async function tryDispatchAcpReply(params: {
     sessionKey,
   });
   if (acpResolution.kind === "none") {
+    return null;
+  }
+  const { readAcpSessionEntry } = await loadDispatchAcpSessionRuntime();
+  const persistedSession = readAcpSessionEntry({
+    cfg: params.cfg,
+    sessionKey: acpResolution.sessionKey,
+  });
+  if (resolveConversationCoreId(persistedSession?.entry) === "professional") {
+    // Professional Core owns isolated OpenClaw history and workspace state.
+    // Ignore stale ACP metadata left by older builds so it cannot intercept the
+    // shared model path (including agy CLI) before agent-command dispatch.
     return null;
   }
   const canonicalSessionKey = acpResolution.sessionKey;

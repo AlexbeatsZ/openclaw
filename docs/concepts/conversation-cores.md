@@ -11,7 +11,7 @@ read_when:
 OpenClaw can route one channel conversation through one of two isolated cores:
 
 - **Life Core** is the normal OpenClaw agent. It uses the configured agent workspace, OpenClaw memory, plugins, compaction, and model selection.
-- **Professional Core** is a native Claude work session managed through ACPX. It has a separate identity, native history, workspace, and durable memory.
+- **Professional Core** uses the same OpenClaw model catalog and execution adapters, but has a separate identity, transcript, workspace, bootstrap files, and durable memory.
 
 Both cores reuse OpenClaw for QQ and other channel delivery, authorization, and the Gateway API. They do not combine their prompt or memory architectures.
 
@@ -32,22 +32,20 @@ Chinese aliases are accepted:
 /mode 工作
 ```
 
-A switch starts a fresh session lifecycle for the target core. The QQ conversation key stays usable, while the old core's native history, memory, and model/auth selection remain isolated.
+A switch starts a fresh session lifecycle for the target core. The QQ conversation key stays usable, while the old core's history and memory remain isolated.
 
-Sending `/mode professional` again while Professional Core is already selected revalidates its native session. This is useful after fixing ACPX availability or Claude authentication.
+An explicit model selection is preserved when switching modes. This makes `/mode` a context switch rather than a model or account switch.
 
-If Professional Core cannot initialize, OpenClaw reports the failure and attempts to return the conversation to its previous core. It never silently handles the request with Life Core.
+## Shared model selection
 
-## Professional Core requirements
+Both cores use the models already exposed by OpenClaw:
 
-Professional Core requires:
+```text
+/model
+/model agy/flash
+```
 
-- ACP enabled in OpenClaw,
-- a healthy ACPX backend,
-- the `claude` ACP agent allowed by policy,
-- valid Claude authentication in the Gateway service environment.
-
-Professional Core owns its native model and session. Do not select a normal OpenClaw model or catalog runtime for a Professional session.
+If the selected provider is `agy`, both modes use the configured `agy` CLI backend and its existing authentication. Professional Core does not require Claude, ACPX, or a separate model list. External native-session catalogs remain unavailable for Professional Core because their history ownership would bypass core isolation.
 
 ## Memory behavior
 
@@ -58,5 +56,5 @@ Memory recall is supporting context, not conversation content. The agent should 
 ## Current limits
 
 - Sessions cannot be forked across cores.
-- Professional sessions cannot be forked until the native ACP runtime can fork its own history.
+- Professional sessions can be forked within Professional Core through the normal transcript fork path.
 - Existing sessions created before core binding are treated as Life Core sessions. Existing ACP-bound legacy sessions remain compatible with their prior behavior.

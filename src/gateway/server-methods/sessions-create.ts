@@ -13,15 +13,7 @@ import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/ag
 import { insideGitCheckout } from "../../agents/worktrees/git.js";
 import { managedWorktrees } from "../../agents/worktrees/service.js";
 import { resolveAgentMainSessionKey } from "../../config/sessions/main-session.js";
-import { deleteSessionEntryLifecycle } from "../../config/sessions/session-accessor.js";
-import {
-  discardProfessionalCoreSession,
-  initializeProfessionalCoreSession,
-} from "../../conversation-core/professional.js";
-import {
-  normalizeConversationCoreId,
-  resolveConversationCoreId,
-} from "../../conversation-core/types.js";
+import { normalizeConversationCoreId } from "../../conversation-core/types.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { normalizeAgentId, parseAgentSessionKey } from "../../routing/session-key.js";
 import { ADMIN_SCOPE } from "../operator-scopes.js";
@@ -54,13 +46,13 @@ export const sessionCreateHandlers: GatewayRequestHandlers = {
     const requestedConversationCoreId = normalizeConversationCoreId(p.core);
     const conversationCoreId = requestedConversationCoreId ?? "life";
     const catalogId = normalizeOptionalString(p.catalogId);
-    if (conversationCoreId === "professional" && (catalogId || p.model)) {
+    if (conversationCoreId === "professional" && catalogId) {
       respond(
         false,
         undefined,
         errorShape(
           ErrorCodes.INVALID_REQUEST,
-          "Professional Core owns its native model/session; omit catalogId and model",
+          "Professional Core uses the shared OpenClaw model catalog and cannot target an external session catalog",
         ),
       );
       return;
@@ -317,7 +309,6 @@ export const sessionCreateHandlers: GatewayRequestHandlers = {
     let runError: unknown;
     let runMeta: Record<string, unknown> | undefined;
     let messageSeq: number | undefined;
-    let professionalInitError: unknown;
     const created = await createGatewaySession({
       cfg,
       key: sessionKey,
@@ -346,19 +337,6 @@ export const sessionCreateHandlers: GatewayRequestHandlers = {
       commandSource: "webchat",
       loadGatewayModelCatalog: context.loadGatewayModelCatalog,
       afterCreate: async ({ key, agentId, entry, storePath }) => {
-        if (resolveConversationCoreId(entry) === "professional") {
-          try {
-            await initializeProfessionalCoreSession({
-              cfg,
-              sessionKey: key,
-              agentId,
-              cwd: sessionCwd,
-            });
-          } catch (error) {
-            professionalInitError = error;
-            return;
-          }
-        }
         if (!hasInitialTurn) {
           return;
         }
@@ -411,63 +389,6 @@ export const sessionCreateHandlers: GatewayRequestHandlers = {
         }
       }
       respond(false, undefined, created.error);
-      return;
-    }
-    if (professionalInitError) {
-      const target = resolveGatewaySessionStoreTarget({
-        cfg,
-        key: created.key,
-        agentId: created.agentId,
-      });
-      try {
-        await discardProfessionalCoreSession({
-          cfg,
-          sessionKey: created.key,
-          reason: "professional-core-init-failed",
-        });
-      } catch (error) {
-        sessionLog.warn(
-          `failed to close partially initialized Professional Core session ${created.key}: ${formatErrorMessage(error)}`,
-        );
-      }
-      try {
-        await deleteSessionEntryLifecycle({
-          agentId: created.agentId,
-          storePath: target.storePath,
-          target: {
-            canonicalKey: target.canonicalKey,
-            storeKeys: target.storeKeys,
-          },
-          expectedSessionId: created.entry.sessionId,
-          archiveTranscript: false,
-          requireWriteSuccess: true,
-        });
-      } catch (error) {
-        sessionLog.warn(
-          `failed to roll back Professional Core session ${created.key}: ${formatErrorMessage(error)}`,
-        );
-      }
-      if (sessionWorktree && provisionedSessionWorktree) {
-        try {
-          await managedWorktrees.remove({
-            id: sessionWorktree.id,
-            reason: "professional-core-init-failed",
-            force: true,
-          });
-        } catch (error) {
-          sessionLog.warn(
-            `failed to clean up worktree after Professional Core initialization failed: ${formatErrorMessage(error)}`,
-          );
-        }
-      }
-      respond(
-        false,
-        undefined,
-        errorShape(
-          ErrorCodes.UNAVAILABLE,
-          `Professional Core initialization failed: ${formatErrorMessage(professionalInitError)}`,
-        ),
-      );
       return;
     }
     // Leaving an isolated checkout via a plain New Chat detaches the session from its

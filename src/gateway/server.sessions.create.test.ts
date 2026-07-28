@@ -1448,9 +1448,11 @@ test("sessions.create rejects unknown parentSessionKey", async () => {
   );
 });
 
-test("sessions.create rejects an OpenClaw model inherited into a Professional Core child", async () => {
-  await createSessionStoreDir();
+test("sessions.create accepts a shared OpenClaw model for a Professional Core child", async () => {
+  const { storePath } = await createSessionStoreDir();
   testState.sessionConfig = { scope: "per-sender" };
+  agentDiscoveryMock.enabled = true;
+  agentDiscoveryMock.models = [{ id: "flash", name: "Flash", provider: "agy" }];
   await writeSessionStore({
     entries: {
       main: sessionStoreEntry("professional-parent", {
@@ -1459,16 +1461,37 @@ test("sessions.create rejects an OpenClaw model inherited into a Professional Co
     },
   });
 
-  const created = await directSessionReq("sessions.create", {
+  const created = await directSessionReq<{
+    key?: string;
+    entry?: {
+      conversationCoreId?: string;
+      providerOverride?: string;
+      modelOverride?: string;
+      modelOverrideSource?: string;
+    };
+  }>("sessions.create", {
     agentId: "main",
     parentSessionKey: "main",
-    model: "openai/gpt-5.5",
+    model: "agy/flash",
   });
 
-  expect(created.ok).toBe(false);
-  expect(created.error).toMatchObject({
-    code: "INVALID_REQUEST",
-    message: "Professional Core owns its native model/session; omit catalogId and model",
+  expect(created.ok).toBe(true);
+  expect(created.payload?.entry).toMatchObject({
+    conversationCoreId: "professional",
+    providerOverride: "agy",
+    modelOverride: "flash",
+    modelOverrideSource: "user",
+  });
+  const stored = loadSessionEntry({
+    agentId: "main",
+    sessionKey: requireNonEmptyString(created.payload?.key, "created session key"),
+    storePath,
+  });
+  expect(stored).toMatchObject({
+    conversationCoreId: "professional",
+    providerOverride: "agy",
+    modelOverride: "flash",
+    modelOverrideSource: "user",
   });
   testState.sessionConfig = undefined;
 });

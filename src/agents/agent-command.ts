@@ -341,7 +341,7 @@ async function agentCommandInternal(
       });
       if (conversationCorePlan.implementation !== "openclaw") {
         if (!sessionKey) {
-          throw new Error("Native conversation cores require a durable session key.");
+          throw new Error("ACP sessions require a durable session key.");
         }
         assertAgentRunLifecycleGenerationCurrent(lifecycleGeneration);
         return await runAcpAgentCommand({
