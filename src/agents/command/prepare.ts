@@ -6,6 +6,11 @@ import {
 } from "../../auto-reply/thinking.js";
 import { formatCliCommand } from "../../cli/command-format.js";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import { resolveConversationCoreId } from "../../conversation-core/types.js";
+import {
+  ensureProfessionalCoreWorkspace,
+  resolveConversationCoreWorkspaceDir,
+} from "../../conversation-core/workspace.js";
 import { resolveAgentExplicitRecipientSession } from "../../infra/outbound/agent-delivery.js";
 import { buildOutboundSessionContext } from "../../infra/outbound/session-context.js";
 import { parseStrictNonNegativeInteger } from "../../infra/parse-finite-number.js";
@@ -278,13 +283,20 @@ export async function prepareAgentCommandExecution(opts: AgentCommandOpts, runti
   const sessionAgentId =
     agentIdOverride ??
     resolveSessionAgentId({ sessionKey: sessionKey ?? explicitSessionKey, config: cfg });
+  const conversationCoreId = resolveConversationCoreId(sessionEntryRaw);
   const outboundSession = buildOutboundSessionContext({
     cfg,
     agentId: sessionAgentId,
     sessionKey,
   });
   const workspaceDirRaw =
-    normalizedSpawned.workspaceDir ?? resolveAgentWorkspaceDir(cfg, sessionAgentId);
+    conversationCoreId === "life"
+      ? (normalizedSpawned.workspaceDir ?? resolveAgentWorkspaceDir(cfg, sessionAgentId))
+      : resolveConversationCoreWorkspaceDir({
+          cfg,
+          agentId: sessionAgentId,
+          coreId: conversationCoreId,
+        });
   const workspaceDir = resolveUserPath(workspaceDirRaw);
   const cwd =
     normalizeOptionalString(opts.cwd) ?? normalizeOptionalString(sessionEntryRaw?.spawnedCwd);
@@ -338,11 +350,15 @@ export async function prepareAgentCommandExecution(opts: AgentCommandOpts, runti
   });
   const runLease = worktreeId ? await acquireWorktreeRunLease(worktreeId) : undefined;
   try {
-    await ensureAgentWorkspace({
-      dir: workspaceDirRaw,
-      ensureBootstrapFiles: !agentCfg?.skipBootstrap,
-      skipOptionalBootstrapFiles: agentCfg?.skipOptionalBootstrapFiles,
-    });
+    if (conversationCoreId === "professional") {
+      await ensureProfessionalCoreWorkspace({ cfg, agentId: sessionAgentId });
+    } else {
+      await ensureAgentWorkspace({
+        dir: workspaceDirRaw,
+        ensureBootstrapFiles: !agentCfg?.skipBootstrap,
+        skipOptionalBootstrapFiles: agentCfg?.skipOptionalBootstrapFiles,
+      });
+    }
     const runId = opts.runId?.trim() || sessionId;
     const { getAcpSessionManager } = await loadAcpManagerRuntime();
     const acpManager = getAcpSessionManager();
@@ -388,6 +404,7 @@ export async function prepareAgentCommandExecution(opts: AgentCommandOpts, runti
       isSubagentLane,
       acpManager,
       acpResolution,
+      conversationCoreId,
       runLease,
     };
     return prepared;

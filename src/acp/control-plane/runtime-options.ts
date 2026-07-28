@@ -11,6 +11,7 @@ export { normalizeText } from "@openclaw/acp-core/normalize-text";
 const MAX_RUNTIME_MODE_LENGTH = 64;
 const MAX_MODEL_LENGTH = 200;
 const MAX_THINKING_LENGTH = 32;
+const MAX_SYSTEM_PROMPT_LENGTH = 128 * 1024;
 const MAX_PERMISSION_PROFILE_LENGTH = 80;
 const MAX_CWD_LENGTH = 4096;
 const MIN_TIMEOUT_SECONDS = 1;
@@ -99,6 +100,26 @@ function validateRuntimeThinkingInput(rawThinking: unknown): string {
   });
 }
 
+function validateRuntimeSystemPromptInput(rawPrompt: unknown): string {
+  if (typeof rawPrompt !== "string") {
+    failInvalidOption("System prompt must be a string.");
+  }
+  const prompt = rawPrompt.trim();
+  if (!prompt) {
+    failInvalidOption("System prompt must not be empty.");
+  }
+  if (prompt.length > MAX_SYSTEM_PROMPT_LENGTH) {
+    failInvalidOption(`System prompt must be at most ${MAX_SYSTEM_PROMPT_LENGTH} characters.`);
+  }
+  for (let index = 0; index < prompt.length; index += 1) {
+    const code = prompt.charCodeAt(index);
+    if ((code < 32 && code !== 9 && code !== 10 && code !== 13) || code === 127) {
+      failInvalidOption("System prompt must not include unsupported control characters.");
+    }
+  }
+  return prompt;
+}
+
 export function validateRuntimePermissionProfileInput(rawProfile: unknown): string {
   return validateBoundedText({
     value: rawProfile,
@@ -165,6 +186,7 @@ export function validateRuntimeOptionPatch(
     "model",
     "thinking",
     "cwd",
+    "systemPrompt",
     "permissionProfile",
     "timeoutSeconds",
     "backendExtras",
@@ -202,6 +224,13 @@ export function validateRuntimeOptionPatch(
       next.cwd = undefined;
     } else {
       next.cwd = validateRuntimeCwdInput(rawPatch.cwd);
+    }
+  }
+  if (Object.hasOwn(rawPatch, "systemPrompt")) {
+    if (rawPatch.systemPrompt === undefined) {
+      next.systemPrompt = undefined;
+    } else {
+      next.systemPrompt = validateRuntimeSystemPromptInput(rawPatch.systemPrompt);
     }
   }
   if (Object.hasOwn(rawPatch, "permissionProfile")) {
@@ -248,6 +277,7 @@ export function normalizeRuntimeOptions(
   const model = normalizeText(options?.model);
   const thinking = normalizeText(options?.thinking);
   const cwd = normalizeText(options?.cwd);
+  const systemPrompt = normalizeText(options?.systemPrompt);
   const permissionProfile = normalizeText(options?.permissionProfile);
   let timeoutSeconds: number | undefined;
   if (typeof options?.timeoutSeconds === "number" && Number.isFinite(options.timeoutSeconds)) {
@@ -266,6 +296,7 @@ export function normalizeRuntimeOptions(
     ...(model ? { model } : {}),
     ...(thinking ? { thinking } : {}),
     ...(cwd ? { cwd } : {}),
+    ...(systemPrompt ? { systemPrompt } : {}),
     ...(permissionProfile ? { permissionProfile } : {}),
     ...(typeof timeoutSeconds === "number" ? { timeoutSeconds } : {}),
     ...(backendExtras ? { backendExtras } : {}),
@@ -314,6 +345,7 @@ export function buildRuntimeControlSignature(options: AcpSessionRuntimeOptions):
     runtimeMode: normalized.runtimeMode ?? null,
     model: normalized.model ?? null,
     thinking: normalized.thinking ?? null,
+    systemPrompt: normalized.systemPrompt ?? null,
     permissionProfile: normalized.permissionProfile ?? null,
     timeoutSeconds: normalized.timeoutSeconds ?? null,
     backendExtras: extras,

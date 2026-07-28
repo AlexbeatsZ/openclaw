@@ -305,7 +305,11 @@ function buildPromptPrefix(summary: string | null): string | undefined {
   if (!metadata) {
     return undefined;
   }
-  return [ACTIVE_MEMORY_UNTRUSTED_CONTEXT_HEADER, metadata].join("\n");
+  return [
+    ACTIVE_MEMORY_UNTRUSTED_CONTEXT_HEADER,
+    "Use recalled memory silently as supporting context. Do not mention that memory was recalled or volunteer loosely related history unless the user asks about memory/history, it materially changes the answer, it conflicts with the user's current statement, or verification is important. Verify mutable facts before presenting them as current.",
+    metadata,
+  ].join("\n");
 }
 
 export {

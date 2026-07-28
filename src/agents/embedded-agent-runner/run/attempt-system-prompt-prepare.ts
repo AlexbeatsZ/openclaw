@@ -23,7 +23,10 @@ import {
 } from "../../channel-tools.js";
 import { resolveOpenClawReferencePaths } from "../../docs-path.js";
 import { resolveHeartbeatPromptForSystemPrompt } from "../../heartbeat-system-prompt.js";
-import { prepareAgentMemoryPrompt } from "../../memory-prompt-prepare.js";
+import {
+  prepareAgentMemoryPrompt,
+  routeRootMemoryContextThroughTools,
+} from "../../memory-prompt-prepare.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import { resolveAgentPromptSurfaceForSessionKey } from "../../prompt-surface.js";
 import { collectRuntimeChannelCapabilities } from "../../runtime-capabilities.js";
@@ -232,6 +235,11 @@ export async function prepareEmbeddedAttemptSystemPrompt(params: {
     agentSessionKey: runtimeInfo.sessionKey,
     sandboxed: sandboxInfo?.enabled === true,
   });
+  const promptContextFiles = routeRootMemoryContextThroughTools({
+    contextFiles: params.bootstrap.contextFiles,
+    workspaceDir: params.effectiveWorkspace,
+    preparedMemoryPrompt,
+  });
 
   const attemptSystemPrompt = buildAttemptSystemPrompt({
     isRawModelRun: params.isRawModelRun,
@@ -278,7 +286,7 @@ export async function prepareEmbeddedAttemptSystemPrompt(params: {
       userTimezone,
       userTime,
       userTimeFormat,
-      contextFiles: params.bootstrap.contextFiles,
+      contextFiles: promptContextFiles,
       bootstrapMode: params.bootstrap.bootstrapMode,
       bootstrapTruncationNotice: buildBootstrapPromptWarningNotice(
         params.bootstrap.bootstrapPromptWarning.lines,
@@ -328,7 +336,7 @@ export async function prepareEmbeddedAttemptSystemPrompt(params: {
     })(),
     systemPrompt: attemptSystemPrompt.systemPrompt,
     bootstrapFiles: params.bootstrap.hookAdjustedBootstrapFiles,
-    injectedFiles: params.bootstrap.contextFiles,
+    injectedFiles: promptContextFiles,
     skillsPrompt: params.skillsPrompt,
     tools: params.effectiveTools,
   });

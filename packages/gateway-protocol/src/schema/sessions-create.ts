@@ -10,6 +10,12 @@ export const SessionsCreateParamsSchema = closedObject({
   label: Type.Optional(SessionLabelString),
   model: Type.Optional(NonEmptyString),
   thinkingLevel: Type.Optional(NonEmptyString),
+  core: Type.Optional(
+    Type.Union([Type.Literal("life"), Type.Literal("professional")], {
+      description:
+        "Conversation core for the new session. Core ownership is immutable for the session lifecycle.",
+    }),
+  ),
   catalogId: Type.Optional(NonEmptyString),
   parentSessionKey: Type.Optional(NonEmptyString),
   fork: Type.Optional(

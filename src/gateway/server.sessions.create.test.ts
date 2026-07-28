@@ -1448,6 +1448,31 @@ test("sessions.create rejects unknown parentSessionKey", async () => {
   );
 });
 
+test("sessions.create rejects an OpenClaw model inherited into a Professional Core child", async () => {
+  await createSessionStoreDir();
+  testState.sessionConfig = { scope: "per-sender" };
+  await writeSessionStore({
+    entries: {
+      main: sessionStoreEntry("professional-parent", {
+        conversationCoreId: "professional",
+      }),
+    },
+  });
+
+  const created = await directSessionReq("sessions.create", {
+    agentId: "main",
+    parentSessionKey: "main",
+    model: "openai/gpt-5.5",
+  });
+
+  expect(created.ok).toBe(false);
+  expect(created.error).toMatchObject({
+    code: "INVALID_REQUEST",
+    message: "Professional Core owns its native model/session; omit catalogId and model",
+  });
+  testState.sessionConfig = undefined;
+});
+
 test("sessions.create forks the parent transcript into the new session", async () => {
   const { dir, storePath } = await createSessionStoreDir();
   testState.sessionConfig = { scope: "per-sender" };

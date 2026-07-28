@@ -120,6 +120,7 @@ export function renderNewSessionDraftComposer(options: {
   canSubmit: boolean;
   context: import("../../app/context.ts").ApplicationContext | undefined;
   isCatalogTarget: boolean;
+  nativeCore?: boolean;
   message: string;
   modelControl: NewSessionModelControl;
   requiresModifier: boolean;
@@ -134,14 +135,15 @@ export function renderNewSessionDraftComposer(options: {
     canSubmit: options.canSubmit,
     getAttachments: () => options.attachmentDraft.attachments,
     message: options.message,
-    modelControl: options.isCatalogTarget
-      ? nothing
-      : options.modelControl.render({
-          agent: options.agent,
-          agentId: options.agentId,
-          context: options.context,
-          sending: options.submitting,
-        }),
+    modelControl:
+      options.isCatalogTarget || options.nativeCore
+        ? nothing
+        : options.modelControl.render({
+            agent: options.agent,
+            agentId: options.agentId,
+            context: options.context,
+            sending: options.submitting,
+          }),
     pendingAttachmentReads: options.attachmentDraft.pendingReads,
     readSignal,
     requiresModifier: options.requiresModifier,

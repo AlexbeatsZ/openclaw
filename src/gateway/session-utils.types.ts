@@ -44,6 +44,8 @@ type SessionCompactionCheckpointPreview = Pick<
 
 export type GatewaySessionRow = {
   key: string;
+  /** Product-level core that owns this session's identity, history, and memory. */
+  conversationCoreId?: SessionEntry["conversationCoreId"];
   spawnedBy?: string;
   spawnedWorkspaceDir?: string;
   spawnedCwd?: string;

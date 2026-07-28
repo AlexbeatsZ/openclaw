@@ -208,6 +208,40 @@ describe("gateway session utils", () => {
     expect(row.unread).toBe(expected);
   });
 
+  test("projects the owning conversation core into session rows and events", () => {
+    const row = buildGatewaySessionRow({
+      cfg: createModelDefaultsConfig({ primary: "openai/gpt-5.4" }),
+      storePath: "",
+      store: {},
+      key: "agent:main:dashboard:professional",
+      entry: {
+        sessionId: "professional-session",
+        updatedAt: 1,
+        conversationCoreId: "professional",
+      },
+    });
+
+    expect(row.conversationCoreId).toBe("professional");
+    expect(buildGatewaySessionEventFields({ sessionRow: row })).toMatchObject({
+      conversationCoreId: "professional",
+    });
+  });
+
+  test("projects legacy session rows as Life Core", () => {
+    const row = buildGatewaySessionRow({
+      cfg: createModelDefaultsConfig({ primary: "openai/gpt-5.4" }),
+      storePath: "",
+      store: {},
+      key: "agent:main:dashboard:legacy",
+      entry: {
+        sessionId: "legacy-session",
+        updatedAt: 1,
+      },
+    });
+
+    expect(row.conversationCoreId).toBe("life");
+  });
+
   test("session lists apply a bounded default and expose truncation metadata", async () => {
     const cfg = createModelDefaultsConfig({ primary: "openai/gpt-5.4" });
     const store = Object.fromEntries(

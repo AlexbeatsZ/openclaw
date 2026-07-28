@@ -30,6 +30,11 @@ import {
 } from "../config/sessions/session-accessor.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
+  normalizeConversationCoreId,
+  resolveConversationCoreId,
+  type ConversationCoreId,
+} from "../conversation-core/types.js";
+import {
   createInternalHookEvent,
   hasInternalHookListeners,
   triggerInternalHook,
@@ -186,6 +191,7 @@ export async function createGatewaySession(params: {
   cfg: OpenClawConfig;
   key?: string;
   agentId?: string;
+  conversationCoreId?: ConversationCoreId;
   label?: string;
   model?: string;
   thinkingLevel?: string;
@@ -222,6 +228,8 @@ export async function createGatewaySession(params: {
   const catalogModel = normalizeOptionalString(params.catalogTarget?.model);
   const catalogAgentRuntime = normalizeOptionalAgentRuntimeId(params.catalogTarget?.agentRuntime);
   const catalogPluginOwnerId = normalizeOptionalString(params.catalogTarget?.pluginOwnerId);
+  const explicitConversationCoreId = normalizeConversationCoreId(params.conversationCoreId);
+  let requestedConversationCoreId = explicitConversationCoreId ?? "life";
   if (params.catalogTarget && (!catalogModel || !catalogAgentRuntime || !catalogPluginOwnerId)) {
     return {
       ok: false,
@@ -353,6 +361,29 @@ export async function createGatewaySession(params: {
     }
     canonicalParentSessionKey = parent.canonicalKey;
     parentSessionEntry = parent.entry;
+    const parentConversationCoreId = resolveConversationCoreId(parent.entry);
+    requestedConversationCoreId = explicitConversationCoreId ?? parentConversationCoreId;
+    if (
+      params.conversationCoreId !== undefined &&
+      requestedConversationCoreId !== parentConversationCoreId
+    ) {
+      return {
+        ok: false,
+        error: errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `cannot create a child across conversation cores (${parentConversationCoreId} -> ${requestedConversationCoreId}); create a fresh session instead`,
+        ),
+      };
+    }
+    if (params.fork === true && parentConversationCoreId === "professional") {
+      return {
+        ok: false,
+        error: errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          "Professional Core sessions cannot be forked until the native runtime can fork its own history",
+        ),
+      };
+    }
     parentSessionTarget = resolveGatewaySessionStoreTarget({
       cfg: params.cfg,
       key: parentSessionKey,
@@ -360,6 +391,18 @@ export async function createGatewaySession(params: {
         ? { agentId: parentSelectedAgentId }
         : {}),
     });
+  }
+  if (
+    requestedConversationCoreId === "professional" &&
+    (params.catalogTarget || normalizeOptionalString(params.model))
+  ) {
+    return {
+      ok: false,
+      error: errorShape(
+        ErrorCodes.INVALID_REQUEST,
+        "Professional Core owns its native model/session; omit catalogId and model",
+      ),
+    };
   }
   if (
     canonicalParentSessionKey &&
@@ -385,6 +428,7 @@ export async function createGatewaySession(params: {
     // Catalog targets need a fresh locked row; resetting main would return before
     // the catalog-owned model/runtime pair is persisted.
     !params.catalogTarget &&
+    resolveConversationCoreId(parentSessionEntry) === requestedConversationCoreId &&
     params.cfg.session?.dmScope === "main"
   ) {
     const parentAgentId = normalizeAgentId(
@@ -410,6 +454,7 @@ export async function createGatewaySession(params: {
         ...(execCwd ? { execCwd } : {}),
         ...(params.clearExecBinding ? { clearExecBinding: true } : {}),
         ...(params.clearSpawnedCwd && !spawnedCwd ? { clearSpawnedCwd: true } : {}),
+        conversationCoreId: requestedConversationCoreId,
       });
       if (!resetResult.ok) {
         return resetResult;
@@ -604,6 +649,9 @@ export async function createGatewaySession(params: {
           : undefined;
         const initializedEntry: SessionEntry = {
           ...patched.entry,
+          conversationCoreId: parentSessionEntry
+            ? resolveConversationCoreId(parentSessionEntry)
+            : requestedConversationCoreId,
           ...(catalogResolvedModel && catalogAgentRuntime
             ? {
                 providerOverride: catalogResolvedModel.provider,

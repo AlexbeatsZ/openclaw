@@ -15,6 +15,7 @@ export function buildDraftSessionCreateParams(draft: {
   message: string;
   model?: string;
   thinkingLevel?: string;
+  core?: "life" | "professional";
   attachments?: unknown[];
   worktree: boolean;
   baseRef?: string;
@@ -34,6 +35,7 @@ export function buildDraftSessionCreateParams(draft: {
   return {
     ...(normalizeOptionalString(draft.key) ? { key: normalizeOptionalString(draft.key) } : {}),
     agentId: normalizeAgentId(draft.agentId),
+    ...(draft.core ? { core: draft.core } : {}),
     message: draft.message,
     ...(draft.attachments?.length ? { attachments: draft.attachments } : {}),
     ...(catalogId ? { catalogId } : {}),

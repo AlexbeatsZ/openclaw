@@ -10,6 +10,7 @@ describe("mergeRuntimeOptions", () => {
       model: undefined,
       thinking: undefined,
       cwd: undefined,
+      systemPrompt: undefined,
       permissionProfile: undefined,
       timeoutSeconds: undefined,
     } as Partial<AcpSessionRuntimeOptions>;
@@ -21,12 +22,24 @@ describe("mergeRuntimeOptions", () => {
           model: "claude-sonnet-4.6",
           thinking: "high",
           cwd: "/tmp/project",
+          systemPrompt: "Professional system prompt",
           permissionProfile: "trusted",
           timeoutSeconds: 120,
         },
         patch,
       }),
     ).toEqual({});
+  });
+
+  it("preserves a multiline native system prompt", () => {
+    expect(
+      mergeRuntimeOptions({
+        current: {},
+        patch: { systemPrompt: "  Professional Core\n\nKeep memory isolated.  " },
+      }),
+    ).toEqual({
+      systemPrompt: "Professional Core\n\nKeep memory isolated.",
+    });
   });
 
   it("clears backend extras when a patch explicitly clears them", () => {

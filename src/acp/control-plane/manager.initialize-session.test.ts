@@ -71,6 +71,7 @@ describe("AcpSessionManager initializeSession", () => {
         runtimeOptions: {
           model: "openai/gpt-5.4",
           thinking: "high",
+          systemPrompt: "Professional Core",
         },
       }),
     });
@@ -84,6 +85,7 @@ describe("AcpSessionManager initializeSession", () => {
       runtimeOptions: {
         model: "openai/gpt-5.4",
         thinking: "high",
+        systemPrompt: "Professional Core",
       },
     });
 
@@ -91,12 +93,14 @@ describe("AcpSessionManager initializeSession", () => {
       {
         model: "openai/gpt-5.4",
         thinking: "high",
+        systemPrompt: "Professional Core",
       },
     ]);
     expectRecordFields(mockCallArg(runtimeState.ensureSession), {
       sessionKey: "agent:codex:acp:session-a",
       model: "openai/gpt-5.4",
       thinking: "high",
+      systemPrompt: "Professional Core",
     });
   });
 

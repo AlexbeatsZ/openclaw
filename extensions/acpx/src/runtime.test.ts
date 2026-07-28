@@ -372,6 +372,41 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     });
   });
 
+  it("forwards a native system prompt through ACPX session options", async () => {
+    const baseStore: TestSessionStore = {
+      load: vi.fn(async () => undefined),
+      save: vi.fn(async () => {}),
+    };
+    const { runtime, delegate } = makeRuntime(baseStore, {
+      agentRegistry: {
+        resolve: (agentName: string) =>
+          agentName === "claude" ? "npx @agentclientprotocol/claude-agent-acp" : agentName,
+        list: () => ["claude", "openclaw"],
+      },
+    });
+    const ensure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
+      sessionKey: "agent:claude:acp:professional",
+      backend: "acpx",
+      runtimeSessionName: "claude",
+    });
+
+    await runtime.ensureSession({
+      sessionKey: "agent:claude:acp:professional",
+      agent: "claude",
+      mode: "persistent",
+      systemPrompt: "Professional Core\n\nKeep memory isolated.",
+    });
+
+    expect(readFirstEnsureSessionInput(ensure)).toEqual({
+      sessionKey: "agent:claude:acp:professional",
+      agent: "claude",
+      mode: "persistent",
+      sessionOptions: {
+        systemPrompt: "Professional Core\n\nKeep memory isolated.",
+      },
+    });
+  });
+
   it("keeps Claude ACP model ids intact after stripping the OpenClaw provider prefix", () => {
     expect(testing.normalizeClaudeAcpModelOverride("anthropic/claude-sonnet-4-6")).toBe(
       "claude-sonnet-4-6",

@@ -129,6 +129,31 @@ openclaw-new-session-page {
   background: transparent;
 }
 
+.new-session-page__core-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  color: var(--text);
+}
+
+.new-session-page__core-select select {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.new-session-page__core-select:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
 .new-session-page__catalog-unavailable {
   display: inline-flex;
   align-items: center;

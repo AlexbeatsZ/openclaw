@@ -5049,6 +5049,7 @@ public struct SessionsCreateParams: Codable, Sendable {
     public let label: String?
     public let model: String?
     public let thinkinglevel: String?
+    public let core: AnyCodable?
     public let catalogid: String?
     public let parentsessionkey: String?
     public let fork: Bool?
@@ -5068,6 +5069,7 @@ public struct SessionsCreateParams: Codable, Sendable {
         label: String? = nil,
         model: String? = nil,
         thinkinglevel: String? = nil,
+        core: AnyCodable? = nil,
         catalogid: String? = nil,
         parentsessionkey: String? = nil,
         fork: Bool? = nil,
@@ -5086,6 +5088,7 @@ public struct SessionsCreateParams: Codable, Sendable {
         self.label = label
         self.model = model
         self.thinkinglevel = thinkinglevel
+        self.core = core
         self.catalogid = catalogid
         self.parentsessionkey = parentsessionkey
         self.fork = fork
@@ -5106,6 +5109,7 @@ public struct SessionsCreateParams: Codable, Sendable {
         case label
         case model
         case thinkinglevel = "thinkingLevel"
+        case core
         case catalogid = "catalogId"
         case parentsessionkey = "parentSessionKey"
         case fork
@@ -11053,6 +11057,7 @@ public struct CronRunLogEntry: Codable, Sendable {
     public let triggerfired: Bool?
     public let model: String?
     public let provider: String?
+    public let fallbackused: Bool?
     public let usage: [String: AnyCodable]?
     public let jobname: String?
 
@@ -11078,6 +11083,7 @@ public struct CronRunLogEntry: Codable, Sendable {
         triggerfired: Bool? = nil,
         model: String? = nil,
         provider: String? = nil,
+        fallbackused: Bool? = nil,
         usage: [String: AnyCodable]? = nil,
         jobname: String? = nil)
     {
@@ -11102,6 +11108,7 @@ public struct CronRunLogEntry: Codable, Sendable {
         self.triggerfired = triggerfired
         self.model = model
         self.provider = provider
+        self.fallbackused = fallbackused
         self.usage = usage
         self.jobname = jobname
     }
@@ -11128,6 +11135,7 @@ public struct CronRunLogEntry: Codable, Sendable {
         case triggerfired = "triggerFired"
         case model
         case provider
+        case fallbackused = "fallbackUsed"
         case usage
         case jobname = "jobName"
     }

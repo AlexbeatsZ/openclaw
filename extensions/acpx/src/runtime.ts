@@ -617,8 +617,16 @@ function normalizeClaudeAcpModelOverride(rawModel: string | undefined): string |
 function withAcpxSessionOptions(input: OpenClawRuntimeEnsureInput): AcpxDelegateEnsureInput {
   const existingOptions = (input as { sessionOptions?: SessionAgentOptions }).sessionOptions;
   const model = input.model?.trim() || existingOptions?.model;
-  const sessionOptions = model ? { ...existingOptions, model } : existingOptions;
-  const { modelExplicit: _modelExplicit, ...rest } = input;
+  const systemPrompt = input.systemPrompt?.trim() || existingOptions?.systemPrompt;
+  const sessionOptions =
+    model || systemPrompt
+      ? {
+          ...existingOptions,
+          ...(model ? { model } : {}),
+          ...(systemPrompt ? { systemPrompt } : {}),
+        }
+      : existingOptions;
+  const { modelExplicit: _modelExplicit, systemPrompt: _systemPrompt, ...rest } = input;
   return {
     ...rest,
     ...(sessionOptions ? { sessionOptions } : {}),

@@ -11,6 +11,7 @@ export const commandHandlerOrder = [
   "send-policy",
   "fast",
   "usage",
+  "mode",
   "session",
   "restart",
   "tts",

@@ -89,6 +89,7 @@ import {
 } from "../config/sessions.js";
 import { listSessionEntries as listAccessorSessionEntries } from "../config/sessions/session-accessor.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { resolveConversationCoreId } from "../conversation-core/types.js";
 import { projectPluginSessionExtensionsSync } from "../plugins/host-hook-state.js";
 import { withPinnedActivePluginRegistryWorkspaceDir } from "../plugins/runtime-workspace-state.js";
 import {
@@ -2182,6 +2183,7 @@ export function buildGatewaySessionRow(params: {
 
   return {
     key,
+    conversationCoreId: entry ? resolveConversationCoreId(entry) : undefined,
     spawnedBy: subagentOwner || entry?.spawnedBy,
     spawnedWorkspaceDir: entry?.spawnedWorkspaceDir,
     spawnedCwd: entry?.spawnedCwd,

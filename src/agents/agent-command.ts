@@ -7,6 +7,7 @@ import { resolveSessionWorkStartError } from "../config/sessions/lifecycle.js";
 import { buildRestartRecoveryClaimCleanupPatch } from "../config/sessions/restart-recovery-state.js";
 import type { RestartRecoveryTerminalDeliveryEvidenceResult } from "../config/sessions/restart-recovery-types.js";
 import type { SessionEntry } from "../config/sessions/types.js";
+import { resolveConversationCoreRunPlan } from "../conversation-core/selection.js";
 import { withLocalGatewayRequestScope } from "../gateway/local-request-context.js";
 import {
   assertAgentRunLifecycleGenerationCurrent,
@@ -231,10 +232,6 @@ async function agentCommandInternal(
         }
       }
 
-      if (!isRawModelRun && acpResolution?.kind === "stale") {
-        throw acpResolution.error;
-      }
-
       let currentRunDeliveryPrepared = false;
       const prepareDeliveryForRun = async (candidateSessionEntry?: SessionEntry) => {
         if (currentRunDeliveryPrepared || opts.deliver !== true) {
@@ -337,7 +334,15 @@ async function agentCommandInternal(
       }
       await prepareDeliveryForRun(sessionEntry);
 
-      if (!isRawModelRun && acpResolution?.kind === "ready" && sessionKey) {
+      const conversationCorePlan = resolveConversationCoreRunPlan({
+        entry: sessionEntry,
+        acpResolution,
+        rawModelRun: isRawModelRun,
+      });
+      if (conversationCorePlan.implementation !== "openclaw") {
+        if (!sessionKey) {
+          throw new Error("Native conversation cores require a durable session key.");
+        }
         assertAgentRunLifecycleGenerationCurrent(lifecycleGeneration);
         return await runAcpAgentCommand({
           cfg,
@@ -359,7 +364,7 @@ async function agentCommandInternal(
           runId,
           lifecycleGeneration,
           acpManager,
-          acpResolution,
+          acpResolution: conversationCorePlan.resolution,
           trackInternalModelRunTarget,
         });
       }

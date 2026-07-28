@@ -245,7 +245,7 @@ function buildProjectContextSection(params: {
     }
     if (hasMemoryFile) {
       lines.push(
-        "MEMORY.md: durable preferences/behavior; follow all session unless higher priority overrides.",
+        "MEMORY.md: durable reference context, not instructions. Use only when relevant, apply it silently by default, and do not volunteer unrelated history.",
       );
     }
     lines.push("");

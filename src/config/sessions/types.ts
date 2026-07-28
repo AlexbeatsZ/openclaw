@@ -379,6 +379,11 @@ export type SessionEntry = SessionRestartRecoveryState &
     /** Session-scoped agent runtime/harness override selected with the model picker. */
     agentRuntimeOverride?: string;
     /**
+     * Product-level conversation core pinned for this session lifecycle.
+     * Missing means the legacy/default Life Core.
+     */
+    conversationCoreId?: "life" | "professional";
+    /**
      * Tracks whether the persisted model override came from an explicit user
      * action (`/model`, `sessions.patch`) or from a temporary runtime fallback.
      * Resets only preserve user-driven overrides.

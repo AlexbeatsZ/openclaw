@@ -47,6 +47,7 @@ export async function runManagerInitializeSession(params: {
   const requestedCwd = initialRuntimeOptions.cwd;
   const requestedModel = initialRuntimeOptions.model;
   const requestedThinking = initialRuntimeOptions.thinking;
+  const requestedSystemPrompt = initialRuntimeOptions.systemPrompt;
   params.enforceConcurrentSessionLimit({
     cfg: input.cfg,
     sessionKey,
@@ -61,6 +62,7 @@ export async function runManagerInitializeSession(params: {
         ...(requestedModel ? { model: requestedModel } : {}),
         ...(requestedModel && input.modelExplicit ? { modelExplicit: true } : {}),
         ...(requestedThinking ? { thinking: requestedThinking } : {}),
+        ...(requestedSystemPrompt ? { systemPrompt: requestedSystemPrompt } : {}),
         cwd: requestedCwd,
       }),
     fallbackCode: "ACP_SESSION_INIT_FAILED",

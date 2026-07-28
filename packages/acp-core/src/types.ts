@@ -73,6 +73,8 @@ export type AcpSessionRuntimeOptions = {
   thinking?: string;
   /** Working directory override for ACP session turns. */
   cwd?: string;
+  /** Native session system prompt established when the ACP session is created. */
+  systemPrompt?: string;
   /** ACP runtime config option: permission profile id. */
   permissionProfile?: string;
   /** ACP runtime config option: per-turn timeout in seconds. */

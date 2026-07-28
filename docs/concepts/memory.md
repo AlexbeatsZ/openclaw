@@ -15,7 +15,8 @@ saved to disk; there is no hidden state.
 Your agent has three memory-related files:
 
 - **`MEMORY.md`** — long-term memory. Durable facts, preferences, and
-  decisions. Loaded at the start of a session.
+  decisions. When memory tools are available, it stays retrievable through
+  those tools instead of being duplicated into every system prompt.
 - **`memory/YYYY-MM-DD.md`** (or `memory/YYYY-MM-DD-<slug>.md`) — daily notes.
   Running context and observations. Today's and yesterday's dated notes load
   automatically on a bare `/new` or `/reset`; slugged variants, such as those
@@ -44,6 +45,15 @@ Over time, the agent distills useful material from daily notes into
 `MEMORY.md` and removes stale long-term entries. Generated workspace
 instructions and the heartbeat flow do this periodically; you do not need to
 manually edit `MEMORY.md` for every detail.
+
+Recall is not disclosure. Relevant memory may shape an answer silently, but the
+agent should not volunteer unrelated history merely because it was retrieved.
+Prior history should be mentioned when you ask about it, when it materially
+changes the answer, when it conflicts with the current request, or when a
+mutable fact needs verification.
+
+[Conversation cores](/concepts/conversation-cores) keep Life and Professional
+identity, history, workspace, and durable memory separate.
 
 If `MEMORY.md` grows past the bootstrap file budget, OpenClaw keeps the file on
 disk intact but truncates the copy injected into context. Treat that as a

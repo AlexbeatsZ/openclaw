@@ -1,12 +1,16 @@
 // System prompt memory tests cover opt-out behavior when context engines own
 // memory prompt assembly for a run.
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   clearMemoryPluginState,
   registerMemoryPromptPreparation,
   registerMemoryPromptSection,
 } from "../plugins/memory-state.test-fixtures.js";
-import { prepareAgentMemoryPrompt } from "./memory-prompt-prepare.js";
+import {
+  prepareAgentMemoryPrompt,
+  routeRootMemoryContextThroughTools,
+} from "./memory-prompt-prepare.js";
 import { buildAgentSystemPrompt } from "./system-prompt.js";
 
 describe("buildAgentSystemPrompt memory guidance", () => {
@@ -81,5 +85,42 @@ describe("buildAgentSystemPrompt memory guidance", () => {
 
     expect(prompt).toContain("## Prepared Wiki\nPrepared before assembly.");
     expect(prepare).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes only the workspace root MEMORY.md through memory tools", async () => {
+    registerMemoryPromptSection(() => ["## Memory Recall", "Use memory tools.", ""]);
+    const preparedMemoryPrompt = await prepareAgentMemoryPrompt({
+      enabled: true,
+      toolNames: ["memory_search", "memory_get"],
+    });
+    const workspaceDir = path.resolve("tmp", "openclaw");
+    const rootMemoryPath = path.join(workspaceDir, "MEMORY.md");
+    const projectMemoryPath = path.join(workspaceDir, "project", "MEMORY.md");
+    const soulPath = path.join(workspaceDir, "SOUL.md");
+
+    const contextFiles = routeRootMemoryContextThroughTools({
+      workspaceDir,
+      preparedMemoryPrompt,
+      contextFiles: [
+        { path: rootMemoryPath, content: "old durable memory" },
+        { path: projectMemoryPath, content: "project-local instructions" },
+        { path: soulPath, content: "persona" },
+      ],
+    });
+
+    expect(contextFiles).toEqual([
+      { path: projectMemoryPath, content: "project-local instructions" },
+      { path: soulPath, content: "persona" },
+    ]);
+  });
+
+  it("keeps root MEMORY.md inline when memory tools are unavailable", () => {
+    const contextFiles = [{ path: "MEMORY.md", content: "fallback memory" }];
+    expect(
+      routeRootMemoryContextThroughTools({
+        workspaceDir: "/tmp/openclaw",
+        contextFiles,
+      }),
+    ).toEqual(contextFiles);
   });
 });

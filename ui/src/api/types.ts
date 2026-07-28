@@ -474,6 +474,7 @@ type SessionCompactionCheckpointPreview = Pick<
 
 export type GatewaySessionRow = {
   key: string;
+  conversationCoreId?: "life" | "professional";
   spawnedBy?: string;
   parentSessionKey?: string;
   /** Managed worktree bound to this session (repo checkout + branch). */

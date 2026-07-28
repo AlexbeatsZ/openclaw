@@ -25,6 +25,10 @@ export const buildPromptSection: MemoryPromptSectionBuilder = ({
   }
 
   const lines = ["## Memory Recall", toolGuidance];
+  lines.push(
+    "Recall is not disclosure. Treat retrieved memory as supporting context, not as the topic of the reply. Apply it silently by default; do not volunteer that you remember something, repeat loosely related history, or mention the memory source unless the user asks about memory/history, the memory materially changes the answer, it conflicts with the user's current statement, or verification is important.",
+    "Memory can be stale. Verify time-sensitive or operational facts before presenting them as current.",
+  );
   if (citationsMode === "off") {
     lines.push(
       "Citations are disabled: do not mention file paths or line numbers in replies unless the user explicitly asks.",

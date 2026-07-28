@@ -16,6 +16,31 @@ function agentDisplayName(agent: DraftAgent): string {
   return agent.identity?.name ?? agent.name ?? agent.id;
 }
 
+export function renderCoreSelect(params: {
+  core: "life" | "professional";
+  disabled: boolean;
+  onSelect: (core: "life" | "professional") => void;
+}) {
+  return html`
+    <label class="new-session-page__core-select" title=${t("newSession.mode")}>
+      <span class="new-session-page__target-icon" aria-hidden="true">${icons.bot}</span>
+      <span class="agent-chat__sr-only">${t("newSession.mode")}</span>
+      <select
+        aria-label=${t("newSession.mode")}
+        ?disabled=${params.disabled}
+        .value=${params.core}
+        @change=${(event: Event) =>
+          params.onSelect(
+            (event.target as HTMLSelectElement).value === "professional" ? "professional" : "life",
+          )}
+      >
+        <option value="life">${t("newSession.lifeMode")}</option>
+        <option value="professional">${t("newSession.professionalMode")}</option>
+      </select>
+    </label>
+  `;
+}
+
 export function renderAgentSelect(params: {
   agents: DraftAgent[];
   agentId: string;

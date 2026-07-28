@@ -48,6 +48,21 @@ describe("buildDraftSessionCreateParams", () => {
     });
   });
 
+  it("pins a professional draft to the isolated Professional Core", () => {
+    expect(
+      buildDraftSessionCreateParams({
+        agentId: "main",
+        message: "review the architecture",
+        core: "professional",
+        worktree: false,
+      }),
+    ).toEqual({
+      agentId: "main",
+      message: "review the architecture",
+      core: "professional",
+    });
+  });
+
   it("does not combine a catalog target with a draft model override", () => {
     expect(
       buildDraftSessionCreateParams({

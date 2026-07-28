@@ -73,6 +73,9 @@ describe("buildPromptSection", () => {
     expect(result[1]).toContain("run memory_search");
     expect(result[1]).toContain("then use memory_get");
     expect(result[1]).toContain("indexed session transcripts");
+    expect(result).toContainEqual(expect.stringContaining("Recall is not disclosure"));
+    expect(result).toContainEqual(expect.stringContaining("Apply it silently by default"));
+    expect(result).toContainEqual(expect.stringContaining("Verify time-sensitive"));
     expect(result).toContain(
       "Citations: include Source: <path#line> when it helps the user verify memory snippets.",
     );

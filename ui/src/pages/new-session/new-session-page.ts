@@ -38,7 +38,12 @@ import type { NewSessionRouteData } from "./location.ts";
 import { NewSessionModelControl } from "./model-control.ts";
 import { isAbsolutePath } from "./path.ts";
 import { retainRejectedInitialTurn } from "./rejected-initial-turn.ts";
-import { renderAgentSelect, renderFolderSelect, renderWhereSelect } from "./target-controls.ts";
+import {
+  renderAgentSelect,
+  renderCoreSelect,
+  renderFolderSelect,
+  renderWhereSelect,
+} from "./target-controls.ts";
 
 const CATALOG_RETRY_DELAYS_MS = [0, 1_000, 3_000] as const;
 
@@ -58,6 +63,7 @@ class NewSessionPage extends OpenClawLightDomElement {
   private context?: ApplicationContext;
 
   @state() private agentId = "";
+  @state() private conversationCoreId: "life" | "professional" = "life";
   @state() private folder = "";
   @state() private worktree = false;
   @state() private worktreeName = "";
@@ -654,6 +660,12 @@ class NewSessionPage extends OpenClawLightDomElement {
     ) {
       return false;
     }
+    if (
+      this.conversationCoreId === "professional" &&
+      (Boolean(cloudProfileId) || Boolean(this.execNode) || catalog.isTarget(this.data))
+    ) {
+      return false;
+    }
     if (this.usesCustomFolder() && (!this.isAdmin() || (!this.execNode && !this.worktree))) {
       return false;
     }
@@ -712,6 +724,7 @@ class NewSessionPage extends OpenClawLightDomElement {
         message: cloudProfileId ? "" : message,
         model: this.modelControl.selected,
         thinkingLevel: this.modelControl.thinkingLevel,
+        core: this.conversationCoreId,
         attachments: cloudProfileId ? undefined : apiAttachments,
         worktree: this.worktree,
         baseRef: this.baseRef,
@@ -906,6 +919,31 @@ class NewSessionPage extends OpenClawLightDomElement {
     this.closeBrowser();
     this.modelControl.load(this.context, this.agentId, true);
     this.maybeLoadBranches();
+  }
+
+  private selectConversationCore(core: "life" | "professional") {
+    if (
+      this.submitting ||
+      this.pendingCloud.sessionKey ||
+      catalog.isTarget(this.data) ||
+      core === this.conversationCoreId
+    ) {
+      return;
+    }
+    this.conversationCoreId = core;
+    this.modelControl.reset();
+    if (core === "professional") {
+      const wasNodeTarget = Boolean(this.execNode);
+      this.closeBrowser();
+      this.cloudProfileId = "";
+      this.execNode = "";
+      if (wasNodeTarget) {
+        this.folder = this.workspacePath();
+      }
+    } else {
+      this.modelControl.load(this.context, this.agentId, true);
+    }
+    this.error = null;
   }
 
   /**
@@ -1148,7 +1186,7 @@ class NewSessionPage extends OpenClawLightDomElement {
       open: this.browserOpen,
       listing: this.browserListing,
       target: this.browserTarget,
-      nodes: this.nodes,
+      nodes: this.conversationCoreId === "professional" ? [] : this.nodes,
       loading: this.browserLoading,
       error: this.browserError,
       pathDraft: this.browserPathDraft,
@@ -1187,8 +1225,9 @@ class NewSessionPage extends OpenClawLightDomElement {
 
   /** Where + worktree consolidated into one "run on" menu (Cursor-style). */
   private renderWhereSelect() {
-    const execNodes = this.execNodes();
-    const cloudProfiles = catalog.isTarget(this.data) ? [] : this.cloudProfiles;
+    const nativeCore = this.conversationCoreId === "professional";
+    const execNodes = nativeCore ? [] : this.execNodes();
+    const cloudProfiles = catalog.isTarget(this.data) || nativeCore ? [] : this.cloudProfiles;
     return renderWhereSelect({
       execNodes: this.isAdmin() ? execNodes : [],
       cloudProfiles: this.isAdmin() ? cloudProfiles : [],
@@ -1281,6 +1320,13 @@ class NewSessionPage extends OpenClawLightDomElement {
     const agents = this.agents();
     return catalog.renderBar({
       data: this.data,
+      coreSelect: catalog.isTarget(this.data)
+        ? nothing
+        : renderCoreSelect({
+            core: this.conversationCoreId,
+            disabled: this.submitting || Boolean(this.pendingCloud.sessionKey),
+            onSelect: (core) => this.selectConversationCore(core),
+          }),
       agentSelect: agents.length > 1 ? this.renderAgentSelect(agents) : nothing,
       folderSelect: this.renderFolderSelect(),
       whereSelect: this.renderWhereSelect(),
@@ -1307,6 +1353,7 @@ class NewSessionPage extends OpenClawLightDomElement {
           canSubmit: this.canSubmit(),
           context: this.context,
           isCatalogTarget: catalog.isTarget(this.data),
+          nativeCore: this.conversationCoreId === "professional",
           message: this.message,
           modelControl: this.modelControl,
           requiresModifier: loadSettings().chatSendShortcut === "modifier-enter",

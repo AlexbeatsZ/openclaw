@@ -775,6 +775,23 @@ export function buildBuiltinChatCommands(
       argsMenu: "auto",
     }),
     defineChatCommand({
+      key: "mode",
+      nativeName: "mode",
+      description: "Show or switch the isolated conversation mode.",
+      textAlias: "/mode",
+      category: "session",
+      tier: "essential",
+      args: [
+        {
+          name: "mode",
+          description: "life or professional",
+          type: "string",
+          choices: ["life", "professional", "status"],
+        },
+      ],
+      argsMenu: "auto",
+    }),
+    defineChatCommand({
       key: "reset",
       nativeName: "reset",
       description: "Reset the current session.",

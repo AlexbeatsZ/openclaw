@@ -57,6 +57,8 @@ export type AcpRuntimeEnsureInput = {
   modelExplicit?: boolean;
   /** Optional runtime thinking/reasoning override that must be available during session creation. */
   thinking?: string;
+  /** Optional native system prompt that must be applied when the session is created. */
+  systemPrompt?: string;
   cwd?: string;
   env?: Record<string, string>;
 };

@@ -238,6 +238,7 @@ plugins.
     | `/tools [compact\|verbose]` | Show what the current agent can use right now |
     | `/status` | Show execution/runtime status, Gateway and system uptime, plugin health, plus provider usage/quota |
     | `/status plugins` | Show detailed plugin health: load errors, quarantines, channel plugin failures, dependency issues, compatibility notices. Requires `commands.plugins: true` |
+    | `/mode [status\|life\|professional]` | Show or switch the isolated [conversation core](/concepts/conversation-cores). Chinese aliases `/mode 生活` and `/mode 工作` are supported |
     | `/goal [status\|start\|edit\|pause\|resume\|complete\|block\|clear] ...` | Manage the current session's durable [goal](/tools/goal) |
     | `/diagnostics [note]` | Owner-only support-report flow. Asks for exec approval every time |
     | `/openclaw <request>` | Run the OpenClaw setup and repair helper from an owner DM |

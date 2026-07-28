@@ -488,6 +488,90 @@ describeControlUiE2e("Control UI new-session page mocked Gateway E2E", () => {
     }
   });
 
+  it("keeps professional mode on the Gateway and submits its isolated core", async () => {
+    const context = await browser.newContext({
+      locale: "en-US",
+      serviceWorkers: "block",
+      viewport: { height: 900, width: 1280 },
+    });
+    const page = await context.newPage();
+    const gateway = await installMockGateway(page, {
+      models: [{ id: "gpt-5.5", name: "GPT 5.5", provider: "openai" }],
+      workspaceGit: true,
+      methodResponses: {
+        "agents.list": {
+          agents: [
+            {
+              id: "main",
+              identity: { name: "Main" },
+              name: "Main",
+              workspace: WORKSPACE,
+              workspaceGit: true,
+            },
+          ],
+          defaultId: "main",
+          mainKey: "main",
+          scope: "agent",
+        },
+        "environments.list": {
+          environments: [],
+          profiles: [{ id: "aws", providerId: "crabbox" }],
+        },
+        "node.list": {
+          nodes: [
+            {
+              nodeId: "macbook",
+              displayName: "MacBook",
+              connected: true,
+              commands: ["system.run", "fs.listDir"],
+            },
+          ],
+        },
+        "worktrees.branches": {
+          branches: [{ kind: "local", name: "main" }],
+          defaultBranch: "main",
+        },
+        "sessions.create": { key: "agent:main:professional-draft", runStarted: true },
+      },
+    });
+
+    try {
+      await page.goto(`${server.baseUrl}new`);
+      await gateway.waitForRequest("environments.list");
+      await page.locator('[data-chat-model-select="true"]').waitFor();
+
+      const where = page.locator("wa-popover.new-session-page__where-popover");
+      const whereTrigger = page.locator("#new-session-where-trigger");
+      await whereTrigger.click();
+      await where.getByRole("button", { name: "MacBook" }).click();
+      await expect
+        .poll(() => whereTrigger.locator(".new-session-page__trigger-label").textContent())
+        .toBe("MacBook");
+
+      await page.getByLabel("Mode", { exact: true }).selectOption("professional");
+      await expect
+        .poll(() => whereTrigger.locator(".new-session-page__trigger-label").textContent())
+        .toBe("Gateway · local");
+      expect(await page.locator('[data-chat-model-select="true"]').count()).toBe(0);
+
+      await whereTrigger.click();
+      expect(await where.getByRole("button", { name: "MacBook" }).count()).toBe(0);
+      expect(await where.getByRole("button", { name: "Cloud · aws" }).count()).toBe(0);
+
+      await page.locator(".new-session-page__message").fill("inspect this repository");
+      await page.getByRole("button", { name: "Start session" }).click();
+      const create = await gateway.waitForRequest("sessions.create");
+      expect(create.params).toMatchObject({
+        core: "professional",
+        message: "inspect this repository",
+      });
+      expect(create.params).not.toHaveProperty("execNode");
+      expect(create.params).not.toHaveProperty("model");
+    } finally {
+      await context.close();
+    }
+  });
+
   it("drafts a session with a browsed folder and creates it on first message", async () => {
     const context = await browser.newContext({
       locale: "en-US",

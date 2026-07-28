@@ -23,6 +23,7 @@ import {
 import { handleLearnCommand } from "./commands-learn.js";
 import { handleLoginCommand } from "./commands-login.js";
 import { handleMcpCommand } from "./commands-mcp.js";
+import { handleModeCommand } from "./commands-mode.js";
 import { handleModelsCommand } from "./commands-models.js";
 import { handleNameCommand } from "./commands-name.js";
 import { handlePluginCommand } from "./commands-plugin.js";
@@ -68,6 +69,7 @@ const commandHandlersById = {
   learn: handleLearnCommand,
   login: handleLoginCommand,
   mcp: handleMcpCommand,
+  mode: handleModeCommand,
   models: handleModelsCommand,
   name: handleNameCommand,
   plugin: handlePluginCommand,

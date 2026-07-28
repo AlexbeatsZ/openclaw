@@ -1,9 +1,23 @@
-# Project Goal
+# Goal
 
-- Repository: `openclaw/openclaw`, forked to `AlexbeatsZ/openclaw` and cloned locally at `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
-- Current task: implement optional `main + direct` cron delivery so scheduled AI output can be captured by the program and forwarded to QQ without asking the model to call the message tool.
-- Maintenance policy: this is now maintained as the user's own fork/project. Do not submit upstream PRs by default; push ongoing work to `origin` (`AlexbeatsZ/openclaw`) and use `upstream` only for fetching/syncing upstream changes.
-- Current task: add an OpenClaw model provider for `agy` CLI so OpenClaw can forward prompts to `agy -p` and return the CLI output as assistant text, without reverse proxying or modifying agy's internal prompts.
+- Repository: `openclaw/openclaw`, maintained as the user's fork at `AlexbeatsZ/openclaw`.
+- Long-term scope: preserve the upstream-compatible OpenClaw delivery shell while adding fork-specific providers, channel behavior, operations, and isolated Life/Professional conversation cores.
+- Maintenance policy: push ongoing work to `origin`; use `upstream` only for fetch/sync unless the user explicitly requests an upstream PR.
+
+# Current State
+
+- Branch: `feat/dual-agent-cores`, based on `715b9859`.
+- Dual-core implementation is ready for deployment: Life Core keeps the embedded OpenClaw runtime; Professional Core uses an isolated persistent Claude ACP session through ACPX with a native session system prompt.
+- QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
+- Server deployment target remains WSL on `meta@100.106.169.46`; the local Windows checkout is code/test only.
+- Server WSL Node is `22.23.1`; bundled project-local ACPX and Claude ACP adapters start successfully. Claude turns currently return `AUTH_REQUIRED` because no Claude OAuth token or Anthropic API key is present in the Gateway service environment.
+- Last verified: 2026-07-28.
+
+# Active Work
+
+- Commit and push the branch.
+- Deploy the branch and enable the strict `claude`-only ACPX policy on the server.
+- Complete Claude authentication on the server, then re-run `/mode professional` to revalidate the native session.
 
 # Lessons Learned
 

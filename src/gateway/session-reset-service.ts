@@ -38,6 +38,7 @@ import { resolveResetPreservedSelection } from "../config/sessions/reset-preserv
 import { formatSqliteSessionFileMarker } from "../config/sessions/sqlite-marker.js";
 import type { SessionAcpMeta } from "../config/sessions/types.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { resolveConversationCoreId, type ConversationCoreId } from "../conversation-core/types.js";
 import { logVerbose } from "../globals.js";
 import { createInternalHookEvent, triggerInternalHook } from "../hooks/internal-hooks.js";
 import { getSessionBindingService } from "../infra/outbound/session-binding-service.js";
@@ -470,6 +471,8 @@ async function closeAcpRuntimeForSession(params: {
   reason: "session-reset" | "session-delete";
   onResetMeta?: (params: { sessionKey: string; meta: SessionAcpMeta }) => void;
   deferResetState?: boolean;
+  /** Mode switches retire ACP ownership instead of rebinding it to the new lifecycle. */
+  discardResetState?: boolean;
   onDeferredResetState?: (params: { sessionKey: string; meta: SessionAcpMeta }) => void;
   assertCurrent?: () => void;
   shouldCleanup?: () => boolean;
@@ -558,7 +561,7 @@ async function closeAcpRuntimeForSession(params: {
       `sessions.${params.reason}: ACP runtime close failed for ${params.sessionKey}: ${String(closeOutcome.error)}`,
     );
   }
-  if (params.reason === "session-delete") {
+  if (params.reason === "session-delete" || params.discardResetState === true) {
     params.assertCurrent?.();
     await upsertAcpSessionMeta({
       cfg: params.cfg,
@@ -906,6 +909,8 @@ export async function performGatewaySessionReset(params: {
   // A plain New Chat must return to the agent workspace instead of inheriting the previous
   // turn's session worktree cwd; only worktree-requested resets carry a spawnedCwd forward.
   clearSpawnedCwd?: boolean;
+  /** Rebind the newly rotated lifecycle to a different isolated conversation core. */
+  conversationCoreId?: ConversationCoreId;
   reason: "new" | "reset";
   commandSource: string;
   assertCurrent?: () => void;
@@ -1070,6 +1075,9 @@ export async function performGatewaySessionReset(params: {
         };
       }
       const hadExistingEntry = Boolean(entry);
+      const previousConversationCoreId = resolveConversationCoreId(entry);
+      const nextConversationCoreId = params.conversationCoreId ?? previousConversationCoreId;
+      const switchingConversationCore = previousConversationCoreId !== nextConversationCoreId;
       const agentId = normalizeAgentId(target.agentId ?? resolveDefaultAgentId(cfg));
       const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
       const resetPluginRegistry = getActivePluginRegistry();
@@ -1115,7 +1123,8 @@ export async function performGatewaySessionReset(params: {
         sessionKey: parentSessionKey,
         fallbackSessionKeys: [canonicalKey, legacyKey, params.key],
         reason: "session-reset",
-        deferResetState: true,
+        deferResetState: !switchingConversationCore,
+        discardResetState: switchingConversationCore,
         onDeferredResetState: (state) => {
           deferredAcpResetState = state;
         },
@@ -1178,9 +1187,11 @@ export async function performGatewaySessionReset(params: {
           const sessionAgentId = normalizeAgentId(
             parsed?.agentId ?? target.agentId ?? requestedAgentId ?? resolveDefaultAgentId(cfg),
           );
-          const resetPreservedSelection = resolveResetPreservedSelection({
-            entry: currentEntry,
-          });
+          const resetPreservedSelection = switchingConversationCore
+            ? {}
+            : resolveResetPreservedSelection({
+                entry: currentEntry,
+              });
           const now = Date.now();
           const nextSessionId = randomUUID();
           const sessionFile = formatSqliteSessionFileMarker({
@@ -1194,6 +1205,7 @@ export async function performGatewaySessionReset(params: {
             updatedAt: now,
             systemSent: false,
             abortedLastRun: false,
+            conversationCoreId: nextConversationCoreId,
             thinkingLevel: currentEntry?.thinkingLevel,
             fastMode: currentEntry?.fastMode,
             verboseLevel: currentEntry?.verboseLevel,

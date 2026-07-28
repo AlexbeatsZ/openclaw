@@ -44,6 +44,7 @@ export async function ensureManagerRuntimeHandle(params: {
   const cwd = runtimeOptions.cwd ?? normalizeText(params.meta.cwd);
   const model = normalizeText(runtimeOptions.model);
   const thinking = normalizeText(runtimeOptions.thinking);
+  const systemPrompt = normalizeText(runtimeOptions.systemPrompt);
   const configuredBackend = (params.meta.backend || params.cfg.acp?.backend || "").trim();
   const configSignature = resolveRuntimeConfigCacheKey(params.cfg);
   const cached = params.runtimeHandles.get(params.sessionKey);
@@ -108,6 +109,7 @@ export async function ensureManagerRuntimeHandle(params: {
           ...(resumeSessionId ? { resumeSessionId } : {}),
           ...(model ? { model } : {}),
           ...(thinking ? { thinking } : {}),
+          ...(systemPrompt ? { systemPrompt } : {}),
           cwd,
         }),
       fallbackCode: "ACP_SESSION_INIT_FAILED",
