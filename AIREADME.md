@@ -6,18 +6,18 @@
 
 # Current State
 
-- Branch: `feat/dual-agent-cores`; deployed implementation commit: `771d3020d070720a446f9668b7fda626494d76dc`.
+- Branch: `feat/dual-agent-cores`; deployed implementation commit: `bf80bc1197a44c68370c579e379ac19a389d17d5`.
 - Life and Professional keep isolated workspace, transcript, bootstrap, and memory state, while both use the shared OpenClaw model catalog and execution adapters. The server default is `agy/flash`, backed by the existing `agy` CLI authentication/runtime.
 - QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
 - Server WSL on `meta@100.106.169.46` is the runtime; the local Windows checkout is code/test only. Gateway service, health endpoint, and QQ WebSocket connection are healthy.
 - The superseded strict Claude/ACPX configuration is removed. Professional Core requires no Claude authentication and ignores stale ACP metadata; external native-session catalogs remain excluded because their history ownership would bypass core isolation.
 - The QQ external plugin capsule remains pinned to the locally built `2026.7.2-6bc85cd5` artifact because this correction does not change QQ plugin code.
 - Server WSL Node is `22.23.1`.
-- Last verified: 2026-07-28.
+- Last verified: 2026-07-29.
 
 # Recent Changes
 
-- Added trusted-agent cron authoring for model-free `command` jobs and `on-exit` schedules. The built-in `cron` tool can now create and manage same-agent jobs without an approval prompt, while cross-agent/session isolation remains enforced; command announce delivery also preserves `threadId`. This is committed/tested locally but not yet deployed to server WSL.
+- Added and deployed trusted-agent cron authoring for model-free `command` jobs and `on-exit` schedules. The built-in `cron` tool can now create and manage same-agent jobs without an approval prompt, while cross-agent/session isolation remains enforced; command announce delivery also preserves `threadId`.
 - Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle while preserving an explicit shared model selection.
 - Added QQ `/mode` switching/status commands, Control UI core selection, Professional `AGENTS.md` bootstrap, and Life-memory prompt/recall improvements.
 - Replaced the erroneous Claude-only Professional ACP runtime with the shared OpenClaw/agy model path. Server integration tests passed, and a real Professional `agy/flash` run returned `AGY_PROFESSIONAL_OK` without fallback.
@@ -111,6 +111,7 @@ Important source anchors:
 - The Windows local checkout at `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw` is for code edits, tests, commits, and pushes only.
 - The running OpenClaw instance lives on the user's server, reached as `meta@100.106.169.46`, with the actual build/deployment target inside that server's WSL environment. Runtime config changes, production builds, service restarts, and deployment verification must be performed on the server WSL instance, not by creating or changing local Windows `~/.openclaw` config.
 - The server SSH entry defaults to Windows `cmd`/PowerShell, not Linux bash. For WSL work, explicitly enter WSL from remote PowerShell/cmd; do not assume `/home/meta` exists at the top-level SSH filesystem.
+- Do not rebuild `dist` in place while the Gateway is still running: hashed runtime chunks can disappear before the old process executes plugin stop hooks. The 2026-07-29 deployment logged a non-fatal browser-control `ERR_MODULE_NOT_FOUND` during old-process shutdown for this reason, while the new process started cleanly. Prefer a staged build/swap or stop-before-build when downtime is acceptable.
 - The root bundled-plugin build excludes QQ. Production QQ changes must be built and packed from `extensions/qqbot`, installed into the managed `~/.openclaw/npm/projects/openclaw-qqbot-*` capsule, and have the package-local `node_modules/openclaw` peer link restored to the deployed repository before restarting the gateway.
 - Do not create local Windows OpenClaw runtime config as a substitute for server deployment. A mistaken local `C:\Users\Meta\.openclaw\openclaw.json` was created during agy default-model testing and then removed.
 - Local Windows cleanup audit after the mistaken config creation found no local OpenClaw deployment: no `openclaw` command, no `C:\Users\Meta\.openclaw` or `.clawdbot`, no matching Windows service, no scheduled task, and no OpenClaw process. Temporary backup/probe artifacts from that mistaken local config attempt were also removed from `%LOCALAPPDATA%\Temp\.agents`.
@@ -151,6 +152,7 @@ Important source anchors:
 ## Verification notes
 
 - 2026-07-29 trusted-agent command/on-exit cron authoring passed 645 targeted Vitest assertions across the agent tool, flat recovery, Gateway caller scope, command delivery, and schema suites; `tsgo:core`, modified-file oxfmt/oxlint, and the full build also passed under isolated Node `24.18.0`.
+- Server WSL deployment of `bf80bc1197` fast-forwarded `/home/meta/Project/Workspaces/openclaw`, rebuilt successfully under Node `22.23.1` and pnpm `11.2.2`, restarted `openclaw-gateway.service`, and verified clean HEAD, 16 loaded plugins, QQ WebSocket connected, command schema present in `dist`, and `/health` returning `{"ok":true,"status":"live"}`. Rollback bundle and service-unit backup: `/home/meta/.openclaw/backups/openclaw-agent-command-cron-before-20260729-020547`.
 - 2026-07-18 upstream sync targets official snapshot `66f4ccabc505fb211e151474e7385b1975cb1f30` (`2026.7.2`) while preserving the fork's direct cron delivery, agy provider, QQBot UTF-8 chunking, generic CLI streaming decoder, and replay-safe fallback behavior.
 - The official Cron Control UI was reorganized from the old `ui/src/ui/views/cron.ts` / controller layout into `ui/src/pages/cron/view.ts` and `ui/src/lib/cron/index.ts`. Direct-delivery controls and validation must be ported into those new canonical files; retaining only the deleted old UI files does not preserve the feature.
 - The new scheduler uses exact active-job and command-lane task markers. A direct cron run may ignore only its own markers; it must still defer when any other cron job or cron lane task is active.
@@ -273,7 +275,7 @@ Important source anchors:
 - [x] Move fork checkout to `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw`.
 - [x] Add `upstream` remote pointing at `https://github.com/openclaw/openclaw.git`.
 - [x] Analyze scheduled task / cron code.
-- [ ] Deploy trusted-agent `command` / `on-exit` cron authoring to server WSL after explicit deployment confirmation.
+- [x] Deploy trusted-agent `command` / `on-exit` cron authoring to server WSL after explicit deployment confirmation.
 - [x] Analyze model fallback code.
 - [x] Record findings in `AIREADME.md`.
 - [x] Commit and push this analysis file to the fork.
