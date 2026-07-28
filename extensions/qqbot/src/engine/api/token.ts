@@ -252,6 +252,7 @@ export class TokenManager {
         url: TOKEN_URL,
         auditContext: "qqbot-token",
         capture: false,
+        mode: "trusted_env_proxy",
         policy: QQBOT_TOKEN_SSRF_POLICY,
         timeoutMs: QQBOT_TOKEN_REQUEST_TIMEOUT_MS,
         init: {

@@ -72,6 +72,7 @@ describe("QQBot token manager", () => {
       url: "https://bots.qq.com/app/getAppAccessToken",
       auditContext: "qqbot-token",
       capture: false,
+      mode: "trusted_env_proxy",
       policy: {
         hostnameAllowlist: ["bots.qq.com"],
         allowRfc2544BenchmarkRange: true,
@@ -108,7 +109,7 @@ describe("QQBot token manager", () => {
     expect(logger.debug.mock.calls.join("\n")).not.toContain("tail");
   });
 
-  it("passes the RFC2544 SSRF allowance to the token fetch (regression for #88984)", async () => {
+  it("routes the fixed QQ token endpoint through the env proxy with RFC2544 allowed", async () => {
     mockGuardedTokenResponse('{"access_token":"token-1","expires_in":7200}', {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -119,6 +120,7 @@ describe("QQBot token manager", () => {
       expect.objectContaining({
         url: "https://bots.qq.com/app/getAppAccessToken",
         auditContext: "qqbot-token",
+        mode: "trusted_env_proxy",
         policy: {
           hostnameAllowlist: ["bots.qq.com"],
           allowRfc2544BenchmarkRange: true,
