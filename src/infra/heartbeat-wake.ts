@@ -2,6 +2,7 @@
 import { normalizeOptionalString } from "@openclaw/normalization-core/string-coerce";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { CronDeliveryTrace, CronRunTelemetry } from "../cron/types.js";
+import { runWithGatewayIndependentRootWorkAdmission } from "../process/gateway-work-admission.js";
 import { resolveTimerTimeoutMs } from "../shared/number-coercion.js";
 import { normalizeHeartbeatWakeReason } from "./heartbeat-reason.js";
 
@@ -46,11 +47,6 @@ export type HeartbeatRunResult =
 export const HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT = "requests-in-flight";
 export const HEARTBEAT_SKIP_CRON_IN_PROGRESS = "cron-in-progress";
 export const HEARTBEAT_SKIP_LANES_BUSY = "lanes-busy";
-export type RetryableHeartbeatBusySkipReason =
-  | typeof HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT
-  | typeof HEARTBEAT_SKIP_CRON_IN_PROGRESS
-  | typeof HEARTBEAT_SKIP_LANES_BUSY;
-
 const RETRYABLE_BUSY_SKIP_REASONS = new Set([
   HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT,
   HEARTBEAT_SKIP_CRON_IN_PROGRESS,
@@ -73,12 +69,13 @@ export type HeartbeatWakeSource =
   | "background-task"
   | "background-task-blocked"
   | "acp-spawn"
+  | "session-state"
   | "cli-watchdog"
   | "restart-sentinel"
   | "retry"
   | "other";
 
-export type HeartbeatWakeOverride = {
+type HeartbeatWakeOverride = {
   target?: string;
   to?: string | undefined;
   accountId?: string | undefined;
@@ -270,7 +267,11 @@ function schedule(coalesceMs: number, kind: WakeTimerKind = "normal") {
             ...(pendingWake.sessionKey ? { sessionKey: pendingWake.sessionKey } : {}),
             ...(pendingWake.heartbeat ? { heartbeat: pendingWake.heartbeat } : {}),
           };
-          const res = await active(wakeOpts);
+          // Each wake is detached process work: admit the whole handler before
+          // it can mutate sessions or commitments, and keep it visible until done.
+          const res = await runWithGatewayIndependentRootWorkAdmission(async () =>
+            active(wakeOpts),
+          );
           if (res.status === "skipped" && isRetryableHeartbeatBusySkipReason(res.reason)) {
             // The target runtime is busy; retry this wake target soon.
             queuePendingWakeReason({
@@ -368,26 +369,4 @@ export function requestHeartbeat(opts: {
     heartbeat: opts.heartbeat,
   });
   schedule(opts.coalesceMs ?? DEFAULT_COALESCE_MS, "normal");
-}
-
-export function hasHeartbeatWakeHandler() {
-  return handler !== null;
-}
-
-export function hasPendingHeartbeatWake() {
-  return pendingWakes.size > 0 || Boolean(timer) || scheduled;
-}
-
-export function resetHeartbeatWakeStateForTests() {
-  if (timer) {
-    clearTimeout(timer);
-  }
-  timer = null;
-  timerDueAt = null;
-  timerKind = null;
-  pendingWakes.clear();
-  scheduled = false;
-  running = false;
-  handlerGeneration += 1;
-  handler = null;
 }

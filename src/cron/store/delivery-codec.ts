@@ -16,6 +16,7 @@ export function bindDeliveryColumns(
   | "delivery_mode"
   | "delivery_strategy"
   | "delivery_thread_id"
+  | "delivery_thread_id_type"
   | "delivery_to"
   | "failure_delivery_account_id"
   | "failure_delivery_channel"
@@ -32,6 +33,10 @@ export function bindDeliveryColumns(
       delivery?.threadId === undefined || delivery.threadId === null
         ? null
         : String(delivery.threadId),
+    delivery_thread_id_type:
+      delivery?.threadId === undefined || delivery.threadId === null
+        ? null
+        : typeof delivery.threadId,
     delivery_account_id: delivery?.accountId ?? null,
     delivery_best_effort: booleanToInteger(delivery?.bestEffort),
     delivery_completion_mode: delivery?.completionDestination?.mode ?? null,
@@ -68,15 +73,28 @@ function cronDeliveryStrategyFromValue(value: unknown): CronDelivery["strategy"]
   return value === "heartbeat" || value === "direct" ? value : undefined;
 }
 
+function threadIdFromRow(row: CronJobRow): string | number | undefined {
+  const value = row.delivery_thread_id;
+  if (!value) {
+    return undefined;
+  }
+  if (row.delivery_thread_id_type === "number") {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : value;
+  }
+  return value;
+}
+
 /** Reconstructs delivery config from split SQLite columns, preserving legacy partial rows. */
 export function deliveryFromRow(row: CronJobRow): CronDelivery | undefined {
   const rowMode = cronDeliveryModeFromValue(row.delivery_mode);
   const rowStrategy = cronDeliveryStrategyFromValue(row.delivery_strategy);
+  const threadId = threadIdFromRow(row);
   const hasDeliveryColumns =
     Boolean(
       row.delivery_channel ||
       row.delivery_to ||
-      row.delivery_thread_id ||
+      threadId !== undefined ||
       row.delivery_account_id ||
       row.delivery_completion_mode ||
       row.delivery_completion_to ||
@@ -132,7 +150,7 @@ export function deliveryFromRow(row: CronJobRow): CronDelivery | undefined {
     ...(rowStrategy ? { strategy: rowStrategy } : {}),
     ...(row.delivery_channel ? { channel: row.delivery_channel as CronDelivery["channel"] } : {}),
     ...(row.delivery_to ? { to: row.delivery_to } : {}),
-    ...(row.delivery_thread_id ? { threadId: row.delivery_thread_id } : {}),
+    ...(threadId !== undefined ? { threadId } : {}),
     ...(row.delivery_account_id ? { accountId: row.delivery_account_id } : {}),
     ...(row.delivery_best_effort != null
       ? { bestEffort: integerToBoolean(row.delivery_best_effort) }

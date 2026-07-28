@@ -129,6 +129,12 @@ Important source anchors:
 
 ## Verification notes
 
+- 2026-07-18 upstream sync targets official snapshot `66f4ccabc505fb211e151474e7385b1975cb1f30` (`2026.7.2`) while preserving the fork's direct cron delivery, agy provider, QQBot UTF-8 chunking, generic CLI streaming decoder, and replay-safe fallback behavior.
+- The official Cron Control UI was reorganized from the old `ui/src/ui/views/cron.ts` / controller layout into `ui/src/pages/cron/view.ts` and `ui/src/lib/cron/index.ts`. Direct-delivery controls and validation must be ported into those new canonical files; retaining only the deleted old UI files does not preserve the feature.
+- The new scheduler uses exact active-job and command-lane task markers. A direct cron run may ignore only its own markers; it must still defer when any other cron job or cron lane task is active.
+- The new OpenClaw runtime requires Node `>=22.22.3 <23`, `>=24.15.0 <25`, or `>=25.9.0`. Windows Node `24.14.1` is intentionally rejected because its embedded SQLite `3.51.2` has the upstream WAL-reset corruption risk. Server WSL was upgraded from Node `22.22.0` to `22.23.1` before deployment validation.
+- 2026-07-18 local verification passed: Control UI Cron tests (116), agy tests (10), QQBot outbound tests (22), core and extension `tsgo`, Control UI i18n verify, Kysely generated-schema verify, and the replay-safe fallback classifier tests (22). The full build completed compilation of backend, bundled plugins, plugin SDK, and Control UI, then stopped only at the final CLI metadata runtime check because local Windows Node is `24.14.1`; final SQLite-dependent tests and full build must run in server WSL Node `22.23.1`.
+
 - Passed after agy Gemini model fix: `pnpm exec tsc -p extensions/agy/tsconfig.json --noEmit`.
 - Passed after agy Gemini model fix: `pnpm vitest run --config test/vitest/vitest.extensions.config.ts extensions/agy/index.test.ts` (8 tests).
 - Passed after agy Gemini model fix: `pnpm exec oxfmt --check extensions/agy/catalog.ts extensions/agy/cli-backend.ts extensions/agy/index.ts extensions/agy/index.test.ts extensions/agy/openclaw.plugin.json`.
@@ -224,6 +230,14 @@ Important source anchors:
 - Final server health was `ok`; QQ bot was running and connected. `Daily_Review_Feedback` still has historical `consecutiveErrors=15`, but its delivery config is now `main + direct` and the shared model auth issue has been fixed for future runs.
 
 # Task Board
+
+- [x] Upgrade server WSL Node from `22.22.0` to supported `22.23.1`.
+- [x] Create a safety branch before syncing the fork with the 2026-07-18 official snapshot.
+- [x] Merge official snapshot `66f4ccabc505fb211e151474e7385b1975cb1f30` and resolve conflicts without dropping fork features.
+- [x] Port main-session program delivery controls into the official reorganized Cron Control UI.
+- [x] Run local focused tests, type checks, i18n verification, schema verification, formatting, and compilation.
+- [ ] Commit and push the merged fork branch.
+- [ ] Back up the server checkout, deploy the merged branch, rebuild under WSL Node `22.23.1`, restart the gateway, and verify live health/plugins.
 
 - [x] Investigate OpenClaw system prompt structure and write study notes to `docs/research/openclaw-system-prompt.md`.
 - [x] Confirm local GitHub authentication.
