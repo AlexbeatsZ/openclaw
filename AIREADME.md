@@ -6,9 +6,9 @@
 
 # Current State
 
-- Branch: `feat/dual-agent-cores`; deployed implementation commit: `2396f55d675ba7e7fe47231a5ab9d2bbb8f6107e`.
+- Branch: `feat/dual-agent-cores`; deployed implementation commit: `a1a9b257926fc6376445ec23cccf20640a1db4f7`.
 - Life and Professional keep isolated workspace, transcript, bootstrap, and memory state, while both use the shared OpenClaw model catalog and execution adapters. The server default is `agy/flash`, backed by the existing `agy` CLI authentication/runtime.
-- Control UI is desktop-first and responsive: the new-session page uses a two-column workbench on desktop and a compact single-column phone layout. Life/Professional selection is an accessible inline radio group, draft text survives core changes, and incompatible remote targets reset with an explanation.
+- Control UI is desktop-first and responsive: the root URL and sidebar Home open the new-session workbench, while `/chat` is retained only as the destination for concrete sessions. The new-session page uses a two-column workbench on desktop and a compact single-column phone layout. Life/Professional selection is an accessible inline radio group, draft text survives core changes, and incompatible remote targets reset with an explanation. The OpenClaw custodian page is also a desktop two-column workspace; Agy's unsupported setup-inference mode is presented as a localized recovery path instead of a raw English error.
 - Simplified Chinese covers the product UI and dynamic configuration-schema labels. The large schema catalog is loaded only with the `zh-CN` locale. Product/protocol names, commands, paths, config keys, enum values, and other executable identifiers remain unchanged.
 - Theme mode (`system` / `light` / `dark`) is directly available in the desktop sidebar footer; existing theme tokens provide the night-mode surface.
 - QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
@@ -20,7 +20,7 @@
 
 # Recent Changes
 
-- Reworked and deployed the Control UI as a responsive desktop workbench with a phone breakpoint, visible night-mode control, accessible dual-core selection, and complete Simplified Chinese runtime/config metadata. Production build and performance budgets passed; Gateway health recovered after restart.
+- Reworked and deployed the Control UI as a responsive desktop workbench with a phone breakpoint, visible night-mode control, accessible dual-core selection, and complete Simplified Chinese runtime/config metadata. The root URL and Home navigation now retire the legacy chat landing in favor of the task-first workbench, while existing session links still use chat. Production build and performance budgets passed; Gateway health recovered after restart.
 - Added and deployed trusted-agent cron authoring for model-free `command` jobs and `on-exit` schedules. The built-in `cron` tool can now create and manage same-agent jobs without an approval prompt, while cross-agent/session isolation remains enforced; command announce delivery also preserves `threadId`.
 - Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle while preserving an explicit shared model selection.
 - Added QQ `/mode` switching/status commands, Control UI core selection, Professional `AGENTS.md` bootstrap, and Life-memory prompt/recall improvements.
