@@ -6,18 +6,23 @@
 
 # Current State
 
-- Branch: `feat/dual-agent-cores`, based on `715b9859`.
-- Dual-core implementation is ready for deployment: Life Core keeps the embedded OpenClaw runtime; Professional Core uses an isolated persistent Claude ACP session through ACPX with a native session system prompt.
+- Branch: `feat/dual-agent-cores`; deployed implementation commit: `6bc85cd58dbe2b4ac295976eefb3ab5384ca6e34`.
+- Dual-core implementation is deployed: Life Core keeps the embedded OpenClaw runtime; Professional Core uses an isolated persistent Claude ACP session through ACPX with a native session system prompt.
 - QQ command surface: `/mode status`, `/mode life`, `/mode professional`; Chinese aliases include `生活` and `工作`.
-- Server deployment target remains WSL on `meta@100.106.169.46`; the local Windows checkout is code/test only.
-- Server WSL Node is `22.23.1`; bundled project-local ACPX and Claude ACP adapters start successfully. Claude turns currently return `AUTH_REQUIRED` because no Claude OAuth token or Anthropic API key is present in the Gateway service environment.
+- Server WSL on `meta@100.106.169.46` is the runtime; the local Windows checkout is code/test only. Gateway service, health endpoint, and QQ WebSocket connection are healthy.
+- ACP is enabled with a strict Claude-only ACPX policy. The QQ external plugin capsule is pinned to the locally built `2026.7.2-6bc85cd5` artifact so the deployed channel uses the same dual-core/proxy behavior as this branch.
+- Server WSL Node is `22.23.1`; bundled project-local ACPX and Claude ACP adapters start successfully. Professional turns intentionally fail closed with `AUTH_REQUIRED` until the user supplies Claude OAuth or an Anthropic API key.
 - Last verified: 2026-07-28.
 
 # Active Work
 
-- Commit and push the branch.
-- Deploy the branch and enable the strict `claude`-only ACPX policy on the server.
-- Complete Claude authentication on the server, then re-run `/mode professional` to revalidate the native session.
+- Complete Claude authentication on the server, then run `/mode professional` from QQ to create and validate the native Professional session.
+
+# Recent Changes
+
+- Added isolated Life and Professional conversation cores with separate identity, history, workspace, memory, and session ownership. Core switches rotate the session lifecycle; Professional failures never fall back into Life.
+- Added QQ `/mode` switching/status commands, Control UI core selection, persistent ACPX native prompts, and Life-memory prompt/recall improvements.
+- Routed QQ token and official API requests through the trusted service proxy. The service now restores proxy variables after later drop-ins clear them, and the managed QQ plugin capsule is rebuilt and installed from this branch.
 
 # Lessons Learned
 
@@ -105,6 +110,7 @@ Important source anchors:
 - The Windows local checkout at `C:\Users\Meta\Project\Workspaces\ai-agent\openclaw` is for code edits, tests, commits, and pushes only.
 - The running OpenClaw instance lives on the user's server, reached as `meta@100.106.169.46`, with the actual build/deployment target inside that server's WSL environment. Runtime config changes, production builds, service restarts, and deployment verification must be performed on the server WSL instance, not by creating or changing local Windows `~/.openclaw` config.
 - The server SSH entry defaults to Windows `cmd`/PowerShell, not Linux bash. For WSL work, explicitly enter WSL from remote PowerShell/cmd; do not assume `/home/meta` exists at the top-level SSH filesystem.
+- The root bundled-plugin build excludes QQ. Production QQ changes must be built and packed from `extensions/qqbot`, installed into the managed `~/.openclaw/npm/projects/openclaw-qqbot-*` capsule, and have the package-local `node_modules/openclaw` peer link restored to the deployed repository before restarting the gateway.
 - Do not create local Windows OpenClaw runtime config as a substitute for server deployment. A mistaken local `C:\Users\Meta\.openclaw\openclaw.json` was created during agy default-model testing and then removed.
 - Local Windows cleanup audit after the mistaken config creation found no local OpenClaw deployment: no `openclaw` command, no `C:\Users\Meta\.openclaw` or `.clawdbot`, no matching Windows service, no scheduled task, and no OpenClaw process. Temporary backup/probe artifacts from that mistaken local config attempt were also removed from `%LOCALAPPDATA%\Temp\.agents`.
 
