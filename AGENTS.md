@@ -1,5 +1,3 @@
-> 注意：本项目现有开发提示词尚未按用户的新规则完成整理；在专项处理前保留原内容，不要把当前结构视为已经完成统一。
-
 # AGENTS.MD
 
 Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
@@ -377,19 +375,16 @@ Skills own workflows; root owns hard policy and routing.
 - Provider tool schemas: prefer flat string enum helpers over `Type.Union([Type.Literal(...)])`; some providers reject `anyOf`.
 - External messaging: no token-delta channel messages. Follow `docs/concepts/streaming.md`.
 
-## Local fork contract
+## Local fork and runtime
 
 - This checkout is the user's `AlexbeatsZ/openclaw` fork. Push fork work to `origin`; use `upstream` only for fetch/sync unless the user explicitly requests an upstream PR.
-- The production runtime is WSL on `meta@100.106.169.46`; the Windows checkout is for code and tests. Back up and verify the live service before deployment.
-- Life and Professional cores must keep separate workspace, transcript, bootstrap, memory, and session ownership while sharing the model catalog and execution adapters.
+- The production runtime is WSL on `meta@100.106.169.46`; the Windows checkout is for code and tests. Inspect the current server commit, configuration, and service state before deployment, then back up and verify the live path.
+- Conversation-core terminology and isolation invariants live in `CONTEXT.md` and `docs/adr/0001-isolate-conversation-cores.md`; read them before changing core selection, prompt assembly, workspace, transcript, or memory ownership.
 - Preserve stable Agy aliases such as `agy/flash` and `agy/pro`; concrete CLI model versions are discovered at runtime rather than hardcoded.
 
-## Local current state
+## Prompt ownership boundary
 
-- Branch: `feat/dual-agent-cores`; last recorded deployed implementation: `a1a9b257926fc6376445ec23cccf20640a1db4f7` (verified 2026-07-29; recheck server state before acting).
-- The server used WSL Node `22.23.1`, default model `agy/flash`, healthy gateway/QQ connectivity, and the pinned external QQ capsule `2026.7.2-6bc85cd5` at the last verification.
-
-## Local active work
-
-- Deploy and verify the dynamic Agy model catalog, persist a fresh discovery snapshot, and ensure the server default plus explicit cron references use stable `agy/flash` aliases.
-- Windows-local `test:changed` path casing and `check:changed` prompt snapshot/crabbox failures remain validation gaps; do not confuse them with server runtime failures.
+- This repository-root `AGENTS.md` is for development agents only. Never use it as the source of OpenClaw's product system prompt or copy its repository rules, handoff state, test history, or task logs into model-facing instructions.
+- OpenClaw's product system prompt is rendered by `src/agents/system-prompt.ts`. Model-facing bootstrap files are loaded from the resolved agent or conversation-core workspace, not from this source checkout merely because both files are named `AGENTS.md`.
+- The default Professional Core model instructions are seeded by `src/conversation-core/workspace.ts` into its isolated runtime workspace. Life Core instructions belong to its separately configured runtime workspace.
+- Keep project history and completed work in Git, issues/PRs, ADRs, or normal documentation. Keep this file limited to current development constraints, routing, verification entry points, and genuinely unfinished work; do not append chronological logs or completed task boards.
