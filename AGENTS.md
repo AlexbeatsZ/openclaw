@@ -1,3 +1,5 @@
+> 注意：本项目现有开发提示词尚未按用户的新规则完成整理；在专项处理前保留原内容，不要把当前结构视为已经完成统一。
+
 # AGENTS.MD
 
 Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
