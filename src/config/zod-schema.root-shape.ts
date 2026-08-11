@@ -430,6 +430,7 @@ export const OpenClawSchemaShape = {
         .optional(),
       webhook: HttpUrlSchema.optional(),
       webhookToken: SecretInputSchema.optional().register(sensitive),
+      webhookAllowedHostnames: z.array(z.string().trim().min(1)).min(1).optional(),
       sessionRetention: z.union([z.string(), z.literal(false)]).optional(),
       failureAlert: z
         .strictObject({

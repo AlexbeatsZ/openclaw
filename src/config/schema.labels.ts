@@ -910,6 +910,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "cron.retry.retryOn": "Cron Retry Error Types",
   "cron.webhook": "Cron Legacy Webhook (Deprecated)",
   "cron.webhookToken": "Cron Webhook Bearer Token",
+  "cron.webhookAllowedHostnames": "Cron Webhook Allowed Hostnames",
   "cron.sessionRetention": "Cron Session Retention",
   worktrees: "Worktrees",
   "worktrees.cleanup": "Worktree Cleanup Limits",

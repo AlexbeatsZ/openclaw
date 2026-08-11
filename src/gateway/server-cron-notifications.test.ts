@@ -136,6 +136,32 @@ describe("dispatchGatewayCronFinishedNotifications", () => {
     await waitForFast(() => expect(getActiveGatewayRootWorkCount()).toBe(0));
   });
 
+  it("passes the configured hostname allowlist to guarded webhook fetches", async () => {
+    const job = createWebhookJob({
+      mode: "announce",
+      completionDestination: {
+        mode: "webhook",
+        to: "http://127.0.0.1:18795/v1/openclaw/cron",
+      },
+    });
+
+    dispatchGatewayCronFinishedNotifications({
+      evt: { jobId: job.id, action: "finished", status: "ok", summary: "done" },
+      job,
+      deps: {} as CliDeps,
+      logger: { warn: vi.fn() },
+      resolveCronAgent: () => ({ agentId: "main", cfg: {} }),
+      webhookAllowedHostnames: ["127.0.0.1"],
+    });
+
+    await waitForFast(() => expect(mocks.fetchWithSsrFGuard).toHaveBeenCalledTimes(1));
+    expect(mocks.fetchWithSsrFGuard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        policy: { allowedHostnames: ["127.0.0.1"] },
+      }),
+    );
+  });
+
   it("keeps webhook delivery cold when its token owner is unavailable", async () => {
     const logger = { warn: vi.fn() };
     const job = createWebhookJob({

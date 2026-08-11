@@ -117,6 +117,8 @@ export const AUTOMATION_FIELD_HELP: Record<string, string> = {
     'Deprecated legacy fallback webhook URL used by `openclaw doctor --fix` to migrate old jobs with `notify=true`. Runtime delivery uses per-job `delivery.mode="webhook"` plus `delivery.to`, or `delivery.completionDestination` when preserving announce delivery.',
   "cron.webhookToken":
     "Bearer token attached to cron webhook POST deliveries when webhook mode is used. Prefer secret/env substitution and rotate this token regularly if shared webhook endpoints are internet-reachable.",
+  "cron.webhookAllowedHostnames":
+    "Exact hostname exceptions for cron webhook SSRF checks. Use only for operator-controlled private or loopback receivers, keep the list minimal, and never use wildcard-like broad entries.",
   "cron.sessionRetention":
     "Controls how long completed cron run sessions are kept before pruning (`24h`, `7d`, `1h30m`, or `false` to disable pruning; default: `24h`). Use shorter retention to reduce storage growth on high-frequency schedules.",
   worktrees:

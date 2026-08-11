@@ -1153,6 +1153,7 @@ describe("cron webhook schema", () => {
         enabled: true,
         webhook: "https://example.invalid/legacy-cron-webhook",
         webhookToken: "secret-token",
+        webhookAllowedHostnames: ["127.0.0.1"],
       },
     });
 

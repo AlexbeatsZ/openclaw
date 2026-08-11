@@ -137,6 +137,7 @@ export const TARGET_KEYS = [
   "cron.retry.retryOn",
   "cron.webhook",
   "cron.webhookToken",
+  "cron.webhookAllowedHostnames",
   "cron.sessionRetention",
   "session",
   "session.scope",

@@ -48,6 +48,8 @@ export type CronConfig = {
   webhook?: string;
   /** Bearer token for cron webhook POST delivery. */
   webhookToken?: SecretInput;
+  /** Exact hostnames allowed when cron webhooks target private or loopback addresses. */
+  webhookAllowedHostnames?: string[];
   /**
    * How long to retain completed cron run sessions before automatic pruning.
    * Accepts a duration string (e.g. "24h", "7d", "1h30m") or `false` to disable pruning.

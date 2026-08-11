@@ -1,8 +1,3 @@
-> [!WARNING]
-> **迁移审计未完成。** 本项目的 AI 提示词曾在 `AIREADME.md` → `AGENTS.md` 迁移中发生内容合并、删改、语义重写，或无法用 Git 证明为纯改名。当前内容可能与项目真实状态不一致。
->
-> 在进行任何项目修改前，必须先核对迁移前后的 Git 历史、当前代码与配置、真实运行/部署状态，以及项目内部调用模型的提示词和启动参数。确认迁移内容与真实状态一致后，删除本警告，再继续正常修改；不得仅依据本文件恢复、删除或改变项目行为。
-
 # AGENTS.MD
 
 Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
@@ -393,3 +388,7 @@ Skills own workflows; root owns hard policy and routing.
 - OpenClaw's product system prompt is rendered by `src/agents/system-prompt.ts`. Model-facing bootstrap files are loaded from the resolved agent or conversation-core workspace, not from this source checkout merely because both files are named `AGENTS.md`.
 - The default Professional Core model instructions are seeded by `src/conversation-core/workspace.ts` into its isolated runtime workspace. Life Core instructions belong to its separately configured runtime workspace.
 - Keep project history and completed work in Git, issues/PRs, ADRs, or normal documentation. Keep this file limited to current development constraints, routing, verification entry points, and genuinely unfinished work; do not append chronological logs or completed task boards.
+
+## Local design references
+
+- Cron loopback completion receivers: `docs/design/cron-webhook-private-host-allowlist.md`
