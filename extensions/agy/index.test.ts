@@ -195,28 +195,28 @@ describe("agy provider", () => {
         modelId: CONFIGURED_MODEL_ID,
         thinkingLevel: "minimal",
       }),
-    ).toEqual(["--model", "gemini-7.10-flash-low", "--print", "{prompt}"]);
+    ).toEqual(["--model", "gemini-7.10-flash-low", "--effort", "low", "--print", "{prompt}"]);
     expect(
       resolveExecutionArgs({
         baseArgs: ["--print", "{prompt}"],
         modelId: CONFIGURED_MODEL_ID,
         thinkingLevel: "medium",
       }),
-    ).toEqual(["--model", "gemini-7.10-flash-medium", "--print", "{prompt}"]);
+    ).toEqual(["--model", "gemini-7.10-flash-medium", "--effort", "medium", "--print", "{prompt}"]);
     expect(
       resolveExecutionArgs({
         baseArgs: ["--print", "{prompt}"],
         modelId: CONFIGURED_MODEL_ID,
         thinkingLevel: "high",
       }),
-    ).toEqual(["--model", "gemini-7.10-flash-high", "--print", "{prompt}"]);
+    ).toEqual(["--model", "gemini-7.10-flash-high", "--effort", "high", "--print", "{prompt}"]);
     expect(
       resolveExecutionArgs({
         baseArgs: ["--print", "{prompt}"],
         modelId: "unconfigured-model",
         thinkingLevel: "high",
       }),
-    ).toEqual(["--model", "unconfigured-model", "--print", "{prompt}"]);
+    ).toEqual(["--model", "unconfigured-model", "--effort", "high", "--print", "{prompt}"]);
   });
 
   it("discovers with the same effective command, workspace, and env as the CLI backend", async () => {
@@ -270,7 +270,28 @@ describe("agy provider", () => {
         modelId: "flash",
         thinkingLevel: "high",
       }),
-    ).toEqual(["--model", "Gemini 9.1 Flash (High)", "--print", "{prompt}"]);
+    ).toEqual(["--model", "Gemini 9.1 Flash (High)", "--effort", "high", "--print", "{prompt}"]);
+  });
+
+  it("replaces configured effort flags with the requested Agy effort", async () => {
+    const { cliBackend } = collectProviderRegistration();
+    const prepareExecution = cliBackend.prepareExecution as (ctx: {
+      config?: OpenClawConfig;
+    }) => Promise<unknown>;
+    const resolveExecutionArgs = cliBackend.resolveExecutionArgs as (ctx: {
+      baseArgs: string[];
+      modelId: string;
+      thinkingLevel: "max";
+    }) => readonly string[];
+
+    await prepareExecution({ config: configuredAgyConfig } as never);
+    expect(
+      resolveExecutionArgs({
+        baseArgs: ["--print", "{prompt}", "--effort", "low", "--effort=medium"],
+        modelId: CONFIGURED_MODEL_ID,
+        thinkingLevel: "max",
+      }),
+    ).toEqual(["--model", "gemini-7.10-flash-high", "--effort", "high", "--print", "{prompt}"]);
   });
 
   it("filters OpenClaw system prompts for the CLI backend transport", () => {

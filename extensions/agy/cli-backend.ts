@@ -11,6 +11,9 @@ import { readAgyPluginConfig, resolveAgySystemPrompt } from "./stream.js";
 type AgyThinkingLevel = NonNullable<
   Parameters<NonNullable<CliBackendPlugin["resolveExecutionArgs"]>>[0]["thinkingLevel"]
 >;
+type AgyCliEffort = "low" | "medium" | "high";
+
+const AGY_EFFORT_ARG = "--effort";
 
 const AGY_CLI_BACKEND_CONFIG: CliBackendPlugin["config"] = {
   command: "agy",
@@ -56,6 +59,42 @@ function resolveAgyThinkingModel(params: {
   );
 }
 
+function resolveAgyCliEffort(thinkingLevel?: AgyThinkingLevel): AgyCliEffort | undefined {
+  // Agy 1.1.12 accepts only low/medium/high, so clamp OpenClaw-only extrema.
+  switch (thinkingLevel) {
+    case "minimal":
+    case "low":
+      return "low";
+    case "medium":
+      return "medium";
+    case "high":
+    case "xhigh":
+    case "max":
+      return "high";
+    default:
+      return undefined;
+  }
+}
+
+function stripAgyEffortArgs(args: readonly string[]): string[] {
+  const normalized: string[] = [];
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index] ?? "";
+    if (arg === AGY_EFFORT_ARG) {
+      const value = args[index + 1];
+      if (typeof value === "string" && value.trim() && !value.startsWith("-")) {
+        index += 1;
+      }
+      continue;
+    }
+    if (arg.startsWith(`${AGY_EFFORT_ARG}=`)) {
+      continue;
+    }
+    normalized.push(arg);
+  }
+  return normalized;
+}
+
 /** Build the OpenClaw CLI backend that executes the local agy command. */
 export function buildAgyCliBackend(): CliBackendPlugin {
   return {
@@ -79,10 +118,14 @@ export function buildAgyCliBackend(): CliBackendPlugin {
       );
     },
     config: AGY_CLI_BACKEND_CONFIG,
-    resolveExecutionArgs: ({ baseArgs, config, workspaceDir, modelId, thinkingLevel }) => [
-      "--model",
-      resolveAgyThinkingModel({ config, workspaceDir, modelId, thinkingLevel }),
-      ...baseArgs,
-    ],
+    resolveExecutionArgs: ({ baseArgs, config, workspaceDir, modelId, thinkingLevel }) => {
+      const effort = resolveAgyCliEffort(thinkingLevel);
+      return [
+        "--model",
+        resolveAgyThinkingModel({ config, workspaceDir, modelId, thinkingLevel }),
+        ...(effort ? [AGY_EFFORT_ARG, effort] : []),
+        ...(effort ? stripAgyEffortArgs(baseArgs) : baseArgs),
+      ];
+    },
   };
 }
