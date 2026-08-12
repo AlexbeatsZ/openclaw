@@ -217,6 +217,12 @@ describe("agy provider", () => {
         thinkingLevel: "high",
       }),
     ).toEqual(["--model", "unconfigured-model", "--effort", "high", "--print", "{prompt}"]);
+    expect(
+      resolveExecutionArgs({
+        baseArgs: ["--print", "{prompt}"],
+        modelId: CONFIGURED_MODEL_ID,
+      }),
+    ).toEqual(["--model", "gemini-7.10-flash-high", "--effort", "high", "--print", "{prompt}"]);
   });
 
   it("discovers with the same effective command, workspace, and env as the CLI backend", async () => {

@@ -14,6 +14,7 @@ type AgyThinkingLevel = NonNullable<
 type AgyCliEffort = "low" | "medium" | "high";
 
 const AGY_EFFORT_ARG = "--effort";
+const AGY_DEFAULT_EFFORT: AgyCliEffort = "high";
 
 const AGY_CLI_BACKEND_CONFIG: CliBackendPlugin["config"] = {
   command: "agy",
@@ -59,8 +60,10 @@ function resolveAgyThinkingModel(params: {
   );
 }
 
-function resolveAgyCliEffort(thinkingLevel?: AgyThinkingLevel): AgyCliEffort | undefined {
-  // Agy 1.1.12 accepts only low/medium/high, so clamp OpenClaw-only extrema.
+function resolveAgyCliEffort(thinkingLevel?: AgyThinkingLevel): AgyCliEffort {
+  // Agy 1.1.12 requires an explicit low/medium/high effort for Gemini models.
+  // Some non-chat entry points can omit OpenClaw's turn-local level even when
+  // the selected model's configured default is high, so fail closed to high.
   switch (thinkingLevel) {
     case "minimal":
     case "low":
@@ -72,7 +75,7 @@ function resolveAgyCliEffort(thinkingLevel?: AgyThinkingLevel): AgyCliEffort | u
     case "max":
       return "high";
     default:
-      return undefined;
+      return AGY_DEFAULT_EFFORT;
   }
 }
 
@@ -120,11 +123,18 @@ export function buildAgyCliBackend(): CliBackendPlugin {
     config: AGY_CLI_BACKEND_CONFIG,
     resolveExecutionArgs: ({ baseArgs, config, workspaceDir, modelId, thinkingLevel }) => {
       const effort = resolveAgyCliEffort(thinkingLevel);
+      const effectiveThinkingLevel = thinkingLevel ?? effort;
       return [
         "--model",
-        resolveAgyThinkingModel({ config, workspaceDir, modelId, thinkingLevel }),
-        ...(effort ? [AGY_EFFORT_ARG, effort] : []),
-        ...(effort ? stripAgyEffortArgs(baseArgs) : baseArgs),
+        resolveAgyThinkingModel({
+          config,
+          workspaceDir,
+          modelId,
+          thinkingLevel: effectiveThinkingLevel,
+        }),
+        AGY_EFFORT_ARG,
+        effort,
+        ...stripAgyEffortArgs(baseArgs),
       ];
     },
   };
