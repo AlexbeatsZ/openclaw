@@ -1095,7 +1095,11 @@ function renderChatQueueItem(item: ChatQueueItem, props: ChatQueueProps) {
               </openclaw-tooltip>
             `}
       </span>
-      ${item.sendError ? html`<span class="chat-queue__error">${item.sendError}</span>` : nothing}
+      ${item.sendError
+        ? html`<span class="chat-queue__error">
+            <openclaw-runtime-error compact .error=${item.sendError}></openclaw-runtime-error>
+          </span>`
+        : nothing}
     </div>
   `;
 }

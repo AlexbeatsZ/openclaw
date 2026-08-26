@@ -1237,7 +1237,7 @@ export function renderSessionWorkspaceRail(
       ${renderSessionSummary()}
       ${sessionWorkspace.error
         ? html`<div class="chat-workspace-rail__state chat-workspace-rail__state--error">
-            ${sessionWorkspace.error}
+            <openclaw-runtime-error .error=${sessionWorkspace.error}></openclaw-runtime-error>
           </div>`
         : sessionWorkspace.loading && !hasItems
           ? html`<div class="chat-workspace-rail__state">${t("chat.workspaceFiles.loading")}</div>`

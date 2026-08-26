@@ -421,7 +421,7 @@ export class CustodianPage extends OpenClawLightDomElement {
                   </section>`
                 : this.error
                   ? html`<div class="custodian__error" role="alert">
-                      <span>${this.error}</span>
+                      <openclaw-runtime-error .error=${this.error}></openclaw-runtime-error>
                       ${this.activeClient && this.chatAvailable && this.canRetry()
                         ? html`<button
                             class="btn btn--sm"

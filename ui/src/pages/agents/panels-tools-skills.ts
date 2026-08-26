@@ -748,7 +748,11 @@ export function renderAgentSkills(params: {
     ${!reportReady && !params.loading
       ? html`<div class="callout info">${t("agents.skillsPanel.loadAgent")}</div>`
       : nothing}
-    ${params.error ? html`<div class="callout danger">${params.error}</div>` : nothing}
+    ${params.error
+      ? html`<div class="callout danger">
+          <openclaw-runtime-error .error=${params.error}></openclaw-runtime-error>
+        </div>`
+      : nothing}
     ${renderSettingsSection(
       {
         title: t("agents.skillsPanel.title"),

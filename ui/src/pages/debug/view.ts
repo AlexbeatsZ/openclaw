@@ -139,7 +139,9 @@ export function renderDebug(props: DebugProps) {
         ? html`
             <div class="settings-row settings-row--stacked">
               ${renderSettingsStatus({ kind: "danger", label: t("debug.callFailed") })}
-              <pre class="code-block">${props.callError}</pre>
+              <div class="code-block">
+                <openclaw-runtime-error .error=${props.callError}></openclaw-runtime-error>
+              </div>
             </div>
           `
         : nothing}

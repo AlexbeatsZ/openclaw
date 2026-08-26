@@ -1972,7 +1972,9 @@ export function renderWorkboard(props: WorkboardProps) {
     if (props.pluginEnablementError) {
       return html`
         <section class="workboard">
-          <div class="callout danger" role="alert">${props.pluginEnablementError}</div>
+          <div class="callout danger" role="alert">
+            <openclaw-runtime-error .error=${props.pluginEnablementError}></openclaw-runtime-error>
+          </div>
           ${props.onReloadConfig
             ? html`<button class="btn" type="button" @click=${props.onReloadConfig}>
                 ${t("lazyView.retry")}
@@ -2263,7 +2265,11 @@ export function renderWorkboard(props: WorkboardProps) {
           </div>
         </div>
         ${renderHealthStrip(state, health, props.onRequestUpdate)}
-        ${visibleError ? html`<div class="callout danger">${visibleError}</div>` : nothing}
+        ${visibleError
+          ? html`<div class="callout danger">
+              <openclaw-runtime-error .error=${visibleError}></openclaw-runtime-error>
+            </div>`
+          : nothing}
         ${renderDispatchSummary(state)}
         ${showEmptyState || visibleStatuses.length === 0
           ? renderWorkboardEmptyState()

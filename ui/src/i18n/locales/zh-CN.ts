@@ -87,6 +87,89 @@ export const zh_CN: TranslationMap = {
     logout: "退出登录",
     skipToMainContent: "跳转到主要内容",
   },
+  runtimeError: {
+    technicalDetails: "技术详情",
+    auth: {
+      title: "身份验证失败",
+      guidance: "请检查账号、API 密钥、令牌或登录状态后重试。",
+    },
+    permission: {
+      title: "权限不足",
+      guidance: "当前账号或进程无权执行这项操作。",
+    },
+    rateLimit: {
+      title: "请求过于频繁",
+      guidance: "请稍等片刻再重试，或检查服务商配额。",
+    },
+    billing: {
+      title: "账单或余额异常",
+      guidance: "请检查服务商余额、账单状态或消费限额。",
+    },
+    timeout: {
+      title: "请求超时",
+      guidance: "操作未能及时完成，请检查服务或网络后重试。",
+    },
+    network: {
+      title: "网络连接失败",
+      guidance: "请检查 Gateway、代理、DNS 以及目标服务的连通性。",
+    },
+    unavailable: {
+      title: "服务暂时不可用",
+      guidance: "服务商或 Gateway 返回了服务器错误，请稍后重试。",
+    },
+    invalidInput: {
+      title: "请求参数无效",
+      guidance: "请检查配置和填写内容后重试。",
+    },
+    invalidResponse: {
+      title: "服务返回的内容无效",
+      guidance: "服务商或插件返回了 OpenClaw 无法读取的数据。",
+    },
+    notFound: {
+      title: "找不到所需内容",
+      guidance: "请检查路径、命令、模型、插件或资源名称。",
+    },
+    conflict: {
+      title: "操作与当前状态冲突",
+      guidance: "请刷新当前状态，解决冲突后重试。",
+    },
+    cancelled: {
+      title: "操作已取消",
+      guidance: "如果并非主动取消，请重新发起操作。",
+    },
+    delivery: {
+      title: "消息投递失败",
+      guidance: "请检查频道、接收者、Webhook 和连接状态。",
+    },
+    process: {
+      title: "命令执行失败",
+      guidance: "请检查命令、运行环境和退出详情。",
+    },
+    contextOverflow: {
+      title: "会话上下文过大",
+      guidance: "请新建会话，或减少发送给模型的内容。",
+    },
+    sessionExpired: {
+      title: "会话已过期",
+      guidance: "请重新连接或登录后再试。",
+    },
+    emptyResponse: {
+      title: "没有返回可用结果",
+      guidance: "操作结束但没有输出；若重复出现，请重试并查看技术详情。",
+    },
+    resourceLimit: {
+      title: "本机资源不足",
+      guidance: "请检查 Gateway 主机的磁盘空间、内存和进程限制。",
+    },
+    blocked: {
+      title: "请求被安全策略拦截",
+      guidance: "请检查提交内容和服务商的安全策略后重试。",
+    },
+    unknown: {
+      title: "操作失败",
+      guidance: "请查看技术详情中的原始原因。",
+    },
+  },
   optionCard: {
     recommended: "推荐",
     skip: "暂时跳过",
@@ -533,6 +616,7 @@ export const zh_CN: TranslationMap = {
     catalogUnavailable: "此会话目标不可用。",
   },
   sessionsView: {
+    catalogErrorHelp: "请在“设置 > 自动化 > 插件”中配置本机会话发现。",
     deletePreservedWorktrees:
       "{count} 个会话工作树包含未提交或未推送的工作，因此已保留（{branches}）。请在设置 -> 工作树下管理它们。",
     deletePreservedWorktreeConfirm:

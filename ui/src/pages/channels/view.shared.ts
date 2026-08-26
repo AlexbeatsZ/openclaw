@@ -1,6 +1,7 @@
 // Channels page shared view helpers.
 import { html, nothing } from "lit";
 import type { ChannelAccountSnapshot } from "../../api/types.ts";
+import "../../components/runtime-error.ts";
 import { renderSettingsSection, renderSettingsStatus } from "../../components/settings-ui.ts";
 import { t } from "../../i18n/index.ts";
 import { formatRelativeTimestamp } from "../../lib/format.ts";
@@ -131,7 +132,9 @@ export function renderChannelErrorRow(message: unknown) {
         <span class="settings-row__title"
           >${renderSettingsStatus({ kind: "danger", label: t("channels.lastError") })}</span
         >
-        <span class="settings-row__desc">${message}</span>
+        <span class="settings-row__desc">
+          <openclaw-runtime-error compact .error=${message}></openclaw-runtime-error>
+        </span>
       </div>
     </div>
   `;
@@ -185,7 +188,9 @@ export function renderChannelAccountRow(params: {
         <span class="settings-row__title">${params.title}</span>
         <span class="settings-row__desc">${factLine}</span>
         ${params.lastError
-          ? html`<span class="settings-row__desc">${params.lastError}</span>`
+          ? html`<span class="settings-row__desc">
+              <openclaw-runtime-error compact .error=${params.lastError}></openclaw-runtime-error>
+            </span>`
           : nothing}
       </div>
       <div class="settings-row__control">

@@ -47,11 +47,15 @@ import {
 
 const CATALOG_RETRY_DELAYS_MS = [0, 1_000, 3_000] as const;
 
-function renderDraftError(message: string) {
+function renderDraftError(message: string, runtime = false) {
   return html`
     <div class="callout danger new-session-page__error new-session-page__alert" role="alert">
       <span class="new-session-page__alert-icon" aria-hidden="true">${icons.alertTriangle}</span>
-      <span class="callout__content new-session-page__alert-message">${message}</span>
+      <span class="callout__content new-session-page__alert-message">
+        ${runtime
+          ? html`<openclaw-runtime-error .error=${message}></openclaw-runtime-error>`
+          : message}
+      </span>
     </div>
   `;
 }
@@ -1349,7 +1353,7 @@ class NewSessionPage extends OpenClawLightDomElement {
         </header>
         ${this.renderTargetBar()}
         ${worktreeNameInvalid ? renderDraftError(t("newSession.worktreeNameInvalid")) : nothing}
-        ${this.error ? renderDraftError(this.error) : nothing}
+        ${this.error ? renderDraftError(this.error, true) : nothing}
         ${this.submissionOutcomeUnknown
           ? renderDraftError(t("newSession.createOutcomeUnknown"))
           : nothing}

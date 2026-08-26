@@ -315,7 +315,7 @@ class ApprovalsPage extends OpenClawLightDomElement {
         ${this.error
           ? html`
               <div class="callout danger">
-                ${this.error}
+                <openclaw-runtime-error .error=${this.error}></openclaw-runtime-error>
                 <button class="btn btn--sm" @click=${() => void this.loadPage(true)}>
                   ${t("common.retry")}
                 </button>

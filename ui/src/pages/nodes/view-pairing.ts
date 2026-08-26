@@ -2,6 +2,7 @@
 import { html, nothing } from "lit";
 import { icons } from "../../components/icons.ts";
 import "../../components/modal-dialog.ts";
+import "../../components/runtime-error.ts";
 import { t } from "../../i18n/index.ts";
 import type { DevicePairSetup, DevicePairSetupAccess } from "../../lib/device-pair-setup.ts";
 
@@ -98,7 +99,7 @@ export function renderDevicePairSetup(props: DevicePairSetupProps) {
             ? html`
                 <div class="callout danger device-pair-setup__error" role="alert">
                   <strong>${t("nodes.pairing.failed")}</strong>
-                  <span>${props.error}</span>
+                  <openclaw-runtime-error compact .error=${props.error}></openclaw-runtime-error>
                 </div>
                 <button
                   class="btn primary"

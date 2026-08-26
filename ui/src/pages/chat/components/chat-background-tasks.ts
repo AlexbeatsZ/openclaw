@@ -507,7 +507,7 @@ export function renderBackgroundTasksRail(
         : nothing}
       ${backgroundTasks.error
         ? html`<div class="chat-tasks-rail__state chat-tasks-rail__state--error">
-            ${backgroundTasks.error}
+            <openclaw-runtime-error .error=${backgroundTasks.error}></openclaw-runtime-error>
           </div>`
         : nothing}
       ${backgroundTasks.loading && !loaded

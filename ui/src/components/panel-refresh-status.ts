@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../i18n/index.ts";
+import "./runtime-error.ts";
 
 export type PanelRefreshStatus = Readonly<{
   error: string | null;
@@ -55,7 +56,7 @@ export function renderPanelRefreshStatus(params: {
   return html`
     <div class="callout danger callout--dismissible${className}" role="alert">
       <span class="callout__content">
-        <span>${error}</span>
+        <openclaw-runtime-error .error=${error}></openclaw-runtime-error>
         ${status.stale ? html`<br /><strong>${t("common.staleData")}</strong>` : nothing}
       </span>
       <button class="btn btn--sm" @click=${params.onRetry}>${t("common.retry")}</button>

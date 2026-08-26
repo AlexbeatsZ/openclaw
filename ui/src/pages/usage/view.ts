@@ -1,6 +1,7 @@
 // Control UI view renders usage screen content.
 import { html, nothing } from "lit";
 import { renderProviderUsageDetails } from "../../components/provider-usage.ts";
+import "../../components/runtime-error.ts";
 import { renderSettingsPage, renderSettingsSection } from "../../components/settings-ui.ts";
 import "../../components/tooltip.ts";
 import "../../components/web-awesome.ts";
@@ -773,7 +774,9 @@ export function renderUsage(props: UsageProps) {
             </div>
 
             ${data.error
-              ? html`<div class="callout danger usage-callout">${data.error}</div>`
+              ? html`<div class="callout danger usage-callout">
+                  <openclaw-runtime-error .error=${data.error}></openclaw-runtime-error>
+                </div>`
               : nothing}
             ${cacheStatusTitle
               ? html`

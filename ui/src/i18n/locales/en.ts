@@ -87,6 +87,91 @@ export const en: TranslationMap = {
     logout: "Logout",
     skipToMainContent: "Skip to main content",
   },
+  runtimeError: {
+    technicalDetails: "Technical details",
+    auth: {
+      title: "Authentication failed",
+      guidance: "Check the account, API key, token, or sign-in state and try again.",
+    },
+    permission: {
+      title: "Permission denied",
+      guidance: "The current account or process is not allowed to perform this action.",
+    },
+    rateLimit: {
+      title: "Too many requests",
+      guidance: "Wait briefly and retry, or check the provider quota.",
+    },
+    billing: {
+      title: "Billing or credit problem",
+      guidance: "Check the provider balance, billing status, or spending limit.",
+    },
+    timeout: {
+      title: "Request timed out",
+      guidance:
+        "The operation did not finish in time; retry after checking the service or network.",
+    },
+    network: {
+      title: "Network connection failed",
+      guidance: "Check the Gateway, proxy, DNS, and target service connectivity.",
+    },
+    unavailable: {
+      title: "Service temporarily unavailable",
+      guidance: "The provider or Gateway returned a server error; retry later.",
+    },
+    invalidInput: {
+      title: "Invalid request parameters",
+      guidance: "Check the configuration and submitted values, then try again.",
+    },
+    invalidResponse: {
+      title: "Invalid service response",
+      guidance: "The provider or plugin returned data OpenClaw could not read.",
+    },
+    notFound: {
+      title: "Requested item not found",
+      guidance: "Check the path, command, model, plugin, or resource name.",
+    },
+    conflict: {
+      title: "Operation conflicts with current state",
+      guidance: "Refresh the current state and retry after resolving the conflict.",
+    },
+    cancelled: {
+      title: "Operation cancelled",
+      guidance: "Start it again if the cancellation was not intentional.",
+    },
+    delivery: {
+      title: "Message delivery failed",
+      guidance: "Check the channel, recipient, Webhook, and connection state.",
+    },
+    process: {
+      title: "Command execution failed",
+      guidance: "Check the command, runtime environment, and exit details.",
+    },
+    contextOverflow: {
+      title: "Conversation context is too large",
+      guidance: "Start a new session or reduce the amount of content sent to the model.",
+    },
+    sessionExpired: {
+      title: "Session expired",
+      guidance: "Reconnect or sign in again, then retry the operation.",
+    },
+    emptyResponse: {
+      title: "No usable result was returned",
+      guidance:
+        "The operation ended without output; retry and inspect the technical details if it repeats.",
+    },
+    resourceLimit: {
+      title: "Local resources exhausted",
+      guidance: "Check available disk space, memory, and process limits on the Gateway host.",
+    },
+    blocked: {
+      title: "Request blocked by a safety policy",
+      guidance: "Review the submitted content and the provider's safety policy before retrying.",
+    },
+    unknown: {
+      title: "Operation failed",
+      guidance: "Review the technical details to locate the original cause.",
+    },
+  },
   optionCard: {
     recommended: "Recommended",
     skip: "Skip for now",
@@ -525,6 +610,7 @@ export const en: TranslationMap = {
     catalogUnavailable: "This session target is unavailable.",
   },
   sessionsView: {
+    catalogErrorHelp: "Configure native session discovery in Settings > Automation > Plugins.",
     deletePreservedWorktrees:
       "{count} session worktree(s) with uncommitted or unpushed work were kept ({branches}). Manage them under Settings -> Worktrees.",
     deletePreservedWorktreeConfirm:

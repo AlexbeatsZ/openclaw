@@ -4,6 +4,7 @@ import {
 } from "../../../src/gateway/events.js";
 import type { GatewayEventFrame, GatewayHelloOk } from "../api/gateway.ts";
 import type { UpdateAvailable } from "../api/types.ts";
+import { formatRuntimeErrorInline } from "../components/runtime-error.ts";
 import {
   closeDevicePairSetup as closeDevicePairSetupState,
   createDevicePairSetupState,
@@ -613,7 +614,9 @@ export function createApplicationOverlays(
           ...snapshot,
           updateStatusBanner: {
             tone: "danger",
-            text: `Update error: ${error instanceof Error ? error.message : String(error)}`,
+            text: formatRuntimeErrorInline(error, undefined, {
+              fallback: `Update error: ${error instanceof Error ? error.message : String(error)}`,
+            }),
           },
         };
       } finally {
@@ -663,7 +666,9 @@ export function createApplicationOverlays(
           return;
         }
         if (isCurrentOperation() && promptState.execApprovalQueue[0]?.id === active.id) {
-          promptState.execApprovalError = `Approval failed: ${error instanceof Error ? error.message : String(error)}`;
+          promptState.execApprovalError = formatRuntimeErrorInline(error, undefined, {
+            fallback: `Approval failed: ${error instanceof Error ? error.message : String(error)}`,
+          });
         }
       } finally {
         // Reconnect can admit a new decision while this request is still settling.

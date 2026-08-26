@@ -217,7 +217,11 @@ export function renderAgentChannels(params: {
       t("agents.context.configurationSubtitle"),
       params.onSelectPanel,
     )}
-    ${params.error ? html`<div class="callout danger">${params.error}</div>` : nothing}
+    ${params.error
+      ? html`<div class="callout danger">
+          <openclaw-runtime-error .error=${params.error}></openclaw-runtime-error>
+        </div>`
+      : nothing}
     ${!params.snapshot
       ? html`<div class="callout info">${t("agents.channels.loadHint")}</div>`
       : nothing}
@@ -303,7 +307,11 @@ export function renderAgentCron(params: {
       t("agents.context.schedulingSubtitle"),
       params.onSelectPanel,
     )}
-    ${params.error ? html`<div class="callout danger">${params.error}</div>` : nothing}
+    ${params.error
+      ? html`<div class="callout danger">
+          <openclaw-runtime-error .error=${params.error}></openclaw-runtime-error>
+        </div>`
+      : nothing}
     ${renderSettingsSection(
       {
         title: t("agents.cronPanel.schedulerTitle"),
@@ -424,7 +432,9 @@ export function renderAgentFiles(params: {
 
   return html`
     ${params.agentFilesError
-      ? html`<div class="callout danger">${params.agentFilesError}</div>`
+      ? html`<div class="callout danger">
+          <openclaw-runtime-error .error=${params.agentFilesError}></openclaw-runtime-error>
+        </div>`
       : nothing}
     ${renderSettingsSection(
       {

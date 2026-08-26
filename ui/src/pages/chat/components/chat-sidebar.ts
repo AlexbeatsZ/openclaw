@@ -534,7 +534,9 @@ function renderMarkdownSidebar(props: MarkdownSidebarProps) {
       <div class="sidebar-content">
         ${props.error
           ? html`
-              <div class="callout danger">${props.error}</div>
+              <div class="callout danger">
+                <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+              </div>
               ${content?.rawText?.trim()
                 ? html`
                     <button

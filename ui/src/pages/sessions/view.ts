@@ -1111,7 +1111,11 @@ export function renderSessions(props: SessionsProps) {
     </button>
   `;
   const children = [
-    props.error ? html`<div class="sessions-error">${props.error}</div>` : nothing,
+    props.error
+      ? html`<div class="sessions-error">
+          <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+        </div>`
+      : nothing,
     props.result ? renderSettingsSection({}, renderSessionsOverview(rawRows, liveCount)) : nothing,
     // When the gateway lacks sessions.search the section still renders: the
     // form disables itself and shows the unavailable notice (shipped behavior).
@@ -1790,7 +1794,9 @@ function renderSessionDetailsRow(params: {
                 ${t("sessionsView.loadingCheckpoints")}
               </div>`
             : checkpointError
-              ? html`<div class="callout danger">${checkpointError}</div>`
+              ? html`<div class="callout danger">
+                  <openclaw-runtime-error .error=${checkpointError}></openclaw-runtime-error>
+                </div>`
               : !hasCheckpoints || checkpointItems.length === 0
                 ? html`<div class="muted session-details-empty">
                     ${t("sessionsView.noCheckpoints")}

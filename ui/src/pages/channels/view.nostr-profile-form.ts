@@ -182,7 +182,9 @@ export function renderNostrProfileForm(params: {
               <span class="settings-row__title"
                 >${renderSettingsStatus({ kind: "danger", label: t("channels.lastError") })}</span
               >
-              <span class="settings-row__desc">${state.error}</span>
+              <span class="settings-row__desc">
+                <openclaw-runtime-error compact .error=${state.error}></openclaw-runtime-error>
+              </span>
             </div>
           </div>
         `

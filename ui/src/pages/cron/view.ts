@@ -14,6 +14,7 @@ import type {
   CronSortDir,
 } from "../../api/types.ts";
 import { icon, icons } from "../../components/icons.ts";
+import "../../components/runtime-error.ts";
 import {
   renderSettingsPage,
   renderSettingsRow,
@@ -407,7 +408,11 @@ function renderListView(props: CronProps) {
           </div>
         `
       : nothing,
-    props.error ? html`<div class="cron-error-banner">${props.error}</div>` : nothing,
+    props.error
+      ? html`<div class="cron-error-banner">
+          <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+        </div>`
+      : nothing,
     renderToolbar(props, hasAdvancedJobsFilters),
     html`
       <div
@@ -845,7 +850,11 @@ function renderDetailView(props: CronProps, mode: CronPanelMode) {
     `,
     renderDetailHeader(props, mode, selectedJob),
     hasDetailTabs ? renderDetailTabs(props) : nothing,
-    props.error ? html`<div class="cron-error-banner">${props.error}</div>` : nothing,
+    props.error
+      ? html`<div class="cron-error-banner">
+          <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+        </div>`
+      : nothing,
     html`
       <div
         id="cron-detail-panel"

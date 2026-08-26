@@ -147,7 +147,7 @@ export function renderTaskRow(task: TaskSummary, props: BackgroundTasksProps): T
                   ? html`<div
                       class="chat-tasks-rail__task-inspector-state chat-tasks-rail__task-inspector-state--error"
                     >
-                      ${detailError}
+                      <openclaw-runtime-error .error=${detailError}></openclaw-runtime-error>
                     </div>`
                   : html`
                       <div class="chat-tasks-rail__task-inspector-block">

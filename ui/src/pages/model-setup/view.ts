@@ -150,7 +150,12 @@ function renderCandidateRows(props: ModelSetupViewProps, result: SystemAgentSetu
                   : nothing}
                 ${failure
                   ? html`<div class="callout danger" role="alert">
-                      <strong>${failureLabel(failure.status)}</strong> ${failure.error}
+                      <strong>${failureLabel(failure.status)}</strong>
+                      <openclaw-runtime-error
+                        compact
+                        .error=${failure.error}
+                        .code=${failure.status}
+                      ></openclaw-runtime-error>
                     </div>`
                   : nothing}
               </div>
@@ -236,7 +241,12 @@ function renderCurrentConnection(props: ModelSetupViewProps, modelRef: string) {
                 </div>`
               : props.verify.phase === "failed"
                 ? html`<div class="callout danger" role="alert">
-                    <strong>${failureLabel(props.verify.status)}</strong> ${props.verify.error}
+                    <strong>${failureLabel(props.verify.status)}</strong>
+                    <openclaw-runtime-error
+                      compact
+                      .error=${props.verify.error}
+                      .code=${props.verify.status}
+                    ></openclaw-runtime-error>
                   </div>`
                 : nothing}
         </div>
@@ -388,7 +398,9 @@ function renderManual(props: ModelSetupViewProps, result: SystemAgentSetupDetect
           />
         </label>
         ${props.manualError
-          ? html`<div class="callout danger" role="alert">${props.manualError}</div>`
+          ? html`<div class="callout danger" role="alert">
+              <openclaw-runtime-error .error=${props.manualError}></openclaw-runtime-error>
+            </div>`
           : nothing}
         ${testing
           ? html`<div class="model-setup__testing" role="status">
@@ -397,7 +409,12 @@ function renderManual(props: ModelSetupViewProps, result: SystemAgentSetupDetect
           : nothing}
         ${failure
           ? html`<div class="callout danger" role="alert">
-              <strong>${failureLabel(failure.status)}</strong> ${failure.error}
+              <strong>${failureLabel(failure.status)}</strong>
+              <openclaw-runtime-error
+                compact
+                .error=${failure.error}
+                .code=${failure.status}
+              ></openclaw-runtime-error>
             </div>`
           : nothing}
         <button

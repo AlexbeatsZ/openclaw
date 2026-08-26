@@ -244,7 +244,9 @@ function renderProvider(props: MemoryImportViewProps, provider: MemoryMigrationP
   const groups = groupMemoryItems(provider.items);
   const applying = props.applyingProviderId === provider.providerId;
   const rows = provider.error
-    ? html`<div class="callout danger" role="alert">${provider.error}</div>`
+    ? html`<div class="callout danger" role="alert">
+        <openclaw-runtime-error .error=${provider.error}></openclaw-runtime-error>
+      </div>`
     : !provider.found
       ? renderSettingsEmpty(provider.message ?? t("memoryImport.noMemoryFound"))
       : html`
@@ -421,10 +423,14 @@ export function renderMemoryImport(props: MemoryImportViewProps) {
       ${renderSettingsPage(html`
         ${renderIntroSection(props)}
         ${props.error
-          ? html`<div class="callout danger" role="alert">${props.error}</div>`
+          ? html`<div class="callout danger" role="alert">
+              <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+            </div>`
           : nothing}
         ${props.applyError
-          ? html`<div class="callout danger" role="alert">${props.applyError}</div>`
+          ? html`<div class="callout danger" role="alert">
+              <openclaw-runtime-error .error=${props.applyError}></openclaw-runtime-error>
+            </div>`
           : nothing}
         ${props.loading && !props.plan
           ? html`<div class="settings-group memory-import__loading" aria-busy="true">

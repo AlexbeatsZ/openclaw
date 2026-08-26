@@ -180,7 +180,9 @@ function renderProviderCostHistory(snapshot: ProviderUsageSnapshot) {
  */
 export function renderProviderUsageDetails(snapshot: ProviderUsageSnapshot) {
   if (snapshot.error) {
-    return html`<div class="provider-usage-error">${snapshot.error}</div>`;
+    return html`<div class="provider-usage-error">
+      <openclaw-runtime-error .error=${snapshot.error}></openclaw-runtime-error>
+    </div>`;
   }
   return html`
     ${snapshot.windows.length > 0

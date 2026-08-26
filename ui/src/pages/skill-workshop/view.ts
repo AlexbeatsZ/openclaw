@@ -76,7 +76,7 @@ export function renderSkillWorkshop(props: SkillWorkshopProps) {
     <section class="skill-workshop sw-mode-${props.mode}">
       ${props.error
         ? html`<div class="sw-error" role="status">
-            <span>${props.error}</span>
+            <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
             <button type="button" class="btn btn--sm" @click=${props.onRetry}>
               ${t("pluginsPage.tryAgain")}
             </button>

@@ -26,6 +26,7 @@ import {
 import { icons } from "./icons.ts";
 import { renderSessionRowBadges } from "./session-row-badges.ts";
 import "./elapsed-time.ts";
+import "./runtime-error.ts";
 
 /** Session-list presentation and catalog renderer wiring. */
 export abstract class AppSidebarSessionListElement extends AppSidebarMenusElement {
@@ -540,7 +541,11 @@ export abstract class AppSidebarSessionListElement extends AppSidebarMenusElemen
                 role="alert"
                 data-sidebar-session-error
               >
-                <span class="callout__content">${this.sessionMutationError}</span>
+                <span class="callout__content">
+                  <openclaw-runtime-error
+                    .error=${this.sessionMutationError}
+                  ></openclaw-runtime-error>
+                </span>
                 <openclaw-tooltip .content=${t("chat.actions.dismissError")}>
                   <button
                     class="callout__dismiss"

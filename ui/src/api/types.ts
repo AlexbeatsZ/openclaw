@@ -734,6 +734,7 @@ export type CronRunLogEntry = {
   status?: CronRunStatus;
   durationMs?: number;
   error?: string;
+  errorReason?: string;
   summary?: string;
   delivered?: boolean;
   deliveryStatus?: CronDeliveryStatus;

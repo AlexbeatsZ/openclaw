@@ -77,7 +77,11 @@ export function renderFolderBrowser(params: {
           ${icons.x}
         </button>
       </div>
-      ${params.error ? html`<div class="new-session-page__error">${params.error}</div>` : nothing}
+      ${params.error
+        ? html`<div class="new-session-page__error">
+            <openclaw-runtime-error .error=${params.error}></openclaw-runtime-error>
+          </div>`
+        : nothing}
       <div class="new-session-page__browser-list" role="group" aria-label=${t("newSession.folder")}>
         ${!params.target
           ? html`

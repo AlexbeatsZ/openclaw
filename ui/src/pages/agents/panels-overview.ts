@@ -186,7 +186,10 @@ export function renderAgentOverview(params: {
           </div>
           ${params.identityError
             ? html`<div class="settings-row__desc" role="alert" style="color: var(--danger);">
-                ${params.identityError}
+                <openclaw-runtime-error
+                  compact
+                  .error=${params.identityError}
+                ></openclaw-runtime-error>
               </div>`
             : nothing}
           <div class="agent-identity-editor__actions">

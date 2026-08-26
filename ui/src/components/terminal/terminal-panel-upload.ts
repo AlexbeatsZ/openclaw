@@ -436,7 +436,9 @@ export function renderTerminalUploadLayer(upload: TerminalPanelUploadController)
             : nothing}
         </div>
         ${progress.error
-          ? html`<div class="tp-upload-card__error">${progress.error}</div>`
+          ? html`<div class="tp-upload-card__error">
+              <openclaw-runtime-error .error=${progress.error}></openclaw-runtime-error>
+            </div>`
           : nothing}
       </div>`
     : nothing}`;

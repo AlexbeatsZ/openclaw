@@ -4,6 +4,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { GatewayBrowserClient } from "../../api/gateway.ts";
 import { icons } from "../../components/icons.ts";
 import { toSanitizedMarkdownHtml } from "../../components/markdown.ts";
+import { formatRuntimeErrorInline } from "../../components/runtime-error.ts";
 import { t } from "../../i18n/index.ts";
 import { formatDurationCompact, formatTimeMs } from "../../lib/format.ts";
 import "../../styles/logbook.css";
@@ -72,14 +73,17 @@ function renderStatusChips(status: LogbookStatusPayload): TemplateResult {
           >`
         : nothing}
       ${status.lastCaptureError
-        ? html`<span class="logbook__chip logbook__chip--error" title=${status.lastCaptureError}>
+        ? html`<span
+            class="logbook__chip logbook__chip--error"
+            title=${formatRuntimeErrorInline(status.lastCaptureError)}
+          >
             ${t("logbook.status.captureError")}
           </span>`
         : nothing}
       ${status.lastBatch?.status === "error"
         ? html`<span
             class="logbook__chip logbook__chip--error"
-            title=${status.lastBatch.error ?? ""}
+            title=${formatRuntimeErrorInline(status.lastBatch.error)}
           >
             ${t("logbook.status.batchError")}
           </span>`
@@ -392,7 +396,11 @@ export function renderLogbook(props: LogbookProps) {
           </button>
         </div>
       </header>
-      ${state.error ? html`<div class="callout danger" role="alert">${state.error}</div>` : nothing}
+      ${state.error
+        ? html`<div class="callout danger" role="alert">
+            <openclaw-runtime-error .error=${state.error}></openclaw-runtime-error>
+          </div>`
+        : nothing}
       <div class="logbook__layout">
         <div class="logbook__timeline">
           ${state.loading && cards.length === 0

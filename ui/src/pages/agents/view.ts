@@ -2,6 +2,7 @@
 import { html, nothing } from "lit";
 import { keyed } from "lit/directives/keyed.js";
 import "../../components/agent-select-registration.ts";
+import "../../components/runtime-error.ts";
 import type {
   AgentIdentityResult,
   AgentsFilesListResult,
@@ -218,7 +219,9 @@ export function renderAgents(props: AgentsProps) {
           </div>
         </div>
         ${props.error
-          ? html`<div class="callout danger" style="margin-top: 8px;">${props.error}</div>`
+          ? html`<div class="callout danger" style="margin-top: 8px;">
+              <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+            </div>`
           : nothing}
       </section>
       <section class="agents-main">

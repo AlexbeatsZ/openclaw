@@ -23,6 +23,7 @@ import { searchForSession } from "../lib/sessions/index.ts";
 import type { NewSessionTarget } from "../pages/new-session/location.ts";
 import { shouldHandleNavigationClick } from "./app-sidebar-nav-menus.ts";
 import { icons } from "./icons.ts";
+import { formatRuntimeErrorInline } from "./runtime-error.ts";
 
 export function formatSidebarTimestamp(timestampMs: number | null | undefined): string {
   const value = formatRelativeTimestamp(timestampMs, { fallback: "" });
@@ -188,7 +189,7 @@ export function renderSessionCatalogGroups(params: SessionCatalogGroupsParams) {
       return nothing;
     }
     const errorMessage = errorMessages.join("; ");
-    const errorHelp = `${errorMessage}. Configure native session discovery in Settings > Automation > Plugins.`;
+    const errorHelp = `${formatRuntimeErrorInline(errorMessage)} ${t("sessionsView.catalogErrorHelp")}`;
     return html`
       <div class="sidebar-recent-sessions__group" data-session-section=${sectionId}>
         <div class="sidebar-recent-sessions__head">
@@ -273,7 +274,9 @@ function renderCatalogHostGroup(
   liveRowsByKey: ReadonlyMap<string, GatewaySessionRow>,
   params: SessionCatalogGroupsParams,
 ) {
-  const errorHelp = host.error ? `[${host.error.code}] ${host.error.message}` : undefined;
+  const errorHelp = host.error
+    ? formatRuntimeErrorInline(`[${host.error.code}] ${host.error.message}`, host.error.code)
+    : undefined;
   const projectGroups =
     params.projectGrouping === "project" ? groupCatalogSessionsByProject(host.sessions) : null;
   return html`

@@ -7,6 +7,7 @@ import type { CronRunLogEntry } from "../../api/types.ts";
 import type { CronDeliveryStatus, CronRunsStatusValue, CronSortDir } from "../../api/types.ts";
 import { pathForRoute } from "../../app-route-paths.ts";
 import { icon } from "../../components/icons.ts";
+import "../../components/runtime-error.ts";
 import "../../components/web-awesome.ts";
 import { toSanitizedMarkdownHtml } from "../../components/markdown.ts";
 import { t } from "../../i18n/index.ts";
@@ -292,7 +293,7 @@ function renderRun(
       : usage && typeof usage.input_tokens === "number" && typeof usage.output_tokens === "number"
         ? `${usage.input_tokens} in / ${usage.output_tokens} out`
         : null;
-  const bodySource = entry.summary || entry.error || t("cron.runEntry.noSummary");
+  const bodySource = entry.summary || t("cron.runEntry.noSummary");
   const showErrorInMeta = Boolean(entry.error) && Boolean(entry.summary);
   const facts = [delivery, entry.model, entry.provider, usageSummary].filter(Boolean);
   return html`
@@ -339,12 +340,33 @@ function renderRun(
                 >
               </div>`
             : nothing}
-          ${showErrorInMeta ? html`<div class="muted">${entry.error}</div>` : nothing}
-          ${entry.deliveryError ? html`<div class="muted">${entry.deliveryError}</div>` : nothing}
+          ${showErrorInMeta
+            ? html`<div class="muted">
+                <openclaw-runtime-error
+                  compact
+                  .error=${entry.error}
+                  .code=${entry.errorReason}
+                ></openclaw-runtime-error>
+              </div>`
+            : nothing}
+          ${entry.deliveryError
+            ? html`<div class="muted">
+                <openclaw-runtime-error
+                  compact
+                  .error=${entry.deliveryError}
+                  .code=${"delivery"}
+                ></openclaw-runtime-error>
+              </div>`
+            : nothing}
         </div>
       </div>
       <div class="cron-run-entry__body chat-text">
-        ${unsafeHTML(toSanitizedMarkdownHtml(bodySource))}
+        ${entry.error && !entry.summary
+          ? html`<openclaw-runtime-error
+              .error=${entry.error}
+              .code=${entry.errorReason}
+            ></openclaw-runtime-error>`
+          : unsafeHTML(toSanitizedMarkdownHtml(bodySource))}
       </div>
     </div>
   `;

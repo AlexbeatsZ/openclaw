@@ -256,8 +256,24 @@ describe("mcp-app-view localization", () => {
     document.body.append(view);
 
     await expect
-      .poll(() => view.shadowRoot?.querySelector(".error")?.textContent)
+      .poll(() => view.shadowRoot?.querySelector(".error")?.textContent?.trim())
       .toBe("Aplicativo MCP indisponível: MCP App gateway unavailable");
+  });
+
+  it("keeps runtime error details readable inside its shadow root", async () => {
+    await i18n.setLocale("zh-CN");
+    const view = document.createElement(MCP_APP_VIEW_ELEMENT_NAME) as McpAppViewElement;
+    view.sessionKey = "agent:main:main";
+    view.viewId = "view-styled-error";
+    document.body.append(view);
+
+    const error = await vi.waitFor(() => {
+      const element = view.shadowRoot?.querySelector<HTMLElement>("openclaw-runtime-error");
+      expect(element).not.toBeNull();
+      return element;
+    });
+    expect(error?.style.display).toBe("block");
+    expect(error?.querySelector<HTMLElement>("details code")?.style.whiteSpace).toBe("pre-wrap");
   });
 
   it.each([

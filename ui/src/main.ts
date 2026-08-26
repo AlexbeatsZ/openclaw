@@ -1,5 +1,6 @@
 // Control UI module implements main behavior.
 import "./styles.css";
+import "./components/runtime-error.ts";
 import "./app/app-host.ts";
 import { inferControlUiPublicAssetPath } from "./app/public-assets.ts";
 import {

@@ -11,6 +11,7 @@ import type { SessionsListResult } from "../../api/types.ts";
 import type { QuestionPrompt } from "../../app/question-prompt.ts";
 import type { ChatSendShortcut } from "../../app/settings.ts";
 import { icons } from "../../components/icons.ts";
+import "../../components/runtime-error.ts";
 import { t } from "../../i18n/index.ts";
 import type {
   ChatAttachment,
@@ -441,7 +442,9 @@ export function renderChat(props: ChatProps) {
       ${props.error
         ? html`
             <div class="callout danger callout--dismissible" role="alert">
-              <span class="callout__content">${props.error}</span>
+              <span class="callout__content">
+                <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+              </span>
               ${props.onDismissError
                 ? html`
                     <openclaw-tooltip .content=${t("chat.actions.dismissError")}>

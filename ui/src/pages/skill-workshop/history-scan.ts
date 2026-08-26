@@ -207,7 +207,9 @@ export function renderSkillWorkshopHistoryScan(params: {
             `
           : nothing}
         ${params.state.error
-          ? html`<div class="sw-history__error" role="alert">${params.state.error}</div>`
+          ? html`<div class="sw-history__error" role="alert">
+              <openclaw-runtime-error .error=${params.state.error}></openclaw-runtime-error>
+            </div>`
           : nothing}
       </div>
       <div class="sw-history__action">

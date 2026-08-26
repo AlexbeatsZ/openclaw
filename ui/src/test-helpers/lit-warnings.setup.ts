@@ -77,3 +77,4 @@ if (typeof HTMLDialogElement !== "undefined" && !("close" in HTMLDialogElement.p
     },
   });
 }
+import "../components/runtime-error.ts";

@@ -1273,7 +1273,9 @@ class OpenClawBrowserPanel extends OpenClawLitElement {
         <header class="bp-header">${this.renderTabStrip()} ${this.renderHeaderActions()}</header>
         ${this.renderToolbar()} ${this.renderAnnotateBar()}
         ${this.errorText
-          ? html`<div class="bp-note bp-note--error" role="alert">${this.errorText}</div>`
+          ? html`<div class="bp-note bp-note--error" role="alert">
+              <openclaw-runtime-error .error=${this.errorText}></openclaw-runtime-error>
+            </div>`
           : this.noticeText
             ? html`<div class="bp-note" role="status">${this.noticeText}</div>`
             : nothing}

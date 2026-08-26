@@ -992,7 +992,9 @@ export function renderWorkspace(props: WorkspaceProps): TemplateResult {
   return html`
     <section class="workspace" data-test-id="workspace">
       ${state.actionError
-        ? html`<div class="callout danger workspace__toast" role="alert">${state.actionError}</div>`
+        ? html`<div class="callout danger workspace__toast" role="alert">
+            <openclaw-runtime-error .error=${state.actionError}></openclaw-runtime-error>
+          </div>`
         : nothing}
       ${renderBody(props, state, viewState)} ${renderDialog(props, state, viewState)}
     </section>

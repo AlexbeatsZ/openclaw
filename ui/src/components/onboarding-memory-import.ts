@@ -12,6 +12,7 @@ import { hasOperatorAdminAccess } from "../app/operator-access.ts";
 import { t } from "../i18n/index.ts";
 import { OpenClawLightDomElement } from "../lit/openclaw-element.ts";
 import { SubscriptionsController } from "../lit/subscriptions-controller.ts";
+import { formatRuntimeErrorInline } from "./runtime-error.ts";
 import "../styles/onboarding-memory-import.css";
 import "./modal-dialog.ts";
 
@@ -346,7 +347,11 @@ class OnboardingMemoryImport extends OpenClawLightDomElement {
                   </span>`
                 : result?.kind === "error"
                   ? html`<span role="alert">
-                      ${t("onboarding.memoryImport.providerError", { error: result.message })}
+                      ${formatRuntimeErrorInline(result.message, undefined, {
+                        fallback: t("onboarding.memoryImport.providerError", {
+                          error: result.message,
+                        }),
+                      })}
                     </span>`
                   : nothing}
         </div>

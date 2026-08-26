@@ -1,6 +1,7 @@
 // Channels hub: connected-channel rows, add-a-channel gallery, setup wizard,
 // and a per-channel detail overlay with the full config form.
 import { html, nothing } from "lit";
+import "../../components/runtime-error.ts";
 import "../../styles/channels.css";
 import type {
   ChannelAccountSnapshot,
@@ -55,7 +56,11 @@ export function renderChannels(props: ChannelsProps) {
             </div>
           `
         : nothing}
-      ${props.lastError ? html`<div class="callout danger">${props.lastError}</div>` : nothing}
+      ${props.lastError
+        ? html`<div class="callout danger">
+            <openclaw-runtime-error .error=${props.lastError}></openclaw-runtime-error>
+          </div>`
+        : nothing}
       ${props.setupBlockedByDirtyConfig && props.configFormDirty
         ? html`<div class="callout warn">${t("channels.hub.saveBeforeSetup")}</div>`
         : nothing}

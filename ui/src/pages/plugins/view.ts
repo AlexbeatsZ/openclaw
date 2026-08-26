@@ -384,7 +384,11 @@ function renderRowMessage(
   const role = message.kind === "error" ? "alert" : "status";
   return html`
     <div class="plugins-row-message plugins-row-message--${message.kind}" role=${role}>
-      <span>${message.text}</span>
+      <span>
+        ${message.kind === "error"
+          ? html`<openclaw-runtime-error compact .error=${message.text}></openclaw-runtime-error>`
+          : message.text}
+      </span>
       ${message.acknowledge
         ? html`
             <button
@@ -618,7 +622,7 @@ function renderInstalledRow(plugin: PluginCatalogItem, props: PluginsViewProps):
       </div>
       ${plugin.error
         ? html`<div class="plugins-row-message plugins-row-message--error" role="alert">
-            ${plugin.error}
+            <openclaw-runtime-error .error=${plugin.error}></openclaw-runtime-error>
           </div>`
         : nothing}
       ${renderRowMessage(key, props.messages[key], busy, props)}
@@ -675,7 +679,14 @@ function renderMcpSection(props: PluginsViewProps) {
               .kind} plugins-group-message"
             role=${props.mcpMessage.kind === "error" ? "alert" : "status"}
           >
-            <span>${props.mcpMessage.text}</span>
+            <span>
+              ${props.mcpMessage.kind === "error"
+                ? html`<openclaw-runtime-error
+                    compact
+                    .error=${props.mcpMessage.text}
+                  ></openclaw-runtime-error>`
+                : props.mcpMessage.text}
+            </span>
           </div>`
         : nothing}
       ${body}
@@ -826,7 +837,7 @@ function renderCatalogRow(plugin: PluginCatalogItem, props: PluginsViewProps): T
       </div>
       ${plugin.error
         ? html`<div class="plugins-row-message plugins-row-message--error" role="alert">
-            ${plugin.error}
+            <openclaw-runtime-error .error=${plugin.error}></openclaw-runtime-error>
           </div>`
         : nothing}
       ${renderRowMessage(key, props.messages[key], busy, props)}
@@ -990,7 +1001,7 @@ function renderClawHubGroup(props: PluginsViewProps) {
     </div>`;
   } else if (props.searchError) {
     body = html`<div class="plugins-search-state plugins-search-state--error" role="alert">
-      ${props.searchError}
+      <openclaw-runtime-error .error=${props.searchError}></openclaw-runtime-error>
     </div>`;
   } else if (props.searchResults && props.searchResults.length === 0) {
     body = html`${renderSettingsEmpty(t("pluginsPage.noClawHubResultsBody", { query }))}`;
@@ -1166,7 +1177,7 @@ function renderDetailOverlay(props: PluginsViewProps) {
           </div>
           ${plugin.error
             ? html`<div class="plugins-row-message plugins-row-message--error" role="alert">
-                ${plugin.error}
+                <openclaw-runtime-error .error=${plugin.error}></openclaw-runtime-error>
               </div>`
             : nothing}
           ${renderRowMessage(key, props.messages[key], busy, props)}
@@ -1293,7 +1304,7 @@ export function renderPlugins(props: PluginsViewProps) {
         : nothing}
       ${props.error
         ? html`<div class="plugins-page-error" role="alert">
-            <span>${props.error}</span>
+            <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
             <button type="button" class="btn btn--sm" @click=${props.onRefresh}>
               ${t("pluginsPage.tryAgain")}
             </button>
@@ -1305,7 +1316,14 @@ export function renderPlugins(props: PluginsViewProps) {
               .kind} plugins-page-notice"
             role=${props.pageNotice.kind === "error" ? "alert" : "status"}
           >
-            <span>${props.pageNotice.text}</span>
+            <span>
+              ${props.pageNotice.kind === "error"
+                ? html`<openclaw-runtime-error
+                    compact
+                    .error=${props.pageNotice.text}
+                  ></openclaw-runtime-error>`
+                : props.pageNotice.text}
+            </span>
           </div>`
         : nothing}
 

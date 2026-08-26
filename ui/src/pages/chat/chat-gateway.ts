@@ -1,3 +1,5 @@
+import { formatRuntimeErrorInline } from "../../components/runtime-error.ts";
+import { i18n } from "../../i18n/index.ts";
 import { isAssistantHeartbeatAckForDisplay } from "../../lib/chat/heartbeat-display.ts";
 import { extractText } from "../../lib/chat/message-extract.ts";
 import { parseChatSideResult, type ChatSideResult } from "../../lib/chat/side-result.ts";
@@ -132,12 +134,18 @@ function buildErrorAssistantMessage(payload: ChatEventPayload): Record<string, u
   if (!error) {
     return null;
   }
+  const text =
+    i18n.getLocale() === "zh-CN"
+      ? formatRuntimeErrorInline(error)
+      : error.startsWith("⚠️") || error.startsWith("Error:")
+        ? error
+        : `Error: ${error}`;
   return {
     role: "assistant",
     content: [
       {
         type: "text",
-        text: error.startsWith("⚠️") || error.startsWith("Error:") ? error : `Error: ${error}`,
+        text,
       },
     ],
     timestamp: Date.now(),

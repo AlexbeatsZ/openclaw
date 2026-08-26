@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { pathForRoute } from "../../app-route-paths.ts";
 import { icon, type IconName } from "../../components/icons.ts";
+import "../../components/runtime-error.ts";
 import { t } from "../../i18n/index.ts";
 import { formatMs, formatRelativeTimestamp } from "../../lib/format.ts";
 import { searchForSession } from "../../lib/sessions/index.ts";
@@ -202,7 +203,11 @@ export function renderTasks(props: TasksProps) {
       ${!props.connected
         ? html`<div class="callout warn">${t("tasksPage.disconnected")}</div>`
         : nothing}
-      ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
+      ${props.error
+        ? html`<div class="callout danger">
+            <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+          </div>`
+        : nothing}
       ${renderSummaryStrip(props.tasks)}
       ${props.loading && props.tasks.length === 0
         ? html`<div class="card muted">${t("tasksPage.loading")}</div>`

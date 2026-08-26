@@ -1111,7 +1111,9 @@ export class OpenClawTerminalPanel extends OpenClawLitElement {
           })}
         </header>
         ${this.errorText
-          ? html`<div class="tp-error" role="alert">${this.errorText}</div>`
+          ? html`<div class="tp-error" role="alert">
+              <openclaw-runtime-error .error=${this.errorText}></openclaw-runtime-error>
+            </div>`
           : nothing}
         <wa-tab-panel
           id="terminal-tab-panel"

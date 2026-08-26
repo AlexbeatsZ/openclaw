@@ -1024,7 +1024,9 @@ function renderNotificationsSection(props: ConfigProps) {
             ? html`
                 <div class="settings-row">
                   <div class="settings-row__text">
-                    <span class="cfg-field__error">${push.error}</span>
+                    <span class="cfg-field__error">
+                      <openclaw-runtime-error compact .error=${push.error}></openclaw-runtime-error>
+                    </span>
                   </div>
                 </div>
               `
@@ -1062,7 +1064,9 @@ function renderSettingsMicrophoneField(props: ConfigProps) {
   ];
   const refreshLabel = `${t("common.refresh")}: ${t("chat.composer.microphoneInput")}`;
   const note = microphone.error
-    ? html`<span role="alert">${microphone.error}</span>`
+    ? html`<span role="alert">
+        <openclaw-runtime-error compact .error=${microphone.error}></openclaw-runtime-error>
+      </span>`
     : !microphone.loading && microphone.devices.length === 0
       ? t("chat.composer.noMicrophones")
       : undefined;

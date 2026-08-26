@@ -206,7 +206,11 @@ function renderExecApprovalPrompt(props: ExecApprovalProps) {
         </div>
         ${isStructured ? renderPluginBody(active) : renderExecBody(request)}
         ${renderUnavailableDecisionWarning(active, decisions)}
-        ${props.error ? html`<div class="exec-approval-error">${props.error}</div>` : nothing}
+        ${props.error
+          ? html`<div class="exec-approval-error">
+              <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+            </div>`
+          : nothing}
         <div class="exec-approval-actions">
           ${decisions.map(
             (decision) => html`

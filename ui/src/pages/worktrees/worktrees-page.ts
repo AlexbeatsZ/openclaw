@@ -6,6 +6,7 @@ import type { GatewayBrowserClient } from "../../api/gateway.ts";
 import { titleForRoute } from "../../app-navigation.ts";
 import { pathForRoute } from "../../app-route-paths.ts";
 import { applicationContext, type ApplicationContext } from "../../app/context.ts";
+import "../../components/runtime-error.ts";
 import { renderSessionsHubTabs } from "../../components/sessions-hub-tabs.ts";
 import {
   renderSettingsEmpty,
@@ -676,7 +677,11 @@ class WorktreesPage extends OpenClawLightDomElement {
     `;
     const body = renderSettingsPage(
       html`
-        ${this.error ? html`<div class="callout danger">${this.error}</div>` : nothing}
+        ${this.error
+          ? html`<div class="callout danger">
+              <openclaw-runtime-error .error=${this.error}></openclaw-runtime-error>
+            </div>`
+          : nothing}
         ${renderSettingsSection(
           { title: t("worktrees.title"), description: t("worktrees.subtitle"), actions },
           rows,

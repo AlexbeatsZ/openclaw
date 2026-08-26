@@ -200,7 +200,9 @@ function renderProbeResult(result: ModelsProbeResult | undefined) {
             >`
           : nothing}
       </div>
-      ${result.error ? html`<div>${result.error}</div>` : nothing}
+      ${result.error
+        ? html`<div><openclaw-runtime-error .error=${result.error}></openclaw-runtime-error></div>`
+        : nothing}
       ${result.results.map(
         (target) => html`
           <div class="model-providers__probe-target">
@@ -210,7 +212,11 @@ function renderProbeResult(result: ModelsProbeResult | undefined) {
                 ? ` · ${t("modelProviders.probe.latency", { ms: String(target.latencyMs) })}`
                 : ""}
             </span>
-            ${target.error ? html`<small>${target.error}</small>` : nothing}
+            ${target.error
+              ? html`<small>
+                  <openclaw-runtime-error compact .error=${target.error}></openclaw-runtime-error>
+                </small>`
+              : nothing}
           </div>
         `,
       )}
@@ -477,7 +483,9 @@ export function renderModelProviders(props: ModelProvidersViewProps) {
       ? html`
           <div class="settings-row">
             <div class="settings-row__text">
-              <span class="settings-row__desc provider-usage-error">${props.error}</span>
+              <span class="settings-row__desc provider-usage-error">
+                <openclaw-runtime-error compact .error=${props.error}></openclaw-runtime-error>
+              </span>
             </div>
           </div>
         `

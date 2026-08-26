@@ -351,7 +351,12 @@ export class McpAppView extends LitElement {
   override render() {
     return html`<div ${ref(this.mount)} class="mount"></div>
       ${this.error
-        ? html`<div class="error">${t("mcpApp.unavailable", { error: this.error })}</div>`
+        ? html`<div class="error">
+            <openclaw-runtime-error
+              .error=${this.error}
+              .fallback=${t("mcpApp.unavailable", { error: this.error })}
+            ></openclaw-runtime-error>
+          </div>`
         : nothing}`;
   }
 }

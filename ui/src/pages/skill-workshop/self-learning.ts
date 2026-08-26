@@ -115,5 +115,7 @@ export function renderSelfLearningError(selfLearning: SkillWorkshopSelfLearning 
   if (!selfLearning?.error) {
     return nothing;
   }
-  return html`<div class="sw-error" role="status"><span>${selfLearning.error}</span></div>`;
+  return html`<div class="sw-error" role="status">
+    <openclaw-runtime-error .error=${selfLearning.error}></openclaw-runtime-error>
+  </div>`;
 }

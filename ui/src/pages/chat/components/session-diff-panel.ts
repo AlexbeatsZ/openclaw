@@ -175,7 +175,9 @@ class SessionDiffPanel extends OpenClawLightDomElement {
 
   private renderBody(): TemplateResult {
     if (this.error) {
-      return html`<div class="callout danger">${this.error}</div>`;
+      return html`<div class="callout danger">
+        <openclaw-runtime-error .error=${this.error}></openclaw-runtime-error>
+      </div>`;
     }
     const result = this.result;
     if (!result) {

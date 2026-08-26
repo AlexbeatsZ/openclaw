@@ -440,7 +440,9 @@ function renderScene(props: DreamingProps, idle: boolean, dreamText: string) {
       </div>
 
       ${props.statusError
-        ? html`<div class="dreams__controls-error">${props.statusError}</div>`
+        ? html`<div class="dreams__controls-error">
+            <openclaw-runtime-error .error=${props.statusError}></openclaw-runtime-error>
+          </div>`
         : nothing}
     </section>
   `;
@@ -634,7 +636,9 @@ function renderWikiPreviewOverlay(props: DreamingProps) {
           ${state.wikiPreviewLoading
             ? html`<div class="dreams-diary__empty-text">${t("dreaming.wiki.loadingPage")}</div>`
             : state.wikiPreviewError
-              ? html`<div class="dreams-diary__error">${state.wikiPreviewError}</div>`
+              ? html`<div class="dreams-diary__error">
+                  <openclaw-runtime-error .error=${state.wikiPreviewError}></openclaw-runtime-error>
+                </div>`
               : html`
                   ${state.wikiPreviewTruncated
                     ? html`
@@ -948,7 +952,9 @@ function renderAdvancedSection(props: DreamingProps) {
       </div>
 
       ${props.statusError
-        ? html`<div class="dreams__controls-error">${props.statusError}</div>`
+        ? html`<div class="dreams__controls-error">
+            <openclaw-runtime-error .error=${props.statusError}></openclaw-runtime-error>
+          </div>`
         : nothing}
     </section>
   `;
@@ -1438,7 +1444,9 @@ function renderDiarySection(props: DreamingProps) {
   if (diaryError && !memoryWikiUnavailable) {
     return html`
       <section class="dreams-diary">
-        <div class="dreams-diary__error">${diaryError}</div>
+        <div class="dreams-diary__error">
+          <openclaw-runtime-error .error=${diaryError}></openclaw-runtime-error>
+        </div>
       </section>
     `;
   }

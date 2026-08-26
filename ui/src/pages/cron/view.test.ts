@@ -475,6 +475,24 @@ describe("cron view run history", () => {
     expect(body.textContent).toContain("boom");
   });
 
+  it("passes the stable delivery classification to delivery errors", () => {
+    const container = renderView({
+      listTab: "activity",
+      runs: [
+        {
+          ts: 1,
+          jobId: "job-1",
+          status: "error",
+          deliveryError: "connect ECONNREFUSED 127.0.0.1:8080",
+        },
+      ],
+    });
+    const error = getElement(container, "openclaw-runtime-error", HTMLElement) as HTMLElement & {
+      code?: string;
+    };
+    expect(error.code).toBe("delivery");
+  });
+
   it("distinguishes an unfiltered empty state from filtered no-matches", () => {
     const empty = renderView({ listTab: "activity" });
     expect(empty.querySelector(".cron-empty-state")?.textContent).toContain("No runs yet");

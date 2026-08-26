@@ -1,6 +1,7 @@
 // Nodes page renders the unified paired-device / node inventory sections.
 import { html, nothing, type TemplateResult } from "lit";
 import "../../components/modal-dialog.ts";
+import "../../components/runtime-error.ts";
 import type { PresenceEntry } from "../../api/types.ts";
 import { icons } from "../../components/icons.ts";
 import {
@@ -90,8 +91,16 @@ export function renderNodesInventory(props: NodesProps) {
       : groups.map((group) => renderInventoryGroup(group, props))}
   `;
   return html`
-    ${props.devicesError ? html`<div class="callout danger">${props.devicesError}</div>` : nothing}
-    ${props.lastError ? html`<div class="callout danger">${props.lastError}</div>` : nothing}
+    ${props.devicesError
+      ? html`<div class="callout danger">
+          <openclaw-runtime-error .error=${props.devicesError}></openclaw-runtime-error>
+        </div>`
+      : nothing}
+    ${props.lastError
+      ? html`<div class="callout danger">
+          <openclaw-runtime-error .error=${props.lastError}></openclaw-runtime-error>
+        </div>`
+      : nothing}
     ${pending.length > 0
       ? renderSettingsSection(
           { title: t("nodes.inventory.pendingApproval"), count: pending.length },
