@@ -260,8 +260,7 @@ describe("mcp-app-view localization", () => {
       .toBe("Aplicativo MCP indisponível: MCP App gateway unavailable");
   });
 
-  it("keeps runtime error details readable inside its shadow root", async () => {
-    await i18n.setLocale("zh-CN");
+  it("keeps runtime error wrapping readable inside its shadow root", async () => {
     const view = document.createElement(MCP_APP_VIEW_ELEMENT_NAME) as McpAppViewElement;
     view.sessionKey = "agent:main:main";
     view.viewId = "view-styled-error";
@@ -273,7 +272,9 @@ describe("mcp-app-view localization", () => {
       return element;
     });
     expect(error?.style.display).toBe("block");
-    expect(error?.querySelector<HTMLElement>("details code")?.style.whiteSpace).toBe("pre-wrap");
+    expect(error?.querySelector<HTMLElement>(".runtime-error__raw")?.style.overflowWrap).toBe(
+      "anywhere",
+    );
   });
 
   it.each([
