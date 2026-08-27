@@ -26,7 +26,11 @@ import "../../components/tooltip.ts";
 import "../../components/web-awesome.ts";
 import "../../components/web-awesome-popover.ts";
 import { t } from "../../i18n/index.ts";
-import { isCronJobActiveFailure, resolveCronJobLastRunStatus } from "../../lib/cron-status.ts";
+import {
+  isCronJobActiveFailure,
+  resolveCronJobLastRunAtMs,
+  resolveCronJobLastRunStatus,
+} from "../../lib/cron-status.ts";
 import { parseCronEveryMs } from "../../lib/cron/decimal.ts";
 import type {
   CronFieldErrors,
@@ -735,7 +739,7 @@ function renderJobRow(job: CronJob, props: CronProps) {
 
 function renderLastRunCell(job: CronJob) {
   const status = resolveCronJobLastRunStatus(job);
-  const lastRunAtMs = job.state?.lastRunAtMs;
+  const lastRunAtMs = resolveCronJobLastRunAtMs(job);
   const rel =
     typeof lastRunAtMs === "number" && Number.isFinite(lastRunAtMs)
       ? formatRelativeTimestamp(lastRunAtMs)

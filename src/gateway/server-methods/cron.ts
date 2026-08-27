@@ -24,7 +24,7 @@ import { resolveCronDeliveryPreviews } from "../../cron/delivery-preview.js";
 import { assertCronDeliveryInputNonBlankFields } from "../../cron/delivery-target-validation.js";
 import { normalizeCronJobCreate, normalizeCronJobPatch } from "../../cron/normalize.js";
 import { toPublicCronJob } from "../../cron/public-job.js";
-import { applyJobPatch } from "../../cron/service/jobs.js";
+import { applyJobPatch, resolveJobHealthState } from "../../cron/service/jobs.js";
 import {
   isInvalidCronSessionTargetIdError,
   resolveCronSessionTargetSessionKey,
@@ -88,13 +88,14 @@ class CronJobConfigRevisionConflictError extends Error {
 
 function cronJobReadView(job: CronJob) {
   const publicJob = toPublicCronJob(job);
+  const health = resolveJobHealthState(job);
   return {
     ...publicJob,
     configRevision: resolveCronJobConfigRevision(job),
     nextRunAtMs: job.state.nextRunAtMs,
-    lastRunAtMs: job.state.lastRunAtMs,
-    lastRunStatus: job.state.lastRunStatus ?? job.state.lastStatus,
-    lastRunError: job.state.lastError,
+    lastRunAtMs: health.lastRunAtMs,
+    lastRunStatus: health.lastRunStatus,
+    lastRunError: health.lastRunError,
     lastDelivered: job.state.lastDelivered,
     lastDeliveryStatus: job.state.lastDeliveryStatus,
     lastDeliveryError: job.state.lastDeliveryError,
@@ -107,6 +108,7 @@ function cronJobReadView(job: CronJob) {
 function compactCronListJob(job: CronJob) {
   // Optional declaration/delivery fields are omitted when unset so compact
   // rows stay lean for the common undeclared job.
+  const health = resolveJobHealthState(job);
   return {
     id: job.id,
     name: job.name,
@@ -117,9 +119,9 @@ function compactCronListJob(job: CronJob) {
     nextRunAtMs: job.state.nextRunAtMs ?? null,
     scheduleKind: job.schedule.kind,
     ...(job.trigger ? { trigger: true } : {}),
-    lastRunAtMs: job.state.lastRunAtMs ?? null,
-    lastRunStatus: job.state.lastRunStatus ?? job.state.lastStatus ?? null,
-    lastRunError: job.state.lastError ?? null,
+    lastRunAtMs: health.lastRunAtMs ?? null,
+    lastRunStatus: health.lastRunStatus ?? null,
+    lastRunError: health.lastRunError ?? null,
     ...(job.state.lastDelivered !== undefined ? { lastDelivered: job.state.lastDelivered } : {}),
     ...(job.state.lastDeliveryStatus !== undefined
       ? { lastDeliveryStatus: job.state.lastDeliveryStatus }

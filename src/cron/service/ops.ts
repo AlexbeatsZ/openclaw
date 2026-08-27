@@ -34,6 +34,7 @@ import {
   isJobDue,
   nextWakeAtMs,
   recomputeNextRunsForMaintenance,
+  resolveJobHealthState,
 } from "./jobs.js";
 import { sortCronJobs } from "./list-page-sort.js";
 import type {
@@ -377,10 +378,6 @@ function resolveLastRunStatusFilter(opts?: CronListPageOptions): CronJobsLastRun
   return "all";
 }
 
-function resolveJobLastRunStatus(job: CronJob): CronJobsLastRunStatusFilter {
-  return job.state.lastRunStatus ?? job.state.lastStatus ?? "unknown";
-}
-
 function resolveEffectiveJobAgentId(job: CronJob, defaultAgentId: string | undefined) {
   return (
     normalizeOptionalAgentId(job.agentId) ??
@@ -417,7 +414,10 @@ export async function listPage(state: CronServiceState, opts?: CronListPageOptio
       if (scheduleKindFilter !== "all" && job.schedule.kind !== scheduleKindFilter) {
         return false;
       }
-      if (lastRunStatusFilter !== "all" && resolveJobLastRunStatus(job) !== lastRunStatusFilter) {
+      if (
+        lastRunStatusFilter !== "all" &&
+        (resolveJobHealthState(job).lastRunStatus ?? "unknown") !== lastRunStatusFilter
+      ) {
         return false;
       }
       if (!query) {

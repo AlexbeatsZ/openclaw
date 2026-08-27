@@ -63,6 +63,28 @@ describe("printCronList", () => {
     hoisted.listChannelPluginsMock.mockReturnValue([]);
   });
 
+  it("uses the Gateway health projection after a quiet trigger recovery", () => {
+    const job = Object.assign(
+      createBaseJob({
+        state: {
+          lastRunAtMs: 1_000,
+          lastRunStatus: "error",
+          lastError: "temporary network failure",
+          consecutiveErrors: 0,
+          lastTriggerEvalAtMs: 2_000,
+        },
+      }),
+      { lastRunAtMs: 2_000, lastRunStatus: "ok" as const },
+    );
+    const enriched = enrichCronJsonWithStatus(job) as { status?: string };
+    const { logs, runtime } = createRuntimeLogCapture();
+
+    printCronShow(job, runtime);
+
+    expect(enriched.status).toBe("ok");
+    expect(logs).toContain("status: ok");
+  });
+
   it("handles job with undefined sessionTarget (#9649)", () => {
     const { logs, runtime } = createRuntimeLogCapture();
 

@@ -391,5 +391,6 @@ Skills own workflows; root owns hard policy and routing.
 
 ## Local design references
 
+- Cron trigger health projection: `docs/design/cron-trigger-health-projection.md`
 - Cron loopback completion receivers: `docs/design/cron-webhook-private-host-allowlist.md`
 - Control UI runtime error localization: `docs/design/control-ui-runtime-error-localization.md`

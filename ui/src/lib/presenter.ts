@@ -1,7 +1,7 @@
 import type { CronJob, GatewaySessionRow } from "../api/types.ts";
 // Control UI module implements presenter behavior.
 import { t } from "../i18n/index.ts";
-import { resolveCronJobLastRunStatus } from "../lib/cron-status.ts";
+import { resolveCronJobLastRunAtMs, resolveCronJobLastRunStatus } from "../lib/cron-status.ts";
 import {
   formatDateMs,
   formatRelativeTimestamp,
@@ -44,7 +44,8 @@ export function formatEventPayload(payload: unknown): string {
 export function formatCronState(job: CronJob) {
   const state = job.state ?? {};
   const next = state.nextRunAtMs ? formatMs(state.nextRunAtMs) : t("common.na");
-  const last = state.lastRunAtMs ? formatMs(state.lastRunAtMs) : t("common.na");
+  const lastRunAtMs = resolveCronJobLastRunAtMs(job);
+  const last = lastRunAtMs ? formatMs(lastRunAtMs) : t("common.na");
   const status = resolveCronJobLastRunStatus(job);
   return `${status} · next ${next} · last ${last}`;
 }

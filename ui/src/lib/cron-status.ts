@@ -4,7 +4,32 @@ import type { CronJob, CronRunStatus } from "../api/types.ts";
 type CronJobLastRunStatus = CronRunStatus | "unknown";
 
 export function resolveCronJobLastRunStatus(job: CronJob): CronJobLastRunStatus {
-  return job.state?.lastRunStatus ?? job.state?.lastStatus ?? "unknown";
+  if (job.lastRunStatus) {
+    return job.lastRunStatus;
+  }
+  const state = job.state;
+  const persistedStatus = state?.lastRunStatus ?? state?.lastStatus;
+  const triggerRecovered =
+    persistedStatus === "error" &&
+    state?.consecutiveErrors === 0 &&
+    typeof state.lastRunAtMs === "number" &&
+    typeof state.lastTriggerEvalAtMs === "number" &&
+    state.lastTriggerEvalAtMs > state.lastRunAtMs;
+  return triggerRecovered ? "ok" : (persistedStatus ?? "unknown");
+}
+
+export function resolveCronJobLastRunAtMs(job: CronJob): number | undefined {
+  if (typeof job.lastRunAtMs === "number") {
+    return job.lastRunAtMs;
+  }
+  const state = job.state;
+  return resolveCronJobLastRunStatus(job) === "ok" &&
+    state?.consecutiveErrors === 0 &&
+    typeof state.lastTriggerEvalAtMs === "number" &&
+    typeof state.lastRunAtMs === "number" &&
+    state.lastTriggerEvalAtMs > state.lastRunAtMs
+    ? state.lastTriggerEvalAtMs
+    : state?.lastRunAtMs;
 }
 
 // "Failed cron" surfaces (cron page, sidebar attention chips) track current

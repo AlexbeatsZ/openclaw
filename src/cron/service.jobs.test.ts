@@ -8,11 +8,52 @@ import {
   nextWakeAtMs,
   recomputeNextRuns,
   recomputeNextRunsForMaintenance,
+  resolveJobHealthState,
 } from "./service/jobs.js";
 import type { CronServiceState } from "./service/state.js";
 import type { CronJob, CronJobPatch } from "./types.js";
 
 const DEFAULT_TOP_OF_HOUR_STAGGER_MS = 5 * 60 * 1000;
+
+describe("resolveJobHealthState", () => {
+  it("reports a trigger as recovered after a newer quiet evaluation succeeds", () => {
+    const health = resolveJobHealthState({
+      trigger: { script: "json({ fire: false })" },
+      state: {
+        lastRunAtMs: 1_000,
+        lastRunStatus: "error",
+        lastError: "temporary network failure",
+        consecutiveErrors: 0,
+        lastTriggerEvalAtMs: 2_000,
+      },
+    });
+
+    expect(health).toEqual({
+      lastRunStatus: "ok",
+      lastRunAtMs: 2_000,
+      lastRunError: undefined,
+    });
+  });
+
+  it("preserves an error while the latest trigger evaluation is still failing", () => {
+    const health = resolveJobHealthState({
+      trigger: { script: "json({ fire: false })" },
+      state: {
+        lastRunAtMs: 1_000,
+        lastRunStatus: "error",
+        lastError: "still failing",
+        consecutiveErrors: 1,
+        lastTriggerEvalAtMs: 1_000,
+      },
+    });
+
+    expect(health).toEqual({
+      lastRunStatus: "error",
+      lastRunAtMs: 1_000,
+      lastRunError: "still failing",
+    });
+  });
+});
 
 function expectCronStaggerMs(job: CronJob, expected: number): void {
   expect(job.schedule.kind).toBe("cron");

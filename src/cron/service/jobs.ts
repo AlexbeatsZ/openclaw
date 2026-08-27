@@ -69,6 +69,39 @@ export function resolveJobLastRunStatus(job: Pick<CronJob, "state">) {
   return job.state.lastRunStatus ?? job.state.lastStatus;
 }
 
+/**
+ * Resolves the job's current user-facing health without rewriting run history.
+ *
+ * A quiet trigger evaluation is not a payload run, so it intentionally leaves
+ * the prior run status intact. Once a newer evaluation succeeds, however, that
+ * historical error is no longer an active trigger failure and must not keep
+ * list filters, counters, or status badges red.
+ */
+export function resolveJobHealthState(job: Pick<CronJob, "state" | "trigger">) {
+  const lastRunStatus = resolveJobLastRunStatus(job);
+  const lastRunAtMs = job.state.lastRunAtMs;
+  const lastTriggerEvalAtMs = job.state.lastTriggerEvalAtMs;
+  const triggerRecovered =
+    job.trigger !== undefined &&
+    lastRunStatus === "error" &&
+    job.state.consecutiveErrors === 0 &&
+    isFiniteTimestamp(lastRunAtMs) &&
+    isFiniteTimestamp(lastTriggerEvalAtMs) &&
+    lastTriggerEvalAtMs > lastRunAtMs;
+  if (triggerRecovered) {
+    return {
+      lastRunStatus: "ok" as const,
+      lastRunAtMs: lastTriggerEvalAtMs,
+      lastRunError: undefined,
+    };
+  }
+  return {
+    lastRunStatus,
+    lastRunAtMs,
+    lastRunError: job.state.lastError,
+  };
+}
+
 /** Resolves the retry backoff delay for a one-based consecutive error count. */
 export function errorBackoffMs(
   consecutiveErrors: number,

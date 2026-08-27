@@ -693,6 +693,9 @@ type CronJobState = {
   lastFailureNotificationDeliveryStatus?: CronDeliveryStatus;
   lastFailureNotificationDeliveryError?: string;
   lastFailureAlertAtMs?: number;
+  lastTriggerEvalAtMs?: number;
+  triggerEvalCount?: number;
+  lastTriggerFireAtMs?: number;
 };
 
 export type CronJob = CronJobBase<
@@ -704,6 +707,10 @@ export type CronJob = CronJobBase<
   CronFailureAlert | false
 > & {
   state?: CronJobState;
+  nextRunAtMs?: number;
+  lastRunAtMs?: number;
+  lastRunStatus?: CronRunStatus;
+  lastRunError?: string;
 };
 
 export type CronStatus = {

@@ -154,6 +154,15 @@ export function enrichCronJsonWithStatus(value: unknown): unknown {
   return value;
 }
 
+type CronJobReadProjection = CronJob & {
+  lastRunAtMs?: number;
+  lastRunStatus?: CronJob["state"]["lastRunStatus"];
+};
+
+function resolveLastActivityAtMs(job: CronJob): number | undefined {
+  return (job as CronJobReadProjection).lastRunAtMs ?? job.state?.lastRunAtMs;
+}
+
 function computeStatus(job: CronJob): string {
   if (!job.enabled) {
     return "disabled";
@@ -162,7 +171,12 @@ function computeStatus(job: CronJob): string {
   if (state.runningAtMs) {
     return "running";
   }
-  return state.lastRunStatus ?? state.lastStatus ?? "idle";
+  return (
+    (job as CronJobReadProjection).lastRunStatus ??
+    state.lastRunStatus ??
+    state.lastStatus ??
+    "idle"
+  );
 }
 
 // Human-facing decoration only: enrichCronJsonWithStatus() emits computeStatus()
@@ -466,7 +480,7 @@ export function printCronList(
       job.enabled ? formatRelative(state.nextRunAtMs, now) : "-",
       CRON_NEXT_PAD,
     );
-    const lastLabel = formatCell(formatRelative(state.lastRunAtMs, now), CRON_LAST_PAD);
+    const lastLabel = formatCell(formatRelative(resolveLastActivityAtMs(job), now), CRON_LAST_PAD);
     const statusRaw = computeStatus(job);
     const statusLabel = formatCell(formatCronStatusForDisplay(job), CRON_STATUS_PAD);
     const targetLabel = formatCell(job.sessionTarget, CRON_TARGET_PAD);
@@ -551,7 +565,7 @@ export function printCronShow(
   runtime.log(`model: ${job.payload.kind === "agentTurn" ? (job.payload.model ?? "-") : "-"}`);
   runtime.log(`delivery: ${preview.label} (${preview.detail})`);
   runtime.log(`next: ${formatRelative(job.state.nextRunAtMs, Date.now())}`);
-  runtime.log(`last: ${formatRelative(job.state.lastRunAtMs, Date.now())}`);
+  runtime.log(`last: ${formatRelative(resolveLastActivityAtMs(job), Date.now())}`);
   runtime.log(`status: ${formatCronStatusForDisplay(job)}`);
   // lastError is the run/schedule failure message; the diagnostic line below is
   // the run-diagnostics summary and can be empty when only lastError is set.
