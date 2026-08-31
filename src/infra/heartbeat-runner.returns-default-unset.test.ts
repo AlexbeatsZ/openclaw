@@ -872,6 +872,56 @@ describe("runHeartbeatOnce", () => {
     });
   });
 
+  it("direct cron preserves a model failure when no assistant payload exists", async () => {
+    const tmpDir = await createCaseDir("hb-direct-model-failure");
+    const storePath = path.join(tmpDir, "sessions.json");
+    const sessionKey = "agent:main:cron:direct-model-fail:run:1";
+    await fs.writeFile(
+      storePath,
+      JSON.stringify({
+        [sessionKey]: {
+          sessionId: "sid-direct-model-fail",
+          updatedAt: Date.now(),
+          lastChannel: "whatsapp",
+          lastTo: "+15550000000",
+        },
+      }),
+    );
+    enqueueSystemEvent("Create a report", {
+      sessionKey,
+      contextKey: "cron:direct-model-fail",
+    });
+    const cfg: OpenClawConfig = {
+      agents: { defaults: { workspace: tmpDir } },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+      session: { store: storePath },
+    };
+    const failure = "Model login expired on the gateway";
+    const replySpy = vi.fn().mockResolvedValue({ text: failure, isError: true });
+    const sendWhatsApp = vi.fn();
+
+    const result = await runHeartbeatOnce({
+      cfg,
+      source: "cron",
+      intent: "immediate",
+      sessionKey,
+      direct: {
+        jobId: "direct-model-fail",
+        delivery: { channel: "whatsapp", to: "+15551234567" },
+      },
+      deps: createHeartbeatDeps(sendWhatsApp, { getReplyFromConfig: replySpy }),
+    });
+
+    expect(result).toMatchObject({
+      status: "failed",
+      reason: failure,
+      deliveryError: failure,
+      delivered: false,
+      deliveryAttempted: false,
+    });
+    expect(sendWhatsApp).not.toHaveBeenCalled();
+  });
+
   it("skips when agent heartbeat is not enabled", async () => {
     const cfg: OpenClawConfig = {
       agents: {

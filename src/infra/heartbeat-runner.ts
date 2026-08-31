@@ -2046,7 +2046,12 @@ export async function runHeartbeatOnce(opts: {
         fallbackUsed,
       };
       if (directPayloads.length === 0) {
-        const reason = "main direct cron produced no user-visible assistant output";
+        const replyFailure = resolveHeartbeatReplyPayload(replyResult);
+        const reason =
+          replyFailure?.isError === true
+            ? resolveSendableOutboundReplyParts(replyFailure).trimmedText ||
+              "main direct cron produced no user-visible assistant output"
+            : "main direct cron produced no user-visible assistant output";
         return {
           status: "failed",
           reason,
