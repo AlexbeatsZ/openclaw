@@ -12,6 +12,7 @@ import type {
 import { icon } from "../../components/icons.ts";
 import "../../components/web-awesome.ts";
 import { toSanitizedMarkdownHtml } from "../../components/markdown.ts";
+import "../../components/runtime-error.ts";
 import { i18n, t } from "../../i18n/index.ts";
 import { formatUiExternalText } from "../../lib/format-error.ts";
 import {
@@ -411,8 +412,8 @@ function renderRun(
       : usage && typeof usage.input_tokens === "number" && typeof usage.output_tokens === "number"
         ? `${formatCompactTokenCount(usage.input_tokens)} in / ${formatCompactTokenCount(usage.output_tokens)} out`
         : null;
-  const bodySource =
-    entry.summary || formatUiExternalText(entry.error) || t("cron.runEntry.noSummary");
+  const bodySource = entry.summary || t("cron.runEntry.noSummary");
+  const showErrorAsBody = Boolean(entry.error) && !entry.summary;
   const showErrorInMeta = Boolean(entry.error) && Boolean(entry.summary);
   const suppressionReason = formatUiExternalText(entry.deliverySuppressionReason);
   const facts = [
@@ -468,15 +469,32 @@ function renderRun(
               </div>`
             : nothing}
           ${showErrorInMeta
-            ? html`<div class="muted">${formatUiExternalText(entry.error)}</div>`
+            ? html`<div class="muted">
+                <openclaw-runtime-error
+                  compact
+                  .error=${formatUiExternalText(entry.error)}
+                  .code=${entry.errorReason}
+                ></openclaw-runtime-error>
+              </div>`
             : nothing}
           ${entry.deliveryError
-            ? html`<div class="muted">${formatUiExternalText(entry.deliveryError)}</div>`
+            ? html`<div class="muted">
+                <openclaw-runtime-error
+                  compact
+                  .error=${formatUiExternalText(entry.deliveryError)}
+                  .code=${"delivery"}
+                ></openclaw-runtime-error>
+              </div>`
             : nothing}
         </div>
       </div>
       <div class="cron-run-entry__body chat-text">
-        ${unsafeHTML(toSanitizedMarkdownHtml(bodySource))}
+        ${showErrorAsBody
+          ? html`<openclaw-runtime-error
+              .error=${formatUiExternalText(entry.error)}
+              .code=${entry.errorReason}
+            ></openclaw-runtime-error>`
+          : unsafeHTML(toSanitizedMarkdownHtml(bodySource))}
       </div>
     </div>
   `;

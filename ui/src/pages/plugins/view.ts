@@ -10,6 +10,7 @@ import { icons } from "../../components/icons.ts";
 import { renderMcpServerForm, type McpServerForm } from "../../components/mcp-server-form.ts";
 import "../../components/modal-dialog.ts";
 import "../../components/openclaw-mascot.ts";
+import "../../components/runtime-error.ts";
 import {
   renderSettingsEmpty,
   renderSettingsPage,
@@ -1319,7 +1320,7 @@ export function renderPlugins(props: PluginsViewProps) {
         : nothing}
       ${props.error
         ? html`<div class="plugins-page-error" role="alert">
-            <span>${props.error}</span>
+            <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
             <button type="button" class="btn btn--sm" @click=${props.onRefresh}>
               ${t("pluginsPage.tryAgain")}
             </button>
@@ -1331,7 +1332,14 @@ export function renderPlugins(props: PluginsViewProps) {
               .kind} plugins-page-notice"
             role=${props.pageNotice.kind === "error" ? "alert" : "status"}
           >
-            <span>${props.pageNotice.text}</span>
+            <span>
+              ${props.pageNotice.kind === "error"
+                ? html`<openclaw-runtime-error
+                    compact
+                    .error=${props.pageNotice.text}
+                  ></openclaw-runtime-error>`
+                : props.pageNotice.text}
+            </span>
           </div>`
         : nothing}
 

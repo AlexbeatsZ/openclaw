@@ -31,6 +31,7 @@ import { highlightCodeHtml } from "../../components/markdown-code-blocks.ts";
 import { renderModelPicker } from "../../components/model-picker.ts";
 import { providerIdFromModelRef } from "../../components/provider-icon.ts";
 import { renderPicker, type PickerOption } from "../../components/select-picker.ts";
+import "../../components/runtime-error.ts";
 import "../../components/tooltip.ts";
 import "../../components/web-awesome.ts";
 import "../../components/web-awesome-popover.ts";
@@ -500,10 +501,14 @@ function renderListView(props: CronProps) {
             `
           : nothing}
         ${props.listError
-          ? html`<div class="cron-error-banner" role="alert">${props.listError}</div>`
+          ? html`<div class="cron-error-banner" role="alert">
+              <openclaw-runtime-error .error=${props.listError}></openclaw-runtime-error>
+            </div>`
           : nothing}
         ${props.error
-          ? html`<div class="cron-error-banner" role="alert">${props.error}</div>`
+          ? html`<div class="cron-error-banner" role="alert">
+              <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+            </div>`
           : nothing}
         ${renderToolbar(props, hasAdvancedJobsFilters)}
       </div>
@@ -1097,7 +1102,11 @@ function renderDetailView(props: CronProps, mode: CronPanelMode) {
     renderDetailHeader(props, mode, selectedJob),
     renderAdminRequired(props),
     hasDetailTabs ? renderDetailTabs(props) : nothing,
-    props.error ? html`<div class="cron-error-banner">${props.error}</div>` : nothing,
+    props.error
+      ? html`<div class="cron-error-banner">
+          <openclaw-runtime-error .error=${props.error}></openclaw-runtime-error>
+        </div>`
+      : nothing,
     html`
       <div
         id="cron-detail-panel"

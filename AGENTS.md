@@ -363,3 +363,5 @@ Mechanics only; policy lives above.
 
 - Agy CLI provider: `docs/design/agy-cli-provider.md`
 - Cron trigger health projection: `docs/design/cron-trigger-health-projection.md`
+- Control UI runtime error localization: `docs/design/control-ui-runtime-error-localization.md`
+- QQBot external plugin migration: `docs/design/qqbot-external-plugin-migration.md`

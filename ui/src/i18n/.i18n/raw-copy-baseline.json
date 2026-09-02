@@ -248,6 +248,146 @@
     },
     {
       "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "操作失败"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "操作已取消"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "当前操作发生冲突"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "服务返回了无效响应"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "服务没有返回可用内容"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "服务暂时不可用"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "后台进程执行失败"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "会话已失效"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "计费或余额异常"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "没有访问权限"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "请求被安全策略拦截"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "请求参数无效"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "请求超时"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "请求过于频繁"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "上下文长度超限"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "身份验证失败"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "网络连接失败"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "未找到所需资源"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "系统资源不足"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/components/runtime-error.ts",
+      "text": "消息发送失败"
+    },
+    {
+      "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/components/settings-sidebar.ts",
