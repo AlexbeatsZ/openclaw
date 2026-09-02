@@ -1,6 +1,10 @@
 // Agy provider discovery projects configured runtime models into the catalog.
 import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
-import { AGY_PROVIDER_ID, buildAgyProviderConfig } from "./catalog.js";
+import {
+  AGY_PROVIDER_ID,
+  buildAgyProviderConfig,
+  buildAgyStaticProviderConfig,
+} from "./catalog.js";
 import { agyModelDirectory, readAgyModelDirectoryConfig } from "./model-directory.js";
 
 const agyProviderDiscovery: ProviderPlugin = {
@@ -14,6 +18,10 @@ const agyProviderDiscovery: ProviderPlugin = {
       const models = await agyModelDirectory.prepare(readAgyModelDirectoryConfig(ctx.config));
       return { provider: buildAgyProviderConfig(models) };
     },
+  },
+  staticCatalog: {
+    order: "late",
+    run: async () => ({ provider: buildAgyStaticProviderConfig() }),
   },
 };
 

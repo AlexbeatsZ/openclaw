@@ -9,6 +9,7 @@ import {
 const mocks = vi.hoisted(() => ({
   prepare: vi.fn(),
   resolveDeps: vi.fn(async () => ({})),
+  withAgentPluginRegistry: vi.fn(async ({ run }: { run: () => Promise<unknown> }) => await run()),
 }));
 
 vi.mock("./command/prepare.js", () => ({
@@ -19,12 +20,17 @@ vi.mock("./command/runtime-loaders.js", () => ({
   resolveAgentCommandDeps: mocks.resolveDeps,
 }));
 
+vi.mock("./runtime-plugins.js", () => ({
+  withAgentPluginRegistry: mocks.withAgentPluginRegistry,
+}));
+
 function createPrepared(senderIsOwner: boolean) {
   return {
     cfg: {},
     opts: { runId: "run-local", senderIsOwner },
     runId: "run-local",
     workspaceDir: "/tmp/openclaw-agent-command-local-test",
+    runtimePluginSelections: [{ provider: "agy", modelId: "flash", agentId: "main" }],
   };
 }
 
@@ -66,5 +72,21 @@ describe("runLocalAgentCommand operator authority", () => {
         },
       });
     }
+  });
+
+  it("loads the provider owner selected during command preparation", async () => {
+    mocks.prepare.mockResolvedValueOnce(createPrepared(true));
+
+    await runLocalAgentCommand({
+      opts: { message: "test", runId: "run-local" },
+      runtime: {} as RuntimeEnv,
+      run: async () => undefined,
+    });
+
+    expect(mocks.withAgentPluginRegistry).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        selections: [{ provider: "agy", modelId: "flash", agentId: "main" }],
+      }),
+    );
   });
 });

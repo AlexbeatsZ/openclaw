@@ -71,6 +71,7 @@ export async function runLocalAgentCommand<TResult>(params: {
             const run = () =>
               withAgentPluginRegistry({
                 config: admittedPrepared.cfg,
+                selections: admittedPrepared.runtimePluginSelections,
                 workspaceDir: admittedPrepared.workspaceDir,
                 run: () => params.run(admittedPrepared, resolvedDeps),
               });

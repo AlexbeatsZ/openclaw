@@ -3,10 +3,14 @@ import { normalizeSortedUniqueStringEntries } from "@openclaw/normalization-core
 import { resolveCompatibleRuntimePluginRegistry, type PluginLoadOptions } from "./loader.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 import type { PluginRecord, PluginRegistry } from "./registry-types.js";
-import { getActivePluginRegistry, getActivePluginRegistryWorkspaceDir } from "./runtime.js";
+import {
+  getActivePluginRegistry,
+  getActivePluginRegistryWorkspaceDir,
+  getPluginRegistryForContext,
+} from "./runtime.js";
 
 export function getActiveRuntimePluginRegistry(): PluginRegistry | null {
-  return getActivePluginRegistry();
+  return getPluginRegistryForContext();
 }
 
 function isRuntimePluginRecordLoaded(plugin: PluginRecord): boolean {

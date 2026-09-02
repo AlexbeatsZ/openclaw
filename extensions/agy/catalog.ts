@@ -21,6 +21,23 @@ const ZERO_COST = {
   cacheWrite: 0,
 };
 
+const AGY_STATIC_MODELS: readonly AgyCatalogModel[] = [
+  {
+    id: "flash",
+    name: "Gemini Flash (resolved by agy CLI)",
+    resolvedModelId: "flash",
+    thinkingLevels: ["low", "medium", "high"],
+    thinkingModels: { low: "flash", medium: "flash", high: "flash" },
+  },
+  {
+    id: "pro",
+    name: "Gemini Pro (resolved by agy CLI)",
+    resolvedModelId: "pro",
+    thinkingLevels: ["low", "high"],
+    thinkingModels: { low: "pro", high: "pro" },
+  },
+];
+
 export type AgyCatalogModel = {
   id: string;
   name: string;
@@ -72,6 +89,11 @@ export function buildAgyProviderConfig(models: readonly AgyCatalogModel[]): Mode
     api: "openai-completions",
     models: models.map(buildAgyModelDefinition),
   };
+}
+
+/** Stable aliases keep Agy selectable while its slower CLI catalog refreshes. */
+export function buildAgyStaticProviderConfig(): ModelProviderConfig {
+  return buildAgyProviderConfig(AGY_STATIC_MODELS);
 }
 
 export function buildAgyDynamicModel(

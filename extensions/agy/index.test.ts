@@ -151,7 +151,16 @@ describe("agy provider", () => {
         ],
       },
     });
-    expect(provider.staticCatalog).toBeUndefined();
+    await expect(
+      (provider.staticCatalog as { run: () => Promise<unknown> }).run(),
+    ).resolves.toMatchObject({
+      provider: {
+        models: [
+          expect.objectContaining({ id: CONFIGURED_MODEL_ID, reasoning: true }),
+          expect.objectContaining({ id: "pro", reasoning: true }),
+        ],
+      },
+    });
     await expect(
       providerDiscovery.catalog?.run({ config: configuredAgyConfig } as never),
     ).resolves.toMatchObject({
@@ -159,6 +168,14 @@ describe("agy provider", () => {
         models: [
           expect.objectContaining({ id: CONFIGURED_MODEL_ID }),
           expect.objectContaining({ id: "pro" }),
+        ],
+      },
+    });
+    await expect(providerDiscovery.staticCatalog?.run({} as never)).resolves.toMatchObject({
+      provider: {
+        models: [
+          expect.objectContaining({ id: CONFIGURED_MODEL_ID, reasoning: true }),
+          expect.objectContaining({ id: "pro", reasoning: true }),
         ],
       },
     });

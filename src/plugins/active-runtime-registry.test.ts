@@ -1,6 +1,7 @@
 // Covers active runtime plugin registry state and reset behavior.
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  getActiveRuntimePluginRegistry,
   getLoadedRuntimePluginRegistry,
   listLoadedRuntimePluginIds,
   listRuntimePluginIdsFromRegistry,
@@ -10,6 +11,7 @@ import { clearPluginLoaderCache } from "./loader.test-fixtures.js";
 import { createEmptyPluginRegistry } from "./registry-empty.js";
 import type { PluginRegistry } from "./registry-types.js";
 import { resetPluginRuntimeStateForTest, setActivePluginRegistry } from "./runtime.js";
+import { withPluginRuntimeRegistryScope } from "./runtime/gateway-request-scope.js";
 
 afterEach(() => {
   clearPluginLoaderCache();
@@ -38,6 +40,17 @@ function createOwnedRegistryWithPlugin(pluginId: string, rootDir: string): Plugi
 }
 
 describe("getLoadedRuntimePluginRegistry", () => {
+  it("prefers a request-scoped runtime registry over the process-global registry", async () => {
+    const globalRegistry = createRegistryWithPlugin("global");
+    const requestRegistry = createRegistryWithPlugin("request");
+    setActivePluginRegistry(globalRegistry, "global", "default", "/tmp/ws");
+
+    await withPluginRuntimeRegistryScope(requestRegistry, async () => {
+      expect(getActiveRuntimePluginRegistry()).toBe(requestRegistry);
+    });
+    expect(getActiveRuntimePluginRegistry()).toBe(globalRegistry);
+  });
+
   it("treats an explicit empty plugin scope as empty", () => {
     setActivePluginRegistry(createRegistryWithPlugin("stale"), "stale", "default", "/tmp/ws");
 

@@ -85,6 +85,29 @@ describe("AgyModelDirectory", () => {
     ]);
   });
 
+  it("parses the tab-delimited id and display name emitted by agy models", () => {
+    expect(
+      parseAgyModelDirectory(
+        [
+          "gemini-3.8-flash-high\tGemini 3.8 Flash (High)",
+          "gemini-3.8-flash-medium\tGemini 3.8 Flash (Medium)",
+          "gemini-3.8-flash-low\tGemini 3.8 Flash (Low)",
+          "gemini-3.1-pro-high\tGemini 3.1 Pro (High)",
+          "gemini-3.1-pro-low\tGemini 3.1 Pro (Low)",
+        ].join("\n"),
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: "flash",
+        resolvedModelId: "gemini-3.8-flash-medium",
+      }),
+      expect.objectContaining({
+        id: "pro",
+        resolvedModelId: "gemini-3.1-pro-high",
+      }),
+    ]);
+  });
+
   it("uses only variants reported by agy and shares one in-flight discovery", async () => {
     const runner = vi.fn(async () => ({
       stdout: ["gemini-4.2-flash-low", "gemini-4.2-flash-high"].join("\n"),

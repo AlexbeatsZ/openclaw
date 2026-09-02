@@ -503,11 +503,13 @@ describe("agent runtime plugin registries", () => {
   it("owns a scoped registry for direct hosts", async () => {
     const config = {} as never;
     const pluginRegistry = { handle: true } as never;
+    const selections = [{ provider: "agy", modelId: "flash" }];
     hoisted.loadPluginRegistryHandle.mockReturnValue(pluginRegistry);
 
     await expect(
       withAgentPluginRegistry({
         config,
+        selections,
         workspaceDir: "/tmp/workspace",
         run: async () => getPluginRuntimeGatewayRequestScope()?.pluginRegistry,
       }),
@@ -518,7 +520,7 @@ describe("agent runtime plugin registries", () => {
       config,
       workspaceDir: "/tmp/workspace",
       basePluginIds: [],
-      selections: [],
+      selections,
       metadataSnapshot: expect.any(Object),
     });
   });

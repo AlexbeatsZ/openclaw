@@ -105,7 +105,10 @@ export function readAgyModelDirectoryConfig(config?: OpenClawConfig): AgyModelDi
 export function parseAgyModelDirectory(stdout: string): AgyCatalogModel[] {
   const families = new Map<string, AgyModelFamily>();
   for (const line of stdout.split(/\r?\n/)) {
-    const modelId = line.trim();
+    // `agy models` emits `<executable-id>\t<display-name>`; only the first
+    // column is accepted by `agy --model`, while older versions emitted one
+    // model name per line.
+    const modelId = (line.split("\t", 1)[0] ?? "").trim();
     const match = GEMINI_SLUG_PATTERN.exec(modelId) ?? GEMINI_DISPLAY_PATTERN.exec(modelId);
     if (!match) {
       continue;

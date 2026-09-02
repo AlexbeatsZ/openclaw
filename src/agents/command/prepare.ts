@@ -49,6 +49,7 @@ import {
   resolveInternalEventTranscriptBody,
 } from "./attempt-execution.shared.js";
 import { resolveExplicitAgentCommandSessionKey } from "./explicit-session-key.js";
+import { normalizeAgentCommandModelRef, parseAgentCommandModelRef } from "./model-ref.js";
 import { loadAcpManagerRuntime } from "./runtime-loaders.js";
 import { createAgentCommandSessionWorkingCopy } from "./session-helpers.js";
 import { resolveSession } from "./session.js";
@@ -295,6 +296,39 @@ export async function prepareAgentCommandExecution(
     allowPluginNormalization: pluginsEnabled,
     ...modelManifestContext,
   });
+  const explicitProvider = commandOpts.provider?.trim();
+  const explicitModel = commandOpts.model?.trim();
+  const explicitRuntimeModel = explicitModel
+    ? explicitProvider
+      ? normalizeAgentCommandModelRef(cfg, explicitProvider, explicitModel, modelManifestContext)
+      : parseAgentCommandModelRef(
+          cfg,
+          sessionAgentId,
+          explicitModel,
+          configuredModel.provider,
+          modelManifestContext,
+        )
+    : explicitProvider
+      ? normalizeAgentCommandModelRef(
+          cfg,
+          explicitProvider,
+          configuredModel.model,
+          modelManifestContext,
+        )
+      : undefined;
+  const runtimePluginSelections = [configuredModel, explicitRuntimeModel]
+    .filter((selection) => selection !== null && selection !== undefined)
+    .map((selection) => ({
+      provider: selection.provider,
+      modelId: selection.model,
+      agentId: sessionAgentId,
+    }))
+    .filter(
+      (selection, index, entries) =>
+        entries.findIndex(
+          (entry) => entry.provider === selection.provider && entry.modelId === selection.modelId,
+        ) === index,
+    );
   const configuredThinkingCatalog = buildConfiguredModelCatalog({
     cfg,
     workspaceDir,
@@ -443,6 +477,7 @@ export async function prepareAgentCommandExecution(
       agentDir,
       pluginsEnabled,
       manifestMetadataSnapshot,
+      runtimePluginSelections,
       ...(runtimeContext ? { commandRuntimeContext: runtimeContext } : {}),
       modelManifestContext,
       runId,

@@ -145,6 +145,7 @@ export function loadAgentRuntimePluginRegistryHandle(
 /** Binds a scoped plugin generation when a direct host has no Gateway owner. */
 export async function withAgentPluginRegistry<T>(params: {
   config: OpenClawConfig;
+  selections?: readonly AgentHarnessPluginSelection[];
   workspaceDir: string;
   run: () => Promise<T>;
 }): Promise<T> {
@@ -162,6 +163,7 @@ export async function withAgentPluginRegistry<T>(params: {
     basePluginIds: [],
     config: params.config,
     ...(metadataSnapshot ? { metadataSnapshot } : {}),
+    selections: params.selections,
     workspaceDir: params.workspaceDir,
   });
   const activeRegistry = getActivePluginRegistry();

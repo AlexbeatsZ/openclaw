@@ -12,6 +12,7 @@ import {
   applyAgyConfig,
   buildAgyDynamicModel,
   buildAgyProviderConfig,
+  buildAgyStaticProviderConfig,
 } from "./catalog.js";
 import { buildAgyCliBackend } from "./cli-backend.js";
 import {
@@ -112,6 +113,10 @@ export default definePluginEntry({
           const models = await agyModelDirectory.prepare(readAgyModelDirectoryConfig(ctx.config));
           return { provider: buildAgyProviderConfig(models) };
         },
+      },
+      staticCatalog: {
+        order: "late",
+        run: async () => ({ provider: buildAgyStaticProviderConfig() }),
       },
       prepareDynamicModel: async ({ config }) => {
         await agyModelDirectory.prepare(readAgyModelDirectoryConfig(config));
