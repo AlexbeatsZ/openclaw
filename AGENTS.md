@@ -358,3 +358,8 @@ Mechanics only; policy lives above.
 - Never edit `node_modules`.
 - Local-only `.agents` ignores: `.git/info/exclude`, not repo `.gitignore`.
 - External messaging: follow `docs/concepts/streaming.md` (no token-delta channel messages).
+
+## Local Design References
+
+- Agy CLI provider: `docs/design/agy-cli-provider.md`
+- Cron trigger health projection: `docs/design/cron-trigger-health-projection.md`

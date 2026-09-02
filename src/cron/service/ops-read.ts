@@ -6,12 +6,8 @@ import { readCronJobScratchState, writeCronJobScratch } from "../scratch-store.j
 import { createCronStreamSourceIdentity } from "../stream-schedule.js";
 import type { CronJob } from "../types.js";
 import { failureNotificationDeliveryFromJobState } from "./failure-alerts.js";
-import {
-  findJobOrThrow,
-  isJobEnabled,
-  nextWakeAtMs,
-  resolveJobLastRunStatus,
-} from "./jobs-scheduling.js";
+import { resolveJobHealthState } from "./job-health.js";
+import { findJobOrThrow, isJobEnabled, nextWakeAtMs } from "./jobs-scheduling.js";
 import { sortCronJobs } from "./list-page-sort.js";
 import type {
   CronJobsEnabledFilter,
@@ -350,7 +346,7 @@ export async function listPage(state: CronServiceState, opts?: CronListPageOptio
       }
       if (
         lastRunStatusFilter !== "all" &&
-        (resolveJobLastRunStatus(job) ?? "unknown") !== lastRunStatusFilter
+        (resolveJobHealthState(job).lastRunStatus ?? "unknown") !== lastRunStatusFilter
       ) {
         return false;
       }

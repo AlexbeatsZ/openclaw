@@ -169,7 +169,16 @@ export function enrichCronJsonWithStatus(value: unknown): unknown {
   return value;
 }
 
-function computeStatus(job: { enabled?: unknown; state?: unknown }): string {
+function resolveLastActivityAtMs(job: CronJob): number | undefined {
+  const projectedLastRunAtMs = "lastRunAtMs" in job ? job.lastRunAtMs : undefined;
+  return typeof projectedLastRunAtMs === "number" ? projectedLastRunAtMs : job.state?.lastRunAtMs;
+}
+
+function computeStatus(job: {
+  enabled?: unknown;
+  state?: unknown;
+  lastRunStatus?: unknown;
+}): string {
   const state = asOptionalRecord(job.state) ?? {};
   if (state.runningAtMs) {
     return "running";
@@ -177,11 +186,13 @@ function computeStatus(job: { enabled?: unknown; state?: unknown }): string {
   if (!job.enabled) {
     return "disabled";
   }
-  return typeof state.lastRunStatus === "string"
-    ? state.lastRunStatus
-    : typeof state.lastStatus === "string"
-      ? state.lastStatus
-      : "idle";
+  return typeof job.lastRunStatus === "string"
+    ? job.lastRunStatus
+    : typeof state.lastRunStatus === "string"
+      ? state.lastRunStatus
+      : typeof state.lastStatus === "string"
+        ? state.lastStatus
+        : "idle";
 }
 
 // Human-facing decoration only: enrichCronJsonWithStatus() emits computeStatus()
@@ -517,7 +528,7 @@ export function printCronList(
       job.enabled ? formatRelative(state.nextRunAtMs, now) : "-",
       CRON_NEXT_PAD,
     );
-    const lastLabel = formatCell(formatRelative(state.lastRunAtMs, now), CRON_LAST_PAD);
+    const lastLabel = formatCell(formatRelative(resolveLastActivityAtMs(job), now), CRON_LAST_PAD);
     const status = formatCronStatusForDisplay(job);
     const statusLabel = formatCell(status.label, CRON_STATUS_PAD);
     const targetLabel = formatCell(job.sessionTarget, CRON_TARGET_PAD);
@@ -595,7 +606,7 @@ export function printCronShow(
   );
   runtime.log(`delivery: ${showValue(preview.label)} (${showValue(preview.detail)})`);
   runtime.log(`next: ${formatRelative(job.state.nextRunAtMs, Date.now())}`);
-  runtime.log(`last: ${formatRelative(job.state.lastRunAtMs, Date.now())}`);
+  runtime.log(`last: ${formatRelative(resolveLastActivityAtMs(job), Date.now())}`);
   runtime.log(`status: ${showValue(formatCronStatusForDisplay(job).label)}`);
   // lastError is the run/schedule failure message; the diagnostic line below is
   // the run-diagnostics summary and can be empty when only lastError is set.

@@ -47,6 +47,7 @@ import {
   enqueueCliRun,
   isClaudeCliBackendId,
   prepareCliPromptImagePayload,
+  prependCliSystemPromptToPrompt,
   resolveCliNoOutputTimeoutMs,
   resolveCliRunQueueKey,
   resolveCliRunTimeoutOverrideMs,
@@ -164,6 +165,16 @@ export async function executePreparedCliRun(
     params.controlOperation !== undefined
       ? basePrompt
       : applyPluginTextReplacements(basePrompt, context.backendResolved.textTransforms?.input);
+  if (
+    systemPromptArg &&
+    backend.systemPromptTransport === "prompt-prefix" &&
+    (!useResume || backend.systemPromptWhen === "always" || resendSystemPromptForSoftResume)
+  ) {
+    prompt = prependCliSystemPromptToPrompt({
+      systemPrompt: systemPromptArg,
+      prompt,
+    });
+  }
   const promptContext = context.promptContext
     ? {
         ...(context.promptContext.prependContext

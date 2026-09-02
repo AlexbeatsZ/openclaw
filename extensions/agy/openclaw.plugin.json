@@ -1,0 +1,102 @@
+{
+  "id": "agy",
+  "icon": "https://www.gstatic.com/monospace/231115/logo.svg",
+  "activation": {
+    "onStartup": false
+  },
+  "providerCatalogEntry": "./provider-discovery.ts",
+  "enabledByDefault": true,
+  "providers": ["agy"],
+  "cliBackends": ["agy"],
+  "modelCatalog": {
+    "providers": {
+      "agy": {
+        "baseUrl": "cli://agy",
+        "apiKey": "agy-cli",
+        "auth": "token",
+        "api": "openai-completions",
+        "models": []
+      }
+    },
+    "discovery": {
+      "agy": "runtime"
+    }
+  },
+  "setup": {
+    "cliBackends": ["agy"],
+    "requiresRuntime": true,
+    "providers": [
+      {
+        "id": "agy",
+        "envVars": []
+      }
+    ]
+  },
+  "providerAuthChoices": [
+    {
+      "provider": "agy",
+      "method": "cli",
+      "choiceId": "agy",
+      "choiceLabel": "Agy CLI",
+      "groupId": "agy",
+      "groupLabel": "Agy CLI",
+      "groupHint": "Local CLI-backed provider",
+      "cliDescription": "Use the local agy command"
+    }
+  ],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "command": {
+        "type": "string",
+        "description": "Agy executable name or path.",
+        "default": "agy"
+      },
+      "args": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Extra arguments passed before the prompt argument."
+      },
+      "cwd": {
+        "type": "string",
+        "description": "Working directory for agy."
+      },
+      "env": {
+        "type": "object",
+        "additionalProperties": { "type": "string" },
+        "description": "Environment variables added to the agy process."
+      },
+      "timeoutMs": {
+        "type": "number",
+        "description": "Maximum agy process runtime in milliseconds.",
+        "default": 600000
+      },
+      "maxOutputBytes": {
+        "type": "number",
+        "description": "Maximum combined stdout/stderr bytes to capture.",
+        "default": 10485760
+      },
+      "modelArg": {
+        "type": "string",
+        "description": "CLI flag used to select a non-default model.",
+        "default": "--model"
+      },
+      "promptArg": {
+        "type": "string",
+        "description": "CLI flag used to pass a prompt.",
+        "default": "-p"
+      },
+      "systemPromptMode": {
+        "type": "string",
+        "enum": ["filtered", "full", "none"],
+        "description": "How the fallback stream includes OpenClaw system instructions before forwarding to agy. filtered omits OpenClaw tool sections and lets agy use its native tools.",
+        "default": "filtered"
+      },
+      "includeSystemPrompt": {
+        "type": "boolean",
+        "description": "Deprecated compatibility flag. true maps to systemPromptMode=full; false maps to systemPromptMode=none."
+      }
+    }
+  }
+}

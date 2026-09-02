@@ -327,4 +327,37 @@ describe("cron listPage sort guards", () => {
       await fs.rm(storeDir, { recursive: true, force: true });
     }
   });
+
+  it("excludes recovered trigger failures from the active error filter", async () => {
+    const failedAtMs = Date.parse("2026-02-27T15:00:00.000Z");
+    const jobs = [
+      createBaseJob({
+        id: "trigger-recovered",
+        trigger: { script: "json({ fire: false })" },
+        state: {
+          lastRunAtMs: failedAtMs,
+          lastRunStatus: "error",
+          lastError: "temporary network failure",
+          consecutiveErrors: 0,
+          lastTriggerEvalAtMs: failedAtMs + 60_000,
+        },
+      }),
+      createBaseJob({
+        id: "trigger-still-failing",
+        trigger: { script: "json({ fire: false })" },
+        state: {
+          lastRunAtMs: failedAtMs,
+          lastRunStatus: "error",
+          consecutiveErrors: 1,
+          lastTriggerEvalAtMs: failedAtMs,
+        },
+      }),
+    ];
+    const state = createMockCronStateForJobs({ jobs });
+
+    const page = await listPage(state, { lastRunStatus: "error" });
+
+    expect(page.jobs.map((job) => job.id)).toEqual(["trigger-still-failing"]);
+    expect(page.total).toBe(1);
+  });
 });

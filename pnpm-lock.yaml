@@ -551,6 +551,16 @@ importers:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
 
+  extensions/agy:
+    dependencies:
+      strip-ansi:
+        specifier: 7.2.0
+        version: 7.2.0
+    devDependencies:
+      '@openclaw/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+
   extensions/alibaba:
     devDependencies:
       '@openclaw/plugin-sdk':

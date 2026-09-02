@@ -33,6 +33,7 @@ import { toPublicCronJob } from "../../cron/public-job.js";
 import type { CronRuntimeAuthority } from "../../cron/runtime-authority.js";
 import { CRON_JOB_SCRATCH_MAX_BYTES } from "../../cron/scratch-contract.js";
 import { resolveFailureAlert } from "../../cron/service/failure-alerts.js";
+import { resolveJobHealthState } from "../../cron/service/job-health.js";
 import { applyJobPatch } from "../../cron/service/jobs.js";
 import {
   isInvalidCronSessionTargetIdError,
@@ -203,13 +204,14 @@ function publicCronScratch(
 
 function cronJobReadView(job: CronJob) {
   const publicJob = toPublicCronJob(job);
+  const health = resolveJobHealthState(job);
   return {
     ...publicJob,
     configRevision: resolveCronJobConfigRevision(job),
     nextRunAtMs: job.state.nextRunAtMs,
-    lastRunAtMs: job.state.lastRunAtMs,
-    lastRunStatus: job.state.lastRunStatus ?? job.state.lastStatus,
-    lastRunError: job.state.lastError,
+    lastRunAtMs: health.lastRunAtMs,
+    lastRunStatus: health.lastRunStatus,
+    lastRunError: health.lastRunError,
     lastDelivered: job.state.lastDelivered,
     lastDeliveryStatus: job.state.lastDeliveryStatus,
     lastDeliveryError: job.state.lastDeliveryError,
@@ -221,6 +223,7 @@ function cronJobReadView(job: CronJob) {
 }
 
 function compactCronListJob(job: CronJob) {
+  const health = resolveJobHealthState(job);
   // Optional declaration/delivery fields are omitted when unset so compact
   // rows stay lean for the common undeclared job.
   return {
@@ -233,9 +236,9 @@ function compactCronListJob(job: CronJob) {
     nextRunAtMs: job.state.nextRunAtMs ?? null,
     scheduleKind: job.schedule.kind,
     ...(job.trigger ? { trigger: true } : {}),
-    lastRunAtMs: job.state.lastRunAtMs ?? null,
-    lastRunStatus: job.state.lastRunStatus ?? job.state.lastStatus ?? null,
-    lastRunError: job.state.lastError ?? null,
+    lastRunAtMs: health.lastRunAtMs ?? null,
+    lastRunStatus: health.lastRunStatus ?? null,
+    lastRunError: health.lastRunError ?? null,
     ...(job.state.lastDelivered !== undefined ? { lastDelivered: job.state.lastDelivered } : {}),
     ...(job.state.lastDeliveryStatus !== undefined
       ? { lastDeliveryStatus: job.state.lastDeliveryStatus }

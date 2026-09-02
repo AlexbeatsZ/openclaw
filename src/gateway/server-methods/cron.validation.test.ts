@@ -2435,6 +2435,39 @@ describe("cron method validation", () => {
     );
   });
 
+  it("projects a newer successful trigger evaluation as recovered health", async () => {
+    const job = createCronJob({
+      trigger: { script: "json({ fire: false })" },
+      state: {
+        lastRunAtMs: 1_000,
+        lastRunStatus: "error",
+        lastError: "temporary network failure",
+        consecutiveErrors: 0,
+        lastTriggerEvalAtMs: 2_000,
+      },
+    });
+    const context = createCronContext(job);
+
+    for (const compact of [false, true]) {
+      const { respond } = await invokeCron("cron.list", compact ? { compact: true } : {}, {
+        context,
+      });
+      expect(respond).toHaveBeenCalledWith(
+        true,
+        expect.objectContaining({
+          jobs: [
+            expect.objectContaining({
+              lastRunAtMs: 2_000,
+              lastRunStatus: "ok",
+              lastRunError: compact ? null : undefined,
+            }),
+          ],
+        }),
+        undefined,
+      );
+    }
+  });
+
   it("rejects caller-scoped cron.add for a foreign agent", async () => {
     const { context, respond } = await invokeCronAdd(
       agentTurnCronParams({

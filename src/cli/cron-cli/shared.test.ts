@@ -960,4 +960,27 @@ describe("cron status rendering", () => {
     // The computed --json status must agree with the human render.
     expect(enrichCronJsonWithStatus(job)).toMatchObject({ status: "ok" });
   });
+
+  it("prefers the gateway health projection over persisted trigger failure history", () => {
+    const job = Object.assign(
+      createBaseJob({
+        id: "recovered-trigger",
+        sessionTarget: "isolated",
+        trigger: { script: "json({ fire: false })" },
+        state: {
+          lastRunAtMs: 1_000,
+          lastRunStatus: "error",
+          consecutiveErrors: 0,
+          lastTriggerEvalAtMs: 2_000,
+        },
+      }),
+      { lastRunAtMs: 2_000, lastRunStatus: "ok" as const },
+    );
+
+    expect(enrichCronJsonWithStatus(job)).toMatchObject({ status: "ok" });
+
+    const show = createRuntimeLogCapture();
+    printCronShow(job, show.runtime);
+    expectLogsToInclude(show.logs, "status: ok");
+  });
 });

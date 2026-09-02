@@ -1,6 +1,7 @@
 // Cron service job tests cover job creation, updates, and runtime scheduling.
 import { MAX_DATE_TIMESTAMP_MS } from "@openclaw/normalization-core/number-coercion";
 import { describe, expect, it } from "vitest";
+import { resolveJobHealthState } from "./service/job-health.js";
 import {
   computeJobNextRunAtMs,
   computeJobPreviousRunAtOrBeforeMs,
@@ -19,6 +20,46 @@ const CREDENTIAL_WEBHOOK_URL = (() => {
   url.password = "password";
   return url.href;
 })();
+
+describe("resolveJobHealthState", () => {
+  it("reports a trigger as recovered after a newer quiet evaluation succeeds", () => {
+    expect(
+      resolveJobHealthState({
+        trigger: { script: "json({ fire: false })" },
+        state: {
+          lastRunAtMs: 1_000,
+          lastRunStatus: "error",
+          lastError: "temporary network failure",
+          consecutiveErrors: 0,
+          lastTriggerEvalAtMs: 2_000,
+        },
+      }),
+    ).toEqual({
+      lastRunStatus: "ok",
+      lastRunAtMs: 2_000,
+      lastRunError: undefined,
+    });
+  });
+
+  it("preserves the persisted outcome until a newer trigger evaluation succeeds", () => {
+    expect(
+      resolveJobHealthState({
+        trigger: { script: "json({ fire: false })" },
+        state: {
+          lastRunAtMs: 1_000,
+          lastRunStatus: "error",
+          lastError: "still failing",
+          consecutiveErrors: 1,
+          lastTriggerEvalAtMs: 1_000,
+        },
+      }),
+    ).toEqual({
+      lastRunStatus: "error",
+      lastRunAtMs: 1_000,
+      lastRunError: "still failing",
+    });
+  });
+});
 
 function expectCronStaggerMs(job: CronJob, expected: number): void {
   expect(job.schedule.kind).toBe("cron");

@@ -20,10 +20,38 @@ import {
 } from "./cli-image-turn-correlation.js";
 import {
   buildCliArgs,
+  prependCliSystemPromptToPrompt,
   prepareCliPromptImagePayload,
+  resolveSystemPromptUsage,
   resolveCliRunQueueKey,
   writeCliSystemPromptFile,
 } from "./cli-runner/helpers.js";
+
+describe("CLI prompt-prefix system prompt transport", () => {
+  it("keeps and prefixes a system prompt for CLIs without a native system channel", () => {
+    expect(
+      resolveSystemPromptUsage({
+        backend: { command: "agy", systemPromptTransport: "prompt-prefix" },
+        isNewSession: true,
+        systemPrompt: "Be direct.",
+      }),
+    ).toBe("Be direct.");
+    expect(
+      prependCliSystemPromptToPrompt({
+        systemPrompt: `Stable${SYSTEM_PROMPT_CACHE_BOUNDARY}Dynamic`,
+        prompt: "Do the task.",
+      }),
+    ).toBe(
+      [
+        "OpenClaw system instructions for this CLI run:",
+        "Stable\nDynamic",
+        "",
+        "User request:",
+        "Do the task.",
+      ].join("\n"),
+    );
+  });
+});
 import * as promptImageUtils from "./embedded-agent-runner/run/images.js";
 import * as toolImages from "./tool-images.js";
 

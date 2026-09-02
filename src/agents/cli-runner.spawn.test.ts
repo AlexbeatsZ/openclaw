@@ -1322,6 +1322,38 @@ describe("runCliAgent spawn path", () => {
     );
   });
 
+  it("prefixes system instructions for a CLI without a native system channel", async () => {
+    const systemPrompt = `Stable instructions${SYSTEM_PROMPT_CACHE_BOUNDARY}Dynamic context`;
+    mockSuccessfulCliRun(CLAUDE_OK_JSONL);
+
+    await executePreparedCliRun(
+      buildPreparedCliRunContext({
+        prompt: "Do the task.",
+        systemPrompt,
+        backend: {
+          args: ["--print", "{prompt}"],
+          input: "arg",
+          sessionMode: "none",
+          systemPromptArg: undefined,
+          systemPromptFileArg: undefined,
+          systemPromptTransport: "prompt-prefix",
+          systemPromptWhen: "always",
+        },
+      }),
+    );
+
+    const args = (mockCallArg(supervisorSpawnMock) as { argv: string[] }).argv;
+    expect(args).toContain(
+      [
+        "OpenClaw system instructions for this CLI run:",
+        "Stable instructions\nDynamic context",
+        "",
+        "User request:",
+        "Do the task.",
+      ].join("\n"),
+    );
+  });
+
   it("keeps complete system prompts for Claude first and never modes", async () => {
     const systemPrompt = `Stable instructions${SYSTEM_PROMPT_CACHE_BOUNDARY}Dynamic context`;
     const backend = {

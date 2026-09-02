@@ -45,6 +45,7 @@ import { t } from "../../i18n/index.ts";
 import {
   isCronJobActiveFailure,
   isCronJobRunning,
+  resolveCronJobLastRunAtMs,
   resolveCronJobLastRunStatus,
 } from "../../lib/cron-status.ts";
 import { parseCronEveryMs } from "../../lib/cron/decimal.ts";
@@ -961,7 +962,7 @@ function disabledNoteLabel(job: CronJob) {
 
 function renderLastRunCell(job: CronJob) {
   const status = resolveCronJobLastRunStatus(job);
-  const lastRunAtMs = job.state?.lastRunAtMs;
+  const lastRunAtMs = resolveCronJobLastRunAtMs(job);
   const rel =
     typeof lastRunAtMs === "number" && Number.isFinite(lastRunAtMs)
       ? formatRelativeTimestamp(lastRunAtMs)
