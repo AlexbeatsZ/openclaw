@@ -96,6 +96,11 @@
       "includeSystemPrompt": {
         "type": "boolean",
         "description": "Deprecated compatibility flag. true maps to systemPromptMode=full; false maps to systemPromptMode=none."
+      },
+      "maxVersion": {
+        "type": "string",
+        "description": "Maximum Gemini model version to discover from agy CLI.",
+        "default": "3.7"
       }
     }
   }

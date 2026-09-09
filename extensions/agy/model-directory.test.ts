@@ -108,6 +108,31 @@ describe("AgyModelDirectory", () => {
     ]);
   });
 
+  it("filters out versions exceeding maxVersion when configured", () => {
+    expect(
+      parseAgyModelDirectory(
+        [
+          "gemini-3.8-flash-high\tGemini 3.8 Flash (High)",
+          "gemini-3.8-flash-medium\tGemini 3.8 Flash (Medium)",
+          "gemini-3.7-flash-high\tGemini 3.7 Flash (High)",
+          "gemini-3.7-flash-medium\tGemini 3.7 Flash (Medium)",
+          "gemini-3.7-flash-low\tGemini 3.7 Flash (Low)",
+          "gemini-3.1-pro-high\tGemini 3.1 Pro (High)",
+        ].join("\n"),
+        "3.7",
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: "flash",
+        resolvedModelId: "gemini-3.7-flash-medium",
+      }),
+      expect.objectContaining({
+        id: "pro",
+        resolvedModelId: "gemini-3.1-pro-high",
+      }),
+    ]);
+  });
+
   it("uses only variants reported by agy and shares one in-flight discovery", async () => {
     const runner = vi.fn(async () => ({
       stdout: ["gemini-4.2-flash-low", "gemini-4.2-flash-high"].join("\n"),

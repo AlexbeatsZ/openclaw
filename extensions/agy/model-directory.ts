@@ -57,6 +57,7 @@ function buildConfigKey(config: AgyModelDirectoryConfig): string {
     cwd: config.cwd ?? "",
     env: Object.entries(config.env ?? {}).toSorted(([left], [right]) => left.localeCompare(right)),
     fallbackModels: config.fallbackModels ?? [],
+    maxVersion: config.maxVersion ?? "3.7",
   });
 }
 
@@ -102,7 +103,7 @@ export function readAgyModelDirectoryConfig(config?: OpenClawConfig): AgyModelDi
   };
 }
 
-export function parseAgyModelDirectory(stdout: string): AgyCatalogModel[] {
+export function parseAgyModelDirectory(stdout: string, maxVersion?: string): AgyCatalogModel[] {
   const families = new Map<string, AgyModelFamily>();
   for (const line of stdout.split(/\r?\n/)) {
     // `agy models` emits `<executable-id>\t<display-name>`; only the first
@@ -135,8 +136,12 @@ export function parseAgyModelDirectory(stdout: string): AgyCatalogModel[] {
     families.set(familyKey, current);
   }
 
+  const targetMax = maxVersion ? parseVersion(maxVersion) : undefined;
   const latestByAlias = new Map<string, AgyModelFamily>();
   for (const family of families.values()) {
+    if (targetMax && compareVersions(family.version, targetMax) > 0) {
+      continue;
+    }
     const current = latestByAlias.get(family.alias);
     if (!current || compareVersions(family.version, current.version) > 0) {
       latestByAlias.set(family.alias, family);
@@ -243,7 +248,7 @@ export class AgyModelDirectory {
           `agy models failed with code ${result.exitCode ?? "null"}${detail ? `: ${detail}` : ""}`,
         );
       }
-      const models = parseAgyModelDirectory(result.stdout);
+      const models = parseAgyModelDirectory(result.stdout, config.maxVersion);
       if (models.length === 0) {
         throw new Error(
           "agy models returned no supported Gemini Flash/Pro variants; run `agy models` to inspect the installed CLI catalog.",

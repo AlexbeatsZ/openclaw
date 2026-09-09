@@ -35,6 +35,7 @@ export type AgyPluginConfig = {
   promptArg?: string;
   systemPromptMode?: AgySystemPromptMode;
   includeSystemPrompt?: boolean;
+  maxVersion?: string;
 };
 
 export type AgySystemPromptMode = "filtered" | "full" | "none";
@@ -109,6 +110,7 @@ export function readAgyPluginConfig(config?: OpenClawConfig): AgyPluginConfig {
       typeof pluginConfig.includeSystemPrompt === "boolean"
         ? pluginConfig.includeSystemPrompt
         : undefined,
+    maxVersion: normalizeOptionalString(pluginConfig.maxVersion) ?? "3.7",
   };
 }
 
